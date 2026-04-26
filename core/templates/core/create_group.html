@@ -1,0 +1,231 @@
+{% extends 'core/base.html' %}
+{% block title %}Memboard – New Board{% endblock %}
+
+{% block extra_css %}
+.page-header { padding:1.75rem 2.5rem 1.25rem; border-bottom:1px solid var(--border); background:var(--warm-white); display:flex; align-items:center; gap:0.75rem; }
+.back-btn { display:flex; align-items:center; gap:0.3rem; font-size:0.85rem; color:var(--ink-light); text-decoration:none; padding:0.3rem 0.6rem; border-radius:7px; transition:background 0.12s; }
+.back-btn:hover { background:var(--amber-pale); color:var(--ink); }
+.back-btn svg { width:13px; height:13px; }
+.page-header h2 { font-family:'Lora',serif; font-size:1.35rem; font-weight:600; color:var(--ink); }
+.page-content { padding:2rem 2.5rem; max-width:640px; }
+
+/* Preview */
+.preview-card { background:var(--warm-white); border:1px solid var(--border); border-radius:14px; overflow:hidden; margin-bottom:2rem; }
+.preview-banner { height:72px; background:linear-gradient(135deg,#FFF4A8,#F0D800 200%); position:relative; display:flex; align-items:flex-end; padding:8px 12px; }
+.preview-banner span { font-size:0.68rem; color:rgba(44,36,23,0.5); text-transform:uppercase; letter-spacing:0.06em; font-weight:500; }
+.preview-body { padding:1rem; }
+.preview-name { font-family:'Lora',serif; font-size:1rem; font-weight:600; color:var(--ink-muted); font-style:italic; }
+.preview-desc { font-size:0.8rem; color:var(--ink-muted); margin-top:0.2rem; }
+.preview-members { display:flex; gap:-4px; margin-top:0.75rem; }
+
+/* Form fields */
+.form-group { margin-bottom:1.25rem; }
+.form-label { display:block; font-size:0.78rem; font-weight:500; color:var(--ink-light); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.45rem; }
+.form-label .opt { font-weight:400; opacity:0.5; text-transform:none; letter-spacing:0; }
+.form-input,.form-textarea { width:100%; border:1px solid var(--border-strong); border-radius:10px; padding:0.65rem 0.9rem; font-family:'DM Sans',sans-serif; font-size:0.95rem; color:var(--ink); background:var(--warm-white); outline:none; transition:border-color 0.15s,box-shadow 0.15s; }
+.form-input { height:44px; }
+.form-textarea { resize:vertical; min-height:80px; }
+.form-input:focus,.form-textarea:focus { border-color:var(--amber); box-shadow:0 0 0 3px rgba(201,123,42,0.12); }
+.form-input::placeholder,.form-textarea::placeholder { color:rgba(107,94,74,0.4); }
+
+/* Privacy picker */
+.privacy-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+.privacy-option input[type="radio"] { display:none; }
+.privacy-option label { display:flex; flex-direction:column; align-items:center; gap:0.4rem; padding:0.8rem 0.5rem; border:1px solid var(--border-strong); border-radius:10px; cursor:pointer; text-align:center; font-size:0.8rem; color:var(--ink-light); background:var(--cream); transition:all 0.12s; font-family:'DM Sans',sans-serif; }
+.privacy-option label svg { width:20px; height:20px; opacity:0.55; }
+.privacy-option input:checked + label { border-color:var(--amber); background:var(--amber-pale); color:var(--ink); }
+.privacy-option input:checked + label svg { opacity:1; }
+
+/* Friend picker */
+.friend-picker { display:flex; flex-wrap:wrap; gap:0.5rem; }
+.friend-pick-btn {
+    display:flex; align-items:center; gap:0.4rem;
+    padding:0.32rem 0.7rem 0.32rem 0.32rem;
+    border:1px solid var(--border); border-radius:100px;
+    background:var(--cream); cursor:pointer;
+    font-family:'DM Sans',sans-serif; font-size:0.82rem; color:var(--ink-light);
+    transition:all 0.12s; position:relative;
+}
+.friend-pick-btn:hover { border-color:var(--border-strong); color:var(--ink); }
+.friend-pick-btn.selected { border-color:var(--amber); background:var(--amber-pale); color:var(--ink); }
+.friend-pick-btn .fpav { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.58rem; font-weight:500; text-transform:uppercase; flex-shrink:0; }
+.friend-pick-btn .fp-check { width:14px; height:14px; border-radius:50%; background:var(--amber); display:none; align-items:center; justify-content:center; flex-shrink:0; }
+.friend-pick-btn.selected .fp-check { display:flex; }
+.friend-pick-btn .fp-check svg { width:7px; height:7px; }
+.no-friends-msg { font-size:0.85rem; color:var(--ink-muted); font-style:italic; }
+
+.selected-count { font-size:0.78rem; color:var(--ink-muted); margin-top:0.5rem; }
+
+/* Actions */
+.form-actions { display:flex; gap:0.75rem; margin-top:1.5rem; }
+.btn-cancel { height:44px; padding:0 1.25rem; background:transparent; border:1px solid var(--border-strong); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.875rem; color:var(--ink-light); cursor:pointer; text-decoration:none; display:flex; align-items:center; transition:background 0.12s; }
+.btn-cancel:hover { background:var(--amber-pale); color:var(--ink); }
+.btn-save { flex:1; height:44px; }
+
+/* Preview member avatars */
+.prev-av { width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.6rem; font-weight:500; text-transform:uppercase; border:2px solid var(--warm-white); margin-left:-6px; }
+.prev-av:first-child { margin-left:0; }
+
+@media(max-width:680px){ .page-header,.page-content{padding:1.25rem;} }
+{% endblock %}
+
+{% block main %}
+<div class="page-header">
+    <a href="{% url 'home' %}" class="back-btn">
+        <svg viewBox="0 0 13 13" fill="none"><path d="M8.5 2L4 6.5l4.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back
+    </a>
+    <h2>Create a new board</h2>
+</div>
+
+<div class="page-content">
+
+    <!-- Live preview -->
+    <div class="preview-card">
+        <div class="preview-banner"><span>Preview</span></div>
+        <div class="preview-body">
+            <div class="preview-name" id="previewName">Your board name</div>
+            <div class="preview-desc" id="previewDesc">Description will appear here…</div>
+            <div class="preview-members" id="previewMembers">
+                <!-- you are always a member -->
+                <div class="prev-av av-0" title="{{ user.username }}">{{ user.username|slice:":2"|upper }}</div>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" id="groupForm">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label class="form-label" for="id_name">Board name</label>
+            <input type="text" class="form-input" id="id_name" name="name"
+                   placeholder="e.g. Summer Trip 2024, Book Club, Family…"
+                   value="{{ form.name.value|default:'' }}"
+                   oninput="updatePreview()" required>
+            {% if form.name.errors %}<div style="color:#B83232;font-size:0.8rem;margin-top:0.3rem;">{{ form.name.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="id_description">Description <span class="opt">optional</span></label>
+            <textarea class="form-textarea" id="id_description" name="description"
+                      placeholder="What is this board about?"
+                      oninput="updatePreview()">{{ form.description.value|default:'' }}</textarea>
+        </div>
+
+        <!-- Privacy -->
+        <div class="form-group">
+            <label class="form-label">Privacy</label>
+            <div class="privacy-grid">
+                <div class="privacy-option">
+                    <input type="radio" name="privacy" id="priv_friends" value="friends" checked>
+                    <label for="priv_friends">
+                        <svg viewBox="0 0 20 20" fill="none"><circle cx="7" cy="6" r="3" fill="currentColor" opacity="0.6"/><path d="M1 16c0-3.3 2.7-6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="13" cy="7" r="2.5" fill="currentColor" opacity="0.35"/></svg>
+                        Friends only
+                    </label>
+                </div>
+                <div class="privacy-option">
+                    <input type="radio" name="privacy" id="priv_invite" value="invite">
+                    <label for="priv_invite">
+                        <svg viewBox="0 0 20 20" fill="none"><rect x="3" y="6" width="14" height="10" rx="2" fill="currentColor" opacity="0.25"/><path d="M3 8l7 5 7-5" stroke="currentColor" stroke-width="1.4"/></svg>
+                        Invite only
+                    </label>
+                </div>
+                <div class="privacy-option">
+                    <input type="radio" name="privacy" id="priv_private" value="private">
+                    <label for="priv_private">
+                        <svg viewBox="0 0 20 20" fill="none"><rect x="5" y="9" width="10" height="8" rx="2" fill="currentColor" opacity="0.25"/><path d="M7 9V7a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.4"/></svg>
+                        Just me
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Friend picker -->
+        <div class="form-group">
+            <label class="form-label">Add friends to this board <span class="opt">optional</span></label>
+            {% if friends %}
+            <div class="friend-picker" id="friendPicker">
+                {% for friend in friends %}
+                <button type="button"
+                        class="friend-pick-btn"
+                        data-id="{{ friend.id }}"
+                        data-name="{{ friend.username }}"
+                        data-initials="{{ friend.username|slice:':2'|upper }}"
+                        data-avclass="av-{{ forloop.counter0 }}"
+                        onclick="toggleFriend(this)">
+                    <div class="fpav av-{{ forloop.counter0 }}">{{ friend.username|slice:":2"|upper }}</div>
+                    {{ friend.username }}
+                    <div class="fp-check">
+                        <svg viewBox="0 0 7 7" fill="none"><path d="M1 3.5l2 2 3-3.5" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <input type="checkbox" name="selected_friends" value="{{ friend.id }}" style="display:none;" id="fp_{{ friend.id }}">
+                </button>
+                {% endfor %}
+            </div>
+            <div class="selected-count" id="selectedCount"></div>
+            {% else %}
+            <p class="no-friends-msg">You don't have any friends on Memboard yet. <a href="{% url 'friends' %}" style="color:var(--amber);">Add some friends</a> first.</p>
+            {% endif %}
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'home' %}" class="btn-cancel">Cancel</a>
+            <button type="submit" class="btn-primary btn-save">Create board</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const AV_COLOURS = ['av-0','av-1','av-2','av-3','av-4','av-5'];
+let selectedFriends = [];
+
+function toggleFriend(btn) {
+    btn.classList.toggle('selected');
+    const id       = btn.dataset.id;
+    const chk      = document.getElementById('fp_' + id);
+    const isOn     = btn.classList.contains('selected');
+    if (chk) chk.checked = isOn;
+
+    if (isOn) {
+        selectedFriends.push({ id, name: btn.dataset.name, initials: btn.dataset.initials, av: btn.dataset.avclass });
+    } else {
+        selectedFriends = selectedFriends.filter(f => f.id !== id);
+    }
+    updateSelectedCount();
+    updatePreviewMembers();
+}
+
+function updateSelectedCount() {
+    const el = document.getElementById('selectedCount');
+    if (!el) return;
+    const n = selectedFriends.length;
+    el.textContent = n > 0 ? `${n} friend${n > 1 ? 's' : ''} will be added` : '';
+}
+
+function updatePreviewMembers() {
+    const wrap = document.getElementById('previewMembers');
+    if (!wrap) return;
+    // always show "you"
+    let html = `<div class="prev-av av-0" title="{{ user.username }}">{{ user.username|slice:":2"|upper }}</div>`;
+    selectedFriends.slice(0, 4).forEach(f => {
+        html += `<div class="prev-av ${f.av}" title="${f.name}">${f.initials}</div>`;
+    });
+    if (selectedFriends.length > 4) {
+        html += `<div class="prev-av" style="background:rgba(44,36,23,0.1);color:var(--ink-light);">+${selectedFriends.length - 4}</div>`;
+    }
+    wrap.innerHTML = html;
+}
+
+function updatePreview() {
+    const name = document.getElementById('id_name').value.trim();
+    const desc = document.getElementById('id_description').value.trim();
+    const pName = document.getElementById('previewName');
+    const pDesc = document.getElementById('previewDesc');
+    if (name) { pName.textContent = name; pName.style.fontStyle = 'normal'; pName.style.color = 'var(--ink)'; }
+    else       { pName.textContent = 'Your board name'; pName.style.fontStyle = 'italic'; pName.style.color = 'var(--ink-muted)'; }
+    pDesc.textContent = desc || 'Description will appear here…';
+}
+</script>
+{% endblock %}

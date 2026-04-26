@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Memboard{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&family=Caveat:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --cream: #F7F3EC;
+            --warm-white: #FDFAF5;
+            --ink: #2C2417;
+            --ink-light: #6B5E4A;
+            --ink-muted: #9D8E7A;
+            --amber: #C97B2A;
+            --amber-pale: #F5E8D0;
+            --border: rgba(44, 36, 23, 0.12);
+            --border-strong: rgba(44, 36, 23, 0.25);
+            --sidebar-w: 240px;
+            --note-yellow: #FFF4A8;
+            --note-green: #C8F0D8;
+            --note-blue: #C8E4F8;
+            --note-pink: #F8C8D8;
+            --note-lavender: #E4C8F8;
+            --note-peach: #F8D8C0;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--cream);
+            color: var(--ink);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: var(--sidebar-w);
+            flex-shrink: 0;
+            background: var(--warm-white);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-logo {
+            padding: 1.5rem 1.25rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            text-decoration: none;
+        }
+
+        .sidebar-logo-icon {
+            width: 34px; height: 34px;
+            background: var(--ink);
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo-icon svg { width: 18px; height: 18px; }
+
+        .sidebar-logo-text {
+            font-family: 'Lora', serif;
+            font-size: 1.15rem; font-weight: 600;
+            color: var(--ink); letter-spacing: -0.02em;
+        }
+
+        .sidebar-nav { padding: 1rem 0.75rem; flex: 1; }
+
+        .nav-section-label {
+            font-size: 0.7rem; font-weight: 500;
+            color: var(--ink-muted);
+            text-transform: uppercase; letter-spacing: 0.08em;
+            padding: 0 0.5rem; margin: 1rem 0 0.4rem;
+        }
+        .nav-section-label:first-child { margin-top: 0; }
+
+        .nav-link {
+            display: flex; align-items: center; gap: 0.6rem;
+            padding: 0.5rem 0.6rem; border-radius: 8px;
+            font-size: 0.875rem; color: var(--ink-light);
+            text-decoration: none;
+            transition: background 0.12s, color 0.12s;
+            margin-bottom: 1px; position: relative;
+        }
+        .nav-link:hover, .nav-link.active {
+            background: var(--amber-pale); color: var(--ink);
+        }
+        .nav-link.active { font-weight: 500; }
+        .nav-link svg { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.7; }
+        .nav-link.active svg { opacity: 1; }
+
+        .nav-badge {
+            margin-left: auto;
+            min-width: 18px; height: 18px;
+            background: var(--amber); color: white;
+            border-radius: 9px; font-size: 0.65rem; font-weight: 500;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 5px;
+        }
+
+        .sidebar-footer {
+            padding: 1rem 1.25rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .user-row { display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.75rem; }
+
+        .avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: var(--amber-pale); border: 1.5px solid var(--amber);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; font-weight: 500; color: var(--amber);
+            flex-shrink: 0; text-transform: uppercase;
+        }
+
+        .user-name { font-size: 0.875rem; font-weight: 500; color: var(--ink); }
+
+        .logout-form button {
+            width: 100%; height: 36px; background: transparent;
+            border: 1px solid var(--border-strong); border-radius: 8px;
+            font-family: 'DM Sans', sans-serif; font-size: 0.8rem;
+            color: var(--ink-light); cursor: pointer; transition: background 0.12s;
+        }
+        .logout-form button:hover { background: var(--cream); color: var(--ink); }
+
+        /* ── Main ── */
+        .main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; min-width: 0; }
+
+        /* ── Toast messages ── */
+        .toast-list {
+            position: fixed; top: 1.25rem; right: 1.25rem;
+            z-index: 999; display: flex; flex-direction: column; gap: 0.5rem;
+            max-width: 340px;
+        }
+
+        .toast {
+            padding: 0.75rem 1rem;
+            border-radius: 10px; font-size: 0.875rem;
+            border: 1px solid; animation: toastIn 0.2s ease;
+        }
+
+        @keyframes toastIn { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: none; } }
+
+        .toast-success { background: #EAF5EA; border-color: #8BC88B; color: #1A5C1A; }
+        .toast-error   { background: #FCEAEA; border-color: #D48A8A; color: #6B1A1A; }
+        .toast-info    { background: var(--amber-pale); border-color: var(--amber); color: var(--ink); }
+
+        /* ── Shared component styles ── */
+        .btn-primary {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            height: 42px; padding: 0 1.25rem;
+            background: var(--ink); color: var(--warm-white);
+            border: none; border-radius: 9px;
+            font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500;
+            cursor: pointer; transition: background 0.15s; text-decoration: none;
+        }
+        .btn-primary:hover { background: #3d3323; }
+        .btn-primary svg { width: 15px; height: 15px; }
+
+        .btn-outline {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            height: 38px; padding: 0 1rem;
+            background: transparent; color: var(--ink-light);
+            border: 1px solid var(--border-strong); border-radius: 9px;
+            font-family: 'DM Sans', sans-serif; font-size: 0.85rem;
+            cursor: pointer; transition: all 0.12s; text-decoration: none;
+        }
+        .btn-outline:hover { background: var(--amber-pale); border-color: var(--amber); color: var(--ink); }
+        .btn-outline svg { width: 14px; height: 14px; }
+
+        .btn-danger {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            height: 34px; padding: 0 0.9rem;
+            background: transparent; color: #A33030;
+            border: 1px solid rgba(163,48,48,0.3); border-radius: 8px;
+            font-family: 'DM Sans', sans-serif; font-size: 0.8rem;
+            cursor: pointer; transition: all 0.12s;
+        }
+        .btn-danger:hover { background: #FCEAEA; border-color: #D48A8A; }
+
+        /* Member avatar colour palette */
+        .av-0 { background: #FFF4A8; color: #7A6800; border: 1.5px solid #E8CE00; }
+        .av-1 { background: #C8F0D8; color: #1A6B3C; border: 1.5px solid #68C88C; }
+        .av-2 { background: #C8E4F8; color: #1A4E6B; border: 1.5px solid #6AACD4; }
+        .av-3 { background: #F8C8D8; color: #6B1A30; border: 1.5px solid #D46A8C; }
+        .av-4 { background: #E4C8F8; color: #4A1A6B; border: 1.5px solid #A46AD4; }
+        .av-5 { background: #F8D8C0; color: #6B3A1A; border: 1.5px solid #D48A5A; }
+
+        /* Django form styling */
+        .django-form p { margin-bottom: 1rem; }
+        .django-form p label {
+            display: block; font-size: 0.8rem; font-weight: 500;
+            color: var(--ink-light); text-transform: uppercase;
+            letter-spacing: 0.06em; margin-bottom: 0.4rem;
+        }
+        .django-form p input[type="text"],
+        .django-form p input[type="password"],
+        .django-form p input[type="email"],
+        .django-form p textarea,
+        .django-form p select {
+            width: 100%; border: 1px solid var(--border-strong);
+            border-radius: 10px; padding: 0.65rem 0.9rem;
+            font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+            color: var(--ink); background: var(--cream);
+            transition: border-color 0.15s, box-shadow 0.15s; outline: none;
+        }
+        .django-form p input:focus,
+        .django-form p textarea:focus,
+        .django-form p select:focus {
+            border-color: var(--amber); box-shadow: 0 0 0 3px rgba(201,123,42,0.12);
+        }
+        .django-form .helptext { font-size: 0.78rem; color: var(--ink-muted); margin-top: 0.3rem; display: block; }
+        .django-form .errorlist { list-style: none; color: #B83232; font-size: 0.8rem; margin-top: 0.3rem; }
+
+        @media (max-width: 680px) {
+            .sidebar { display: none; }
+        }
+
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <a href="{% url 'home' %}" class="sidebar-logo">
+            <div class="sidebar-logo-icon">
+                <svg viewBox="0 0 28 28" fill="none">
+                    <rect x="4" y="6" width="14" height="17" rx="2" fill="#F7F3EC" opacity="0.9"/>
+                    <rect x="10" y="4" width="14" height="17" rx="2" fill="#F7F3EC" opacity="0.6"/>
+                    <rect x="5" y="7" width="12" height="2" rx="1" fill="#C97B2A"/>
+                    <rect x="5" y="11" width="9" height="1.5" rx="0.75" fill="#C97B2A" opacity="0.5"/>
+                    <rect x="5" y="14" width="11" height="1.5" rx="0.75" fill="#C97B2A" opacity="0.5"/>
+                </svg>
+            </div>
+            <span class="sidebar-logo-text">Memboard</span>
+        </a>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Main</div>
+            <a href="{% url 'home' %}" class="nav-link {% block nav_home %}{% endblock %}">
+                <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.4"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.4"/></svg>
+                My Boards
+            </a>
+            <a href="{% url 'friends' %}" class="nav-link {% block nav_friends %}{% endblock %}">
+                <svg viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="2.5" fill="currentColor" opacity="0.7"/><path d="M1 13c0-2.8 2.2-5 5-5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="11" cy="6" r="2" fill="currentColor" opacity="0.4"/><path d="M9 13c0-2.2 1.8-4 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.4"/></svg>
+                Friends
+                {% if pending_requests_count %}
+                <span class="nav-badge">{{ pending_requests_count }}</span>
+                {% endif %}
+            </a>
+
+            {% if user_groups %}
+            <div class="nav-section-label">Your boards</div>
+            {% for g in user_groups %}
+            <a href="{% url 'group_detail' g.pk %}" class="nav-link {% if current_group_pk == g.pk %}active{% endif %}">
+                <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="10" height="12" rx="1.5" fill="currentColor" opacity="0.5"/><rect x="4" y="1" width="10" height="12" rx="1.5" fill="currentColor" opacity="0.3"/></svg>
+                {{ g.name }}
+            </a>
+            {% endfor %}
+            {% endif %}
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-row">
+                <div class="avatar av-0">{{ user_initials }}</div>
+                <span class="user-name">{{ user_display }}</span>
+            </div>
+            <form method="post" action="{% url 'logout' %}" class="logout-form">
+                {% csrf_token %}
+                <button type="submit">Sign out</button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+        {% block main %}{% endblock %}
+    </main>
+
+    <!-- Toast messages -->
+    {% if messages %}
+    <div class="toast-list" id="toastList">
+        {% for message in messages %}
+        <div class="toast toast-{{ message.tags|default:'info' }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    <script>
+        setTimeout(() => {
+            const list = document.getElementById('toastList');
+            if (list) list.style.opacity = '0';
+            setTimeout(() => list && list.remove(), 400);
+        }, 3500);
+    </script>
+    {% endif %}
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

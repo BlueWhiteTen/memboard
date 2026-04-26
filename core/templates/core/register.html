@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memboard – Create Account</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+        :root{--cream:#F7F3EC;--warm-white:#FDFAF5;--ink:#2C2417;--ink-light:#6B5E4A;--amber:#C97B2A;--amber-pale:#F5E8D0;--border:rgba(44,36,23,0.15);--border-strong:rgba(44,36,23,0.28);}
+        body{font-family:'DM Sans',sans-serif;background:var(--cream);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem 1.5rem;background-image:radial-gradient(circle at 20% 20%,rgba(201,123,42,0.07) 0%,transparent 50%);}
+        .wrap{width:100%;max-width:440px;}
+        .logo-area{text-align:center;margin-bottom:2.5rem;}
+        .logo-icon{width:52px;height:52px;background:var(--ink);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:1rem;}
+        .logo-icon svg{width:28px;height:28px;}
+        .logo-area h1{font-family:'Lora',serif;font-size:1.9rem;font-weight:600;color:var(--ink);letter-spacing:-0.02em;}
+        .logo-area p{font-size:0.875rem;color:var(--ink-light);margin-top:0.3rem;font-weight:300;}
+        .card{background:var(--warm-white);border:1px solid var(--border);border-radius:18px;padding:2rem;box-shadow:0 2px 24px rgba(44,36,23,0.06);}
+        .card h2{font-family:'Lora',serif;font-size:1.15rem;font-weight:600;color:var(--ink);margin-bottom:0.3rem;}
+        .card .sub{font-size:0.875rem;color:var(--ink-light);margin-bottom:1.5rem;font-weight:300;}
+        .invite-banner{background:var(--amber-pale);border:1px solid var(--amber);border-radius:10px;padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.875rem;color:var(--ink);}
+        .row2{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;}
+        .field{margin-bottom:1rem;}
+        .field label{display:block;font-size:0.78rem;font-weight:500;color:var(--ink-light);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.4rem;}
+        .field input{width:100%;height:44px;border:1px solid var(--border-strong);border-radius:10px;padding:0 0.9rem;font-family:'DM Sans',sans-serif;font-size:0.95rem;color:var(--ink);background:var(--cream);outline:none;transition:border-color 0.15s,box-shadow 0.15s;}
+        .field input:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(201,123,42,0.12);}
+        .field input::placeholder{color:rgba(107,94,74,0.4);}
+        .field-error{font-size:0.78rem;color:#B83232;margin-top:0.3rem;}
+        .helptext{font-size:0.75rem;color:var(--ink-light);margin-top:0.3rem;display:block;opacity:0.8;}
+        .btn{width:100%;height:46px;background:var(--ink);color:var(--warm-white);border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:500;cursor:pointer;transition:background 0.15s;margin-top:0.25rem;}
+        .btn:hover{background:#3d3323;}
+        .footer-link{text-align:center;margin-top:1.25rem;font-size:0.875rem;color:var(--ink-light);}
+        .footer-link a{color:var(--amber);text-decoration:none;font-weight:500;}
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="logo-area">
+        <div class="logo-icon">
+            <svg viewBox="0 0 28 28" fill="none">
+                <rect x="4" y="6" width="14" height="17" rx="2" fill="#F7F3EC" opacity="0.9"/>
+                <rect x="10" y="4" width="14" height="17" rx="2" fill="#F7F3EC" opacity="0.6"/>
+                <rect x="5" y="7" width="12" height="2" rx="1" fill="#C97B2A"/>
+                <rect x="5" y="11" width="9" height="1.5" rx="0.75" fill="#C97B2A" opacity="0.5"/>
+                <rect x="5" y="14" width="11" height="1.5" rx="0.75" fill="#C97B2A" opacity="0.5"/>
+            </svg>
+        </div>
+        <h1>Memboard</h1>
+        <p>Your shared memory space</p>
+    </div>
+    <div class="card">
+        <h2>Create your account</h2>
+        <p class="sub">Start saving memories with people that matter.</p>
+
+        {% if invite_token %}
+        <div class="invite-banner">🎉 You were invited to join a board. Sign up to accept!</div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            {% if invite_token %}<input type="hidden" name="invite_token" value="{{ invite_token }}">{% endif %}
+
+            <div class="row2">
+                <div class="field">
+                    <label for="id_first_name">First name</label>
+                    <input type="text" id="id_first_name" name="first_name"
+                           placeholder="Alex" value="{{ form.first_name.value|default:'' }}" required>
+                    {% if form.first_name.errors %}<div class="field-error">{{ form.first_name.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="field">
+                    <label for="id_last_name">Last name</label>
+                    <input type="text" id="id_last_name" name="last_name"
+                           placeholder="Smith" value="{{ form.last_name.value|default:'' }}" required>
+                    {% if form.last_name.errors %}<div class="field-error">{{ form.last_name.errors.0 }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="id_email">Email address</label>
+                <input type="email" id="id_email" name="email"
+                       placeholder="your@email.com" value="{{ form.email.value|default:'' }}" required autocomplete="email">
+                {% if form.email.errors %}<div class="field-error">{{ form.email.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="field">
+                <label for="id_password1">Password</label>
+                <input type="password" id="id_password1" name="password1" placeholder="••••••••" autocomplete="new-password">
+                {% if form.password1.errors %}<div class="field-error">{{ form.password1.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="field">
+                <label for="id_password2">Confirm password</label>
+                <input type="password" id="id_password2" name="password2" placeholder="••••••••" autocomplete="new-password">
+                {% if form.password2.errors %}<div class="field-error">{{ form.password2.errors.0 }}</div>{% endif %}
+            </div>
+
+            <button type="submit" class="btn">Create account</button>
+        </form>
+        <div class="footer-link">Already have an account? <a href="{% url 'login' %}">Sign in</a></div>
+    </div>
+</div>
+</body>
+</html>

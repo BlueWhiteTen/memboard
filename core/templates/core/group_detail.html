@@ -1,0 +1,950 @@
+{% extends 'core/base.html' %}
+{% block title %}Memboard – {{ group.name }}{% endblock %}
+{% block extra_css %}
+/* ── Group header ── */
+.group-header { background:var(--warm-white); border-bottom:1px solid var(--border); padding:1.75rem 2.5rem 1.5rem; }
+.breadcrumb { display:flex; align-items:center; gap:0.35rem; font-size:0.78rem; color:var(--ink-muted); margin-bottom:0.6rem; }
+.breadcrumb a { color:var(--ink-muted); text-decoration:none; }
+.breadcrumb a:hover { color:var(--amber); }
+.breadcrumb svg { width:11px; height:11px; }
+.group-header-row { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1.25rem; }
+.group-title { font-family:'Lora',serif; font-size:1.65rem; font-weight:600; color:var(--ink); letter-spacing:-0.02em; }
+.group-desc { font-size:0.875rem; color:var(--ink-light); margin-top:0.25rem; font-weight:300; }
+.header-actions { display:flex; gap:0.55rem; align-items:flex-start; flex-shrink:0; }
+
+/* Members strip */
+.members-strip { display:flex; align-items:center; gap:0.45rem; flex-wrap:wrap; }
+.members-label { font-size:0.7rem; color:var(--ink-muted); text-transform:uppercase; letter-spacing:0.06em; font-weight:500; margin-right:0.2rem; }
+.member-pill { display:flex; align-items:center; gap:0.38rem; padding:0.28rem 0.65rem 0.28rem 0.28rem; background:var(--cream); border:1px solid var(--border); border-radius:100px; font-size:0.78rem; color:var(--ink); }
+.mpav { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.58rem; font-weight:500; text-transform:uppercase; flex-shrink:0; }
+.you-badge { font-size:0.6rem; background:var(--amber-pale); color:var(--amber); padding:1px 5px; border-radius:4px; font-weight:500; }
+.invite-btn { display:flex; align-items:center; gap:0.3rem; padding:0.28rem 0.65rem; background:transparent; border:1px dashed var(--border-strong); border-radius:100px; font-family:'DM Sans',sans-serif; font-size:0.78rem; color:var(--ink-muted); cursor:pointer; transition:all 0.12s; }
+.invite-btn:hover { border-color:var(--amber); background:var(--amber-pale); color:var(--ink); }
+.invite-btn svg { width:11px; height:11px; }
+
+/* ── Board ── */
+.board-area { flex:1; padding:1.75rem 2.5rem; }
+.board-toolbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; gap:0.75rem; flex-wrap:wrap; }
+.filters { display:flex; gap:0.35rem; flex-wrap:wrap; }
+.filter-btn { height:30px; padding:0 0.8rem; background:var(--warm-white); border:1px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:0.78rem; color:var(--ink-light); cursor:pointer; transition:all 0.12s; }
+.filter-btn:hover,.filter-btn.active { background:var(--amber-pale); border-color:var(--amber); color:var(--ink); }
+.board-count { font-size:0.78rem; color:var(--ink-muted); white-space:nowrap; }
+
+/* Notes masonry */
+.notes-grid { columns:3; column-gap:1rem; }
+@media(max-width:1000px){.notes-grid{columns:2;}}
+@media(max-width:560px){.notes-grid{columns:1;}}
+
+/* ── Post-it card ── */
+.note-card { break-inside:avoid; margin-bottom:1rem; transition:transform 0.15s,box-shadow 0.15s; position:relative; }
+.note-card:hover { transform:translateY(-3px) rotate(0deg) !important; z-index:5; }
+.note-inner { border-radius:3px; padding:1.1rem 1.1rem 0.9rem; position:relative; overflow:hidden; }
+.note-inner::before { content:''; position:absolute; top:0; left:50%; transform:translateX(-50%); width:48px; height:15px; background:rgba(255,255,255,0.45); border-radius:0 0 4px 4px; }
+.note-yellow   .note-inner { background:#FFF4A8; box-shadow:3px 4px 10px rgba(44,36,23,0.11); }
+.note-green    .note-inner { background:#C8F0D8; box-shadow:3px 4px 10px rgba(44,36,23,0.10); }
+.note-blue     .note-inner { background:#C8E4F8; box-shadow:3px 4px 10px rgba(44,36,23,0.10); }
+.note-pink     .note-inner { background:#F8C8D8; box-shadow:3px 4px 10px rgba(44,36,23,0.10); }
+.note-lavender .note-inner { background:#E4C8F8; box-shadow:3px 4px 10px rgba(44,36,23,0.10); }
+.note-peach    .note-inner { background:#F8D8C0; box-shadow:3px 4px 10px rgba(44,36,23,0.10); }
+
+.note-title { font-family:'Caveat',cursive; font-size:1.2rem; font-weight:600; color:var(--ink); margin-top:0.5rem; margin-bottom:0.15rem; line-height:1.3; }
+.note-text  { font-family:'Caveat',cursive; font-size:1.05rem; color:var(--ink); line-height:1.55; margin-top:0.45rem; word-break:break-word; }
+.note-photo { width:calc(100% + 2.2rem); margin:0.75rem -1.1rem -0.9rem; display:block; border-radius:0 0 3px 3px; object-fit:cover; max-height:200px; }
+
+.note-footer { margin-top:0.75rem; padding-top:0.6rem; border-top:1px solid rgba(44,36,23,0.1); display:flex; align-items:flex-end; justify-content:space-between; gap:0.5rem; }
+.note-meta { flex:1; min-width:0; }
+.note-date { font-size:0.68rem; color:rgba(44,36,23,0.45); font-family:'DM Sans',sans-serif; }
+.note-creator-row { display:flex; align-items:center; gap:0.3rem; margin-top:0.22rem; }
+.creator-av { width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.55rem; font-weight:500; flex-shrink:0; text-transform:uppercase; }
+.creator-name { font-size:0.72rem; color:rgba(44,36,23,0.55); font-family:'DM Sans',sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* tagged avatars */
+.tagged-row { display:flex; }
+.tagged-av { width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.56rem; font-weight:500; text-transform:uppercase; border:2px solid white; margin-left:-5px; flex-shrink:0; }
+.tagged-av:first-child { margin-left:0; }
+.tagged-more { width:20px; height:20px; border-radius:50%; background:rgba(44,36,23,0.12); display:flex; align-items:center; justify-content:center; font-size:0.55rem; color:var(--ink-light); border:2px solid white; margin-left:-5px; }
+
+/* Note action buttons (edit/delete) */
+.note-actions { position:absolute; top:6px; right:6px; display:none; gap:4px; }
+.note-card:hover .note-actions { display:flex; }
+.note-action-btn { width:22px; height:22px; background:rgba(44,36,23,0.08); border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:background 0.12s; color:var(--ink-light); }
+.note-action-btn:hover { background:rgba(44,36,23,0.15); color:var(--ink); }
+.note-action-btn.del:hover { background:rgba(163,48,48,0.15); color:#A33030; }
+.note-action-btn svg { width:10px; height:10px; }
+
+/* edit permission badge on note */
+.edit-perm-badge { display:inline-flex; align-items:center; gap:3px; font-size:0.62rem; color:rgba(44,36,23,0.4); font-family:'DM Sans',sans-serif; margin-top:0.2rem; }
+.edit-perm-badge svg { width:9px; height:9px; opacity:0.5; }
+
+/* Empty */
+.board-empty { text-align:center; padding:5rem 2rem; }
+.board-empty-emoji { font-size:3rem; margin-bottom:1rem; opacity:0.4; }
+.board-empty h3 { font-family:'Lora',serif; font-size:1.2rem; font-weight:600; color:var(--ink); margin-bottom:0.35rem; }
+.board-empty p { font-size:0.875rem; color:var(--ink-muted); margin-bottom:1.5rem; font-weight:300; }
+
+/* ── Modal shared ── */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(44,36,23,0.42); z-index:200; align-items:center; justify-content:center; padding:1.5rem; }
+.modal-overlay.open { display:flex; }
+.modal { background:var(--warm-white); border-radius:18px; width:100%; max-width:520px; max-height:92vh; overflow-y:auto; box-shadow:0 24px 64px rgba(44,36,23,0.22); animation:modalIn 0.18s ease; }
+@keyframes modalIn { from{opacity:0;transform:scale(0.97) translateY(8px);}to{opacity:1;transform:none;} }
+.modal-head { padding:1.5rem 1.5rem 0; display:flex; align-items:center; justify-content:space-between; }
+.modal-head h3 { font-family:'Lora',serif; font-size:1.1rem; font-weight:600; color:var(--ink); }
+.modal-close-btn { width:30px; height:30px; border:1px solid var(--border); border-radius:7px; background:transparent; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--ink-light); transition:background 0.12s; }
+.modal-close-btn:hover { background:var(--cream); }
+.modal-close-btn svg { width:12px; height:12px; }
+.modal-body { padding:1.25rem 1.5rem 1.5rem; }
+
+/* live preview */
+.live-preview { border-radius:3px; padding:1rem; min-height:80px; font-family:'Caveat',cursive; font-size:1.1rem; color:var(--ink); background:#FFF4A8; box-shadow:3px 4px 10px rgba(44,36,23,0.1); transition:background 0.25s; position:relative; margin-bottom:1.1rem; }
+.live-preview::before { content:''; position:absolute; top:0; left:50%; transform:translateX(-50%); width:40px; height:13px; background:rgba(255,255,255,0.45); border-radius:0 0 4px 4px; }
+.lp-title { font-weight:600; font-size:1.2rem; margin-bottom:0.15rem; }
+.lp-placeholder { color:rgba(44,36,23,0.35); font-style:italic; }
+
+/* colour swatches */
+.swatch-row { display:flex; gap:0.45rem; margin-bottom:1.1rem; }
+.swatch { width:28px; height:28px; border-radius:50%; border:3px solid transparent; cursor:pointer; transition:transform 0.1s,border-color 0.1s; }
+.swatch:hover { transform:scale(1.15); }
+.swatch.sel { border-color:var(--ink); transform:scale(1.1); }
+
+/* modal fields */
+.mfield { margin-bottom:1rem; }
+.mlabel { display:block; font-size:0.75rem; font-weight:500; color:var(--ink-light); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem; }
+.mlabel .opt { font-weight:400; opacity:0.5; text-transform:none; letter-spacing:0; }
+.minput,.mtextarea { width:100%; border:1px solid var(--border-strong); border-radius:10px; padding:0.65rem 0.9rem; color:var(--ink); background:var(--cream); outline:none; transition:border-color 0.15s,box-shadow 0.15s; font-family:'Caveat',cursive; font-size:1.05rem; }
+.minput { height:44px; font-family:'DM Sans',sans-serif; font-size:0.9rem; }
+.mtextarea { min-height:110px; resize:vertical; }
+.minput:focus,.mtextarea:focus { border-color:var(--amber); box-shadow:0 0 0 3px rgba(201,123,42,0.12); }
+.minput::placeholder,.mtextarea::placeholder { color:rgba(107,94,74,0.4); font-style:italic; }
+
+/* tag grid */
+.tag-grid { display:flex; gap:0.4rem; flex-wrap:wrap; margin-bottom:0.25rem; }
+.tag-btn { display:flex; align-items:center; gap:0.38rem; padding:0.28rem 0.65rem 0.28rem 0.3rem; border-radius:100px; border:1px solid var(--border); background:var(--cream); cursor:pointer; font-family:'DM Sans',sans-serif; font-size:0.8rem; color:var(--ink-light); transition:all 0.12s; }
+.tag-btn:hover { border-color:var(--border-strong); color:var(--ink); }
+.tag-btn.on { border-color:var(--amber); background:var(--amber-pale); color:var(--ink); }
+.tag-btn .tav { width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.56rem; font-weight:500; text-transform:uppercase; flex-shrink:0; }
+.tag-check { width:14px; height:14px; border-radius:50%; background:var(--amber); display:none; align-items:center; justify-content:center; flex-shrink:0; }
+.tag-btn.on .tag-check { display:flex; }
+.tag-check svg { width:7px; height:7px; }
+.no-members-msg { font-size:0.82rem; color:var(--ink-muted); font-style:italic; }
+
+/* edit permission picker */
+.eperm-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:7px; margin-bottom:1rem; }
+.eperm-option input[type="radio"] { display:none; }
+.eperm-option label { display:flex; flex-direction:column; align-items:center; gap:0.35rem; padding:0.7rem 0.4rem; border:1px solid var(--border-strong); border-radius:10px; cursor:pointer; text-align:center; font-size:0.75rem; color:var(--ink-light); background:var(--cream); transition:all 0.12s; font-family:'DM Sans',sans-serif; line-height:1.3; }
+.eperm-option label svg { width:18px; height:18px; opacity:0.5; }
+.eperm-option input:checked + label { border-color:var(--amber); background:var(--amber-pale); color:var(--ink); }
+.eperm-option input:checked + label svg { opacity:1; }
+
+/* modal actions */
+.modal-actions { display:flex; gap:0.65rem; margin-top:0.75rem; }
+.btn-modal-cancel { height:44px; padding:0 1.1rem; background:transparent; border:1px solid var(--border-strong); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.875rem; color:var(--ink-light); cursor:pointer; transition:background 0.12s; }
+.btn-modal-cancel:hover { background:var(--cream); }
+.btn-modal-save { flex:1; }
+
+/* invite modal */
+.invite-input-row { display:flex; gap:0.5rem; }
+.invite-input-row input[type="text"] { flex:1; height:44px; border:1px solid var(--border-strong); border-radius:10px; padding:0 0.9rem; font-family:'DM Sans',sans-serif; font-size:0.95rem; color:var(--ink); background:var(--cream); outline:none; transition:border-color 0.15s,box-shadow 0.15s; }
+.invite-input-row input:focus { border-color:var(--amber); box-shadow:0 0 0 3px rgba(201,123,42,0.12); }
+/* invite tabs */
+.invite-tabs { display:flex; gap:0; margin-bottom:1.1rem; border:1px solid var(--border-strong); border-radius:9px; overflow:hidden; }
+.inv-tab { flex:1; height:36px; background:transparent; border:none; font-family:'DM Sans',sans-serif; font-size:0.82rem; color:var(--ink-light); cursor:pointer; transition:background 0.12s; }
+.inv-tab.active { background:var(--ink); color:white; }
+.inv-hint { font-size:0.83rem; color:var(--ink-light); margin-bottom:0.9rem; font-weight:300; }
+.invite-search-row { display:flex; gap:0.5rem; }
+.invite-search-row input { flex:1; height:44px; border:1px solid var(--border-strong); border-radius:10px; padding:0 0.9rem; font-family:'DM Sans',sans-serif; font-size:0.9rem; color:var(--ink); background:var(--cream); outline:none; transition:border-color 0.15s,box-shadow 0.15s; }
+.invite-search-row input:focus { border-color:var(--amber); box-shadow:0 0 0 3px rgba(201,123,42,0.12); }
+.invite-result { margin-top:0.65rem; padding:0.65rem 0.9rem; border-radius:10px; font-size:0.875rem; }
+.invite-result.found { background:var(--amber-pale); border:1px solid var(--amber); color:var(--ink); display:flex; align-items:center; gap:0.5rem; }
+.invite-result.not-found { background:#FCEAEA; border:1px solid #D48A8A; color:#6B1A1A; }
+.invite-result .res-av { width:28px; height:28px; border-radius:50%; background:var(--ink); color:white; display:flex; align-items:center; justify-content:center; font-size:0.65rem; font-weight:500; flex-shrink:0; }
+/* font switcher */
+.font-options { display:flex; flex-direction:column; gap:0.5rem; }
+.font-option { display:flex; align-items:center; justify-content:space-between; padding:0.75rem 1rem; border:1px solid var(--border); border-radius:10px; background:var(--cream); cursor:pointer; text-align:left; font-family:'DM Sans',sans-serif; transition:all 0.12s; }
+.font-option:hover { border-color:var(--border-strong); }
+.font-option.selected { border-color:var(--amber); background:var(--amber-pale); }
+.font-preview { font-size:1rem; color:var(--ink); }
+.font-name { font-size:0.75rem; color:var(--ink-muted); }
+.font-check { color:var(--amber); font-weight:600; }
+/* font switcher btn in header */
+.font-switcher-btn { display:flex; align-items:center; gap:0.35rem; height:34px; padding:0 0.8rem; background:transparent; border:1px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:0.78rem; color:var(--ink-light); cursor:pointer; transition:all 0.12s; }
+.font-switcher-btn:hover { border-color:var(--amber); background:var(--amber-pale); color:var(--ink); }
+.font-switcher-btn svg { width:13px; height:13px; }
+
+@media(max-width:680px){.group-header,.board-area{padding:1.25rem;}.notes-grid{columns:1;}}
+{% endblock %}
+
+{% block main %}
+
+<!-- Group header -->
+<div class="group-header">
+    <div class="group-header-row">
+        <div>
+            <div class="breadcrumb">
+                <a href="{% url 'home' %}">My Boards</a>
+                <svg viewBox="0 0 11 11" fill="none"><path d="M3.5 2l4 4.5-4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                {{ group.name }}
+            </div>
+            <h1 class="group-title">{{ group.name }}</h1>
+            {% if group.description %}<p class="group-desc">{{ group.description }}</p>{% endif %}
+        </div>
+        <div class="header-actions">
+            {% if user == group.owner %}
+            <button class="btn-outline" onclick="openModal('inviteModal')">
+                <svg viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 4.5v5M4.5 7h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                Invite
+            </button>
+            {% endif %}
+            <button class="font-switcher-btn" onclick="openModal('fontModal')" title="Change note font">
+                <svg viewBox="0 0 13 13" fill="none"><path d="M2 10.5L5.5 2.5L9 10.5M3.5 8h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Font
+            </button>
+            <button class="btn-primary" onclick="openAddMemory()">
+                <svg viewBox="0 0 15 15" fill="none"><path d="M7.5 2v11M2 7.5h11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                Add memory
+            </button>
+        </div>
+    </div>
+
+    <div class="members-strip">
+        <span class="members-label">Members</span>
+        {% for member in all_members %}
+        <div class="member-pill">
+            <div class="mpav av-{{ forloop.counter0 }}">{{ member.initials }}</div>
+            {{ member.display_name }}
+            {% if member == user %}<span class="you-badge">you</span>{% endif %}
+        </div>
+        {% endfor %}
+        {% if user == group.owner %}
+        <button class="invite-btn" onclick="openModal('inviteModal')">
+            <svg viewBox="0 0 11 11" fill="none"><path d="M5.5 1v9M1 5.5h9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            Add member
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Board -->
+<div class="board-area">
+    <div class="board-toolbar">
+        <div class="filters">
+            <button class="filter-btn active" onclick="filterNotes(this,'all')">All</button>
+            <button class="filter-btn" onclick="filterNotes(this,'mine')">Mine</button>
+            {% for member in other_members %}
+            <button class="filter-btn" onclick="filterNotes(this,'{{ member.id }}')">{{ member.username }}</button>
+            {% endfor %}
+        </div>
+        <span class="board-count" id="memCount">{{ memories|length }} memor{{ memories|length|pluralize:"y,ies" }}</span>
+    </div>
+
+    {% if memories %}
+    <div class="notes-grid" id="notesGrid">
+        {% for memory in memories %}
+        <div class="note-card note-{{ memory.colour }}"
+             style="transform:rotate({{ memory.rotation }}deg);"
+             data-creator="{{ memory.creator.id }}"
+             data-tagged="{% for t in memory.tagged.all %}{{ t.id }},{% endfor %}">
+            <div class="note-inner">
+
+                <!-- Action buttons: edit / delete -->
+                <div class="note-actions">
+                    {% if memory.user_can_edit %}
+                    <button type="button" class="note-action-btn"
+                            title="Edit"
+                            onclick="openEditMemory(
+                                {{ memory.pk }},
+                                '{{ memory.title|escapejs }}',
+                                '{{ memory.content|escapejs }}',
+                                '{{ memory.colour }}',
+                                '{{ memory.edit_permission }}',
+                                [{% for t in memory.tagged.all %}{{ t.id }},{% endfor %}]
+                            )">
+                        <svg viewBox="0 0 10 10" fill="none"><path d="M1 7.5L7 1.5l1.5 1.5-6 6L1 9.5l0-2z" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    {% endif %}
+                    {% if memory.creator == user %}
+                    <form method="post" action="{% url 'delete_memory' memory.pk %}" style="display:contents;">
+                        {% csrf_token %}
+                        <button type="submit" class="note-action-btn del" title="Delete"
+                                onclick="return confirm('Remove this memory?')">
+                            <svg viewBox="0 0 10 10" fill="none"><path d="M2 2l6 6M8 2L2 8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+
+                {% if memory.title %}<div class="note-title">{{ memory.title }}</div>{% endif %}
+                <div class="note-text">{{ memory.content }}</div>
+                {% if memory.photo %}<img src="{{ memory.photo.url }}" alt="" class="note-photo">{% endif %}
+
+                <div class="note-footer">
+                    <div class="note-meta">
+                        <div class="note-date">{{ memory.created_at|date:"j M Y" }}{% if memory.updated_at != memory.created_at %} · edited{% endif %}</div>
+                        <div class="note-creator-row">
+                            <div class="creator-av av-0">{{ memory.creator_initials }}</div>
+                            <span class="creator-name">{{ memory.creator_display }}</span>
+                        </div>
+                        <div class="edit-perm-badge">
+                            {% if memory.edit_permission == 'only_me' %}
+                            <svg viewBox="0 0 9 9" fill="none"><rect x="1.5" y="4" width="6" height="4" rx="1" fill="currentColor" opacity="0.5"/><path d="M3 4V3a1.5 1.5 0 013 0v1" stroke="currentColor" stroke-width="0.9"/></svg>
+                            Only me
+                            {% elif memory.edit_permission == 'tagged' %}
+                            <svg viewBox="0 0 9 9" fill="none"><circle cx="3.5" cy="3" r="1.5" fill="currentColor" opacity="0.5"/><path d="M1 8c0-1.5 1.1-2.5 2.5-2.5" stroke="currentColor" stroke-width="0.9"/><circle cx="6.5" cy="4" r="1" fill="currentColor" opacity="0.3"/></svg>
+                            Me &amp; tagged
+                            {% else %}
+                            <svg viewBox="0 0 9 9" fill="none"><circle cx="2.5" cy="3" r="1.5" fill="currentColor" opacity="0.5"/><circle cx="6.5" cy="3" r="1.5" fill="currentColor" opacity="0.3"/><path d="M0.5 8c0-1.5 1-2.5 2-2.5M5 8c0-1.5 1-2.5 2-2.5" stroke="currentColor" stroke-width="0.9"/></svg>
+                            All members
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if memory.tagged.all %}
+                    <div class="tagged-row">
+                        {% for tu in memory.tagged.all|slice:":4" %}
+                        <div class="tagged-av av-{{ forloop.counter }}" title="{{ tu.username }}">{{ tu.username|slice:":2"|upper }}</div>
+                        {% endfor %}
+                        {% if memory.tagged.count > 4 %}
+                        <div class="tagged-more">+{{ memory.tagged.count|add:"-4" }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="board-empty">
+        <div class="board-empty-emoji">📝</div>
+        <h3>No memories yet</h3>
+        <p>Be the first to add a memory to this board.</p>
+        <button class="btn-primary" onclick="openAddMemory()">
+            <svg viewBox="0 0 15 15" fill="none"><path d="M7.5 2v11M2 7.5h11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            Add first memory
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+
+<!-- ═══════════════════════════════════════
+     ADD MEMORY MODAL
+═══════════════════════════════════════ -->
+<div class="modal-overlay" id="memoryModal" onclick="handleOverlay(event,'memoryModal')">
+  <div class="modal">
+    <div class="modal-head">
+        <h3>New memory</h3>
+        <button class="modal-close-btn" onclick="closeModal('memoryModal')">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M1.5 1.5l9 9M10.5 1.5l-9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+    </div>
+    <div class="modal-body">
+      <form method="post" action="{% url 'add_memory' group.pk %}" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Live preview -->
+        <div class="live-preview" id="addPreview">
+            <div class="lp-title" id="addLpTitle" style="display:none;"></div>
+            <div id="addLpText" class="lp-placeholder">Your memory will look like this…</div>
+        </div>
+
+        <!-- Colour -->
+        <div class="swatch-row" id="addSwatches">
+            <div class="swatch sel" style="background:#FFF4A8;" data-c="yellow"   onclick="pickColour(this,'addPreview','addColourVal')"></div>
+            <div class="swatch"     style="background:#C8F0D8;" data-c="green"    onclick="pickColour(this,'addPreview','addColourVal')"></div>
+            <div class="swatch"     style="background:#C8E4F8;" data-c="blue"     onclick="pickColour(this,'addPreview','addColourVal')"></div>
+            <div class="swatch"     style="background:#F8C8D8;" data-c="pink"     onclick="pickColour(this,'addPreview','addColourVal')"></div>
+            <div class="swatch"     style="background:#E4C8F8;" data-c="lavender" onclick="pickColour(this,'addPreview','addColourVal')"></div>
+            <div class="swatch"     style="background:#F8D8C0;" data-c="peach"    onclick="pickColour(this,'addPreview','addColourVal')"></div>
+        </div>
+        <input type="hidden" name="colour" id="addColourVal" value="yellow">
+
+        <!-- Title -->
+        <div class="mfield">
+            <label class="mlabel" for="addTitle">Title <span class="opt">optional</span></label>
+            <input type="text" class="minput" id="addTitle" name="title"
+                   placeholder="Give this memory a name…"
+                   oninput="updateLP('addTitle','addContent','addLpTitle','addLpText','addPreview')">
+        </div>
+
+        <!-- Content -->
+        <div class="mfield">
+            <label class="mlabel" for="addContent">Memory *</label>
+            <textarea class="mtextarea" id="addContent" name="content"
+                      placeholder="What happened, how it felt, what you want to remember…"
+                      oninput="updateLP('addTitle','addContent','addLpTitle','addLpText','addPreview')"
+                      required></textarea>
+        </div>
+
+        <!-- Tag friends -->
+        <div class="mfield">
+            <label class="mlabel">Tag friends <span class="opt">optional</span></label>
+            {% if other_members %}
+            <div class="tag-grid" id="addTagGrid">
+                {% for member in other_members %}
+                <button type="button" class="tag-btn"
+                        data-id="{{ member.id }}"
+                        onclick="toggleTag(this,'addTagChk{{ member.id }}')">
+                    <div class="tav av-{{ forloop.counter0 }}">{{ member.username|slice:":2"|upper }}</div>
+                    {{ member.username }}
+                    <div class="tag-check">
+                        <svg viewBox="0 0 7 7" fill="none"><path d="M1 3.5l2 2 3-3.5" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                </button>
+                <input type="checkbox" name="tagged" value="{{ member.id }}" id="addTagChk{{ member.id }}" style="display:none;">
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="no-members-msg">No other members on this board yet — invite someone first.</p>
+            {% endif %}
+        </div>
+
+        <!-- Edit permission -->
+        <div class="mfield">
+            <label class="mlabel">Who can edit this memory?</label>
+            <div class="eperm-grid">
+                <div class="eperm-option">
+                    <input type="radio" name="edit_permission" id="addEpOnly" value="only_me" checked>
+                    <label for="addEpOnly">
+                        <svg viewBox="0 0 20 20" fill="none"><rect x="5" y="10" width="10" height="8" rx="2" fill="currentColor" opacity="0.3"/><path d="M7 10V8a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.5"/></svg>
+                        Only me
+                    </label>
+                </div>
+                <div class="eperm-option">
+                    <input type="radio" name="edit_permission" id="addEpTagged" value="tagged">
+                    <label for="addEpTagged">
+                        <svg viewBox="0 0 20 20" fill="none"><circle cx="7" cy="6" r="3" fill="currentColor" opacity="0.5"/><path d="M1 16c0-3 2.5-5 6-5" stroke="currentColor" stroke-width="1.4"/><circle cx="14" cy="8" r="2" fill="currentColor" opacity="0.3"/><path d="M11 16c0-2 1.5-3.5 3-3.5" stroke="currentColor" stroke-width="1.4"/></svg>
+                        Me &amp; tagged
+                    </label>
+                </div>
+                <div class="eperm-option">
+                    <input type="radio" name="edit_permission" id="addEpAll" value="all_members">
+                    <label for="addEpAll">
+                        <svg viewBox="0 0 20 20" fill="none"><circle cx="5" cy="6" r="2.5" fill="currentColor" opacity="0.4"/><circle cx="10" cy="5" r="2.5" fill="currentColor" opacity="0.6"/><circle cx="15" cy="6" r="2.5" fill="currentColor" opacity="0.4"/><path d="M1 16c0-2.5 1.8-4 4-4M7 16c0-2.5 2-4.5 3-4.5s3 2 3 4.5M14 12c2.2 0 4 1.5 4 4" stroke="currentColor" stroke-width="1.3"/></svg>
+                        All members
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Photo -->
+        <div class="mfield">
+            <label class="mlabel" for="addPhoto">Photo <span class="opt">optional</span></label>
+            <input type="file" id="addPhoto" name="photo" accept="image/*">
+        </div>
+
+        <div class="modal-actions">
+            <button type="button" class="btn-modal-cancel" onclick="closeModal('memoryModal')">Cancel</button>
+            <button type="submit" class="btn-primary btn-modal-save">Save memory</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════
+     EDIT MEMORY MODAL
+═══════════════════════════════════════ -->
+<div class="modal-overlay" id="editModal" onclick="handleOverlay(event,'editModal')">
+  <div class="modal">
+    <div class="modal-head">
+        <h3>Edit memory</h3>
+        <button class="modal-close-btn" onclick="closeModal('editModal')">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M1.5 1.5l9 9M10.5 1.5l-9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+    </div>
+    <div class="modal-body">
+      <form method="post" id="editForm" action="" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Live preview -->
+        <div class="live-preview" id="editPreview">
+            <div class="lp-title" id="editLpTitle" style="display:none;"></div>
+            <div id="editLpText" class="lp-placeholder">Your memory will look like this…</div>
+        </div>
+
+        <!-- Colour -->
+        <div class="swatch-row" id="editSwatches">
+            <div class="swatch" style="background:#FFF4A8;" data-c="yellow"   onclick="pickColour(this,'editPreview','editColourVal')"></div>
+            <div class="swatch" style="background:#C8F0D8;" data-c="green"    onclick="pickColour(this,'editPreview','editColourVal')"></div>
+            <div class="swatch" style="background:#C8E4F8;" data-c="blue"     onclick="pickColour(this,'editPreview','editColourVal')"></div>
+            <div class="swatch" style="background:#F8C8D8;" data-c="pink"     onclick="pickColour(this,'editPreview','editColourVal')"></div>
+            <div class="swatch" style="background:#E4C8F8;" data-c="lavender" onclick="pickColour(this,'editPreview','editColourVal')"></div>
+            <div class="swatch" style="background:#F8D8C0;" data-c="peach"    onclick="pickColour(this,'editPreview','editColourVal')"></div>
+        </div>
+        <input type="hidden" name="colour" id="editColourVal" value="yellow">
+
+        <!-- Title -->
+        <div class="mfield">
+            <label class="mlabel" for="editTitle">Title <span class="opt">optional</span></label>
+            <input type="text" class="minput" id="editTitle" name="title"
+                   placeholder="Give this memory a name…"
+                   oninput="updateLP('editTitle','editContent','editLpTitle','editLpText','editPreview')">
+        </div>
+
+        <!-- Content -->
+        <div class="mfield">
+            <label class="mlabel" for="editContent">Memory *</label>
+            <textarea class="mtextarea" id="editContent" name="content"
+                      placeholder="What happened, how it felt, what you want to remember…"
+                      oninput="updateLP('editTitle','editContent','editLpTitle','editLpText','editPreview')"
+                      required></textarea>
+        </div>
+
+        <!-- Tag friends -->
+        <div class="mfield">
+            <label class="mlabel">Tag friends <span class="opt">optional</span></label>
+            {% if other_members %}
+            <div class="tag-grid" id="editTagGrid">
+                {% for member in other_members %}
+                <button type="button" class="tag-btn"
+                        data-id="{{ member.id }}"
+                        onclick="toggleTag(this,'editTagChk{{ member.id }}')">
+                    <div class="tav av-{{ forloop.counter0 }}">{{ member.username|slice:":2"|upper }}</div>
+                    {{ member.username }}
+                    <div class="tag-check">
+                        <svg viewBox="0 0 7 7" fill="none"><path d="M1 3.5l2 2 3-3.5" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                </button>
+                <input type="checkbox" name="tagged" value="{{ member.id }}" id="editTagChk{{ member.id }}" style="display:none;">
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="no-members-msg">No other members on this board yet.</p>
+            {% endif %}
+        </div>
+
+        <!-- Edit permission -->
+        <div class="mfield">
+            <label class="mlabel">Who can edit this memory?</label>
+            <div class="eperm-grid">
+                <div class="eperm-option">
+                    <input type="radio" name="edit_permission" id="editEpOnly" value="only_me">
+                    <label for="editEpOnly">
+                        <svg viewBox="0 0 20 20" fill="none"><rect x="5" y="10" width="10" height="8" rx="2" fill="currentColor" opacity="0.3"/><path d="M7 10V8a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.5"/></svg>
+                        Only me
+                    </label>
+                </div>
+                <div class="eperm-option">
+                    <input type="radio" name="edit_permission" id="editEpTagged" value="tagged">
+                    <label for="editEpTagged">
+                        <svg viewBox="0 0 20 20" fill="none"><circle cx="7" cy="6" r="3" fill="currentColor" opacity="0.5"/><path d="M1 16c0-3 2.5-5 6-5" stroke="currentColor" stroke-width="1.4"/><circle cx="14" cy="8" r="2" fill="currentColor" opacity="0.3"/><path d="M11 16c0-2 1.5-3.5 3-3.5" stroke="currentColor" stroke-width="1.4"/></svg>
+                        Me &amp; tagged
+                    </label>
+                </div>
+                <div class="eperm-option">
+                    <input type="radio" name="edit_permission" id="editEpAll" value="all_members">
+                    <label for="editEpAll">
+                        <svg viewBox="0 0 20 20" fill="none"><circle cx="5" cy="6" r="2.5" fill="currentColor" opacity="0.4"/><circle cx="10" cy="5" r="2.5" fill="currentColor" opacity="0.6"/><circle cx="15" cy="6" r="2.5" fill="currentColor" opacity="0.4"/><path d="M1 16c0-2.5 1.8-4 4-4M7 16c0-2.5 2-4.5 3-4.5s3 2 3 4.5M14 12c2.2 0 4 1.5 4 4" stroke="currentColor" stroke-width="1.3"/></svg>
+                        All members
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Photo -->
+        <div class="mfield">
+            <label class="mlabel" for="editPhoto">Replace photo <span class="opt">optional</span></label>
+            <input type="file" id="editPhoto" name="photo" accept="image/*">
+        </div>
+
+        <div class="modal-actions">
+            <button type="button" class="btn-modal-cancel" onclick="closeModal('editModal')">Cancel</button>
+            <button type="submit" class="btn-primary btn-modal-save">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════
+     INVITE MEMBER MODAL
+═══════════════════════════════════════ -->
+{% if user == group.owner %}
+<div class="modal-overlay" id="inviteModal" onclick="handleOverlay(event,'inviteModal')">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-head">
+        <h3>Add a member</h3>
+        <button class="modal-close-btn" onclick="closeModal('inviteModal')">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M1.5 1.5l9 9M10.5 1.5l-9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+    </div>
+    <div class="modal-body">
+        <!-- Tab switcher -->
+        <div class="invite-tabs">
+            <button type="button" class="inv-tab active" onclick="switchInviteTab(this,'username')">By username</button>
+            <button type="button" class="inv-tab" onclick="switchInviteTab(this,'email')">By email</button>
+        </div>
+
+        <!-- Username tab -->
+        <div id="invTabUsername">
+            <p class="inv-hint">Enter the exact username of the person you want to invite.</p>
+            <form method="post" action="{% url 'invite_member' group.pk %}" id="invFormUsername">
+                {% csrf_token %}
+                <input type="hidden" name="username" id="invHiddenUsername">
+                <div class="mfield">
+                    <label class="mlabel" for="invUsernameInput">Username</label>
+                    <div class="invite-search-row">
+                        <input type="text" id="invUsernameInput" placeholder="e.g. alexsmith" autocomplete="off"
+                               oninput="clearInviteResult()">
+                        <button type="button" class="btn-outline" onclick="lookupByUsername()">Check</button>
+                    </div>
+                    <div id="invUsernameResult" class="invite-result" style="display:none;"></div>
+                </div>
+                <button type="submit" class="btn-primary" id="invUsernameSubmit" style="width:100%;display:none;">Add to board</button>
+            </form>
+        </div>
+
+        <!-- Email tab -->
+        <div id="invTabEmail" style="display:none;">
+            <p class="inv-hint">Enter their email. If they have an account we'll add them directly. If not, we'll send them an invitation.</p>
+            <div class="mfield">
+                <label class="mlabel" for="invEmailInput">Email address</label>
+                <div class="invite-search-row">
+                    <input type="email" id="invEmailInput" placeholder="e.g. alex@example.com" autocomplete="off"
+                           oninput="clearEmailResult()">
+                    <button type="button" class="btn-outline" onclick="handleEmailInvite()">Go</button>
+                </div>
+                <div id="invEmailResult" class="invite-result" style="display:none;"></div>
+            </div>
+            <!-- Found existing user: add via normal form -->
+            <form method="post" action="{% url 'invite_member' group.pk %}" id="invFormEmailExisting" style="display:none;">
+                {% csrf_token %}
+                <input type="hidden" name="username" id="invHiddenEmailUser">
+                <button type="submit" class="btn-primary" style="width:100%;">Add to board</button>
+            </form>
+            <!-- Not found: send email invite -->
+            <button type="button" class="btn-primary" id="invEmailSendBtn"
+                    style="width:100%;display:none;"
+                    onclick="sendEmailInvite()">Send invitation email</button>
+            <div id="invEmailSentMsg" style="display:none;text-align:center;padding:0.75rem;font-size:0.875rem;color:var(--ink-light);"></div>
+        </div>
+
+        {% if group.members.count > 1 %}
+        <div style="margin-top:1.25rem;padding-top:1.1rem;border-top:1px solid var(--border);">
+            <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-muted);font-weight:500;margin-bottom:0.75rem;">Current members</div>
+            {% for member in all_members %}
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+                <div class="mpav av-{{ forloop.counter0 }}">{{ member.initials }}</div>
+                <span style="font-size:0.875rem;color:var(--ink);">{{ member.display_name }}</span>
+                {% if member == group.owner %}<span class="you-badge">owner</span>
+                {% elif member == user %}<span class="you-badge">you</span>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+
+<!-- ═══════════════════════════════════════
+     FONT SWITCHER MODAL
+═══════════════════════════════════════ -->
+<div class="modal-overlay" id="fontModal" onclick="handleOverlay(event,'fontModal')">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-head">
+        <h3>Note font</h3>
+        <button class="modal-close-btn" onclick="closeModal('fontModal')">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M1.5 1.5l9 9M10.5 1.5l-9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+    </div>
+    <div class="modal-body">
+        <p style="font-size:0.85rem;color:var(--ink-light);margin-bottom:1.1rem;font-weight:300;">Choose the font used on your post-it notes.</p>
+        <div class="font-options">
+            {% for key, label in font_choices %}
+            <button type="button"
+                    class="font-option {% if key == current_font %}selected{% endif %}"
+                    data-font="{{ key }}"
+                    onclick="selectFont(this)">
+                <span class="font-preview" style="font-family:{{ key|lower|cut:'_'|join:' ' }};">Aa — {{ label }}</span>
+                <span class="font-name">{{ label }}</span>
+                {% if key == current_font %}<span class="font-check">✓</span>{% endif %}
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const NOTE_COLOURS = {
+    yellow:'#FFF4A8', green:'#C8F0D8', blue:'#C8E4F8',
+    pink:'#F8C8D8', lavender:'#E4C8F8', peach:'#F8D8C0',
+};
+const MY_ID = '{{ user.id }}';
+
+// ── Modals ────────────────────────────────────────────────────────────────────
+function openModal(id){ document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+function handleOverlay(e,id){ if(e.target===document.getElementById(id)) closeModal(id); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){['memoryModal','editModal','inviteModal'].forEach(closeModal);} });
+
+function openAddMemory(){
+    // Reset add form
+    document.getElementById('addTitle').value='';
+    document.getElementById('addContent').value='';
+    document.getElementById('addLpTitle').style.display='none';
+    document.getElementById('addLpText').textContent='Your memory will look like this…';
+    document.getElementById('addLpText').className='lp-placeholder';
+    // reset swatches to yellow
+    document.querySelectorAll('#addSwatches .swatch').forEach(s=>s.classList.remove('sel'));
+    document.querySelector('#addSwatches .swatch[data-c="yellow"]').classList.add('sel');
+    document.getElementById('addColourVal').value='yellow';
+    document.getElementById('addPreview').style.background=NOTE_COLOURS.yellow;
+    // reset tags
+    document.querySelectorAll('#addTagGrid .tag-btn').forEach(b=>{
+        b.classList.remove('on');
+        const chk=document.getElementById('addTagChk'+b.dataset.id);
+        if(chk) chk.checked=false;
+    });
+    // reset edit permission
+    document.getElementById('addEpOnly').checked=true;
+    openModal('memoryModal');
+    setTimeout(()=>document.getElementById('addContent').focus(),60);
+}
+
+function openEditMemory(pk, title, content, colour, editPerm, taggedIds){
+    // Set form action
+    document.getElementById('editForm').action='/memory/'+pk+'/edit/';
+    // Populate fields
+    document.getElementById('editTitle').value = title;
+    document.getElementById('editContent').value = content;
+    // Set colour swatch
+    document.querySelectorAll('#editSwatches .swatch').forEach(s=>{
+        s.classList.toggle('sel', s.dataset.c===colour);
+    });
+    document.getElementById('editColourVal').value=colour;
+    document.getElementById('editPreview').style.background=NOTE_COLOURS[colour]||NOTE_COLOURS.yellow;
+    // Live preview
+    updateLP('editTitle','editContent','editLpTitle','editLpText','editPreview');
+    // Set tags
+    document.querySelectorAll('#editTagGrid .tag-btn').forEach(b=>{
+        const on = taggedIds.includes(parseInt(b.dataset.id));
+        b.classList.toggle('on', on);
+        const chk=document.getElementById('editTagChk'+b.dataset.id);
+        if(chk) chk.checked=on;
+    });
+    // Set edit permission
+    const epMap = {only_me:'editEpOnly', tagged:'editEpTagged', all_members:'editEpAll'};
+    const epId = epMap[editPerm]||'editEpOnly';
+    document.getElementById(epId).checked=true;
+    openModal('editModal');
+    setTimeout(()=>document.getElementById('editContent').focus(),60);
+}
+
+// ── Colour picker ─────────────────────────────────────────────────────────────
+function pickColour(el, previewId, inputId){
+    const row = el.parentElement;
+    row.querySelectorAll('.swatch').forEach(s=>s.classList.remove('sel'));
+    el.classList.add('sel');
+    const c=el.dataset.c;
+    document.getElementById(inputId).value=c;
+    document.getElementById(previewId).style.background=NOTE_COLOURS[c];
+}
+
+// ── Live preview ──────────────────────────────────────────────────────────────
+function updateLP(titleId, contentId, lpTitleId, lpTextId, previewId){
+    const title   = document.getElementById(titleId).value.trim();
+    const content = document.getElementById(contentId).value.trim();
+    const lpTitle = document.getElementById(lpTitleId);
+    const lpText  = document.getElementById(lpTextId);
+    if(title){ lpTitle.textContent=title; lpTitle.style.display='block'; }
+    else      { lpTitle.style.display='none'; }
+    if(content){
+        lpText.textContent=content.length>150?content.slice(0,150)+'…':content;
+        lpText.classList.remove('lp-placeholder');
+    } else {
+        lpText.textContent='Your memory will look like this…';
+        lpText.classList.add('lp-placeholder');
+    }
+}
+
+// ── Tag toggle ────────────────────────────────────────────────────────────────
+function toggleTag(btn, chkId){
+    btn.classList.toggle('on');
+    const chk=document.getElementById(chkId);
+    if(chk) chk.checked=btn.classList.contains('on');
+}
+
+// ── Filter notes ──────────────────────────────────────────────────────────────
+function filterNotes(btn, filter){
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const cards=document.querySelectorAll('.note-card');
+    let visible=0;
+    cards.forEach(card=>{
+        let show=false;
+        if(filter==='all') show=true;
+        else if(filter==='mine') show=card.dataset.creator===MY_ID;
+        else show=card.dataset.creator===filter||(card.dataset.tagged||'').includes(filter+',');
+        card.style.display=show?'':'none';
+        if(show) visible++;
+    });
+    document.getElementById('memCount').textContent=visible+(visible===1?' memory':' memories');
+}
+
+// ── Invite tabs ───────────────────────────────────────────────────────────────
+function switchInviteTab(btn, tab){
+    document.querySelectorAll('.inv-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('invTabUsername').style.display = tab==='username'?'':'none';
+    document.getElementById('invTabEmail').style.display    = tab==='email'?'':'none';
+    clearInviteResult();
+}
+
+function clearInviteResult(){
+    ['invUsernameResult','invEmailResult'].forEach(id=>{
+        const el=document.getElementById(id);
+        if(el){ el.style.display='none'; el.innerHTML=''; el.className='invite-result'; }
+    });
+    ['invUsernameSubmit','invEmailSubmit'].forEach(id=>{
+        const el=document.getElementById(id); if(el) el.style.display='none';
+    });
+    ['invHiddenUsername','invHiddenEmail'].forEach(id=>{
+        const el=document.getElementById(id); if(el) el.value='';
+    });
+}
+
+async function lookupUser(query, resultId, submitId, hiddenId){
+    const resultEl  = document.getElementById(resultId);
+    const submitEl  = document.getElementById(submitId);
+    const hiddenEl  = document.getElementById(hiddenId);
+    resultEl.innerHTML='Searching…'; resultEl.className='invite-result'; resultEl.style.display='block';
+    submitEl.style.display='none';
+    try {
+        const res  = await fetch(`/api/lookup-user/?q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        if(data.found){
+            resultEl.className='invite-result found';
+            resultEl.innerHTML=`<div class="res-av">${data.initials}</div><div><strong>${data.username}</strong> found — ready to add</div>`;
+            hiddenEl.value=data.username;
+            submitEl.style.display='block';
+        } else {
+            resultEl.className='invite-result not-found';
+            resultEl.innerHTML=data.message||'No Memboard account found.';
+        }
+    } catch(e){
+        resultEl.className='invite-result not-found';
+        resultEl.innerHTML='Something went wrong. Try again.';
+    }
+}
+
+function lookupByUsername(){
+    const q=document.getElementById('invUsernameInput').value.trim();
+    if(!q) return;
+    lookupUser(q,'invUsernameResult','invUsernameSubmit','invHiddenUsername');
+}
+
+function clearEmailResult(){
+    const r=document.getElementById('invEmailResult');
+    if(r){r.style.display='none';r.innerHTML='';r.className='invite-result';}
+    ['invFormEmailExisting','invEmailSendBtn','invEmailSentMsg'].forEach(id=>{
+        const el=document.getElementById(id); if(el) el.style.display='none';
+    });
+}
+
+async function handleEmailInvite(){
+    const email=document.getElementById('invEmailInput').value.trim();
+    if(!email) return;
+    clearEmailResult();
+    const resultEl=document.getElementById('invEmailResult');
+    resultEl.innerHTML='Searching…'; resultEl.className='invite-result'; resultEl.style.display='block';
+
+    // First check if user exists
+    const res  = await fetch(`/api/lookup-user/?q=${encodeURIComponent(email)}`);
+    const data = await res.json();
+
+    if(data.found){
+        // Existing user — show them and let owner add via normal form
+        resultEl.className='invite-result found';
+        resultEl.innerHTML=`<div class="res-av">${data.initials}</div><div><strong>${data.name}</strong> already has an account</div>`;
+        document.getElementById('invHiddenEmailUser').value=data.username;
+        document.getElementById('invFormEmailExisting').style.display='block';
+    } else {
+        // No account — offer to send invite email
+        resultEl.className='invite-result';
+        resultEl.style.background='var(--amber-pale)';
+        resultEl.style.border='1px solid var(--amber)';
+        resultEl.innerHTML='No Memboard account found for that email. Send them an invitation?';
+        document.getElementById('invEmailSendBtn').style.display='block';
+    }
+}
+
+async function sendEmailInvite(){
+    const email   = document.getElementById('invEmailInput').value.trim();
+    const sendBtn = document.getElementById('invEmailSendBtn');
+    const sentMsg = document.getElementById('invEmailSentMsg');
+    const csrf    = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    sendBtn.textContent='Sending…'; sendBtn.disabled=true;
+
+    const fd=new FormData();
+    fd.append('email', email);
+    fd.append('csrfmiddlewaretoken', csrf);
+
+    const res  = await fetch('{% url "invite_by_email" group.pk %}', {method:'POST', body:fd});
+    const data = await res.json();
+
+    sendBtn.style.display='none';
+    document.getElementById('invEmailResult').style.display='none';
+    sentMsg.style.display='block';
+
+    if(data.ok){
+        sentMsg.style.color='#1A6B3C';
+        sentMsg.innerHTML=`✓ Invitation sent to <strong>${email}</strong>.<br>They'll be added to this board when they sign up.`;
+    } else {
+        sentMsg.style.color='#A33030';
+        sentMsg.innerHTML=`✗ ${data.error||'Something went wrong. Check your Gmail settings.'}`;
+        sendBtn.style.display='block';
+        sendBtn.textContent='Retry';
+        sendBtn.disabled=false;
+    }
+}
+
+// ── Font switcher ─────────────────────────────────────────────────────────────
+const FONT_CSS_MAP = {
+    dm_sans:       "'DM Sans', sans-serif",
+    lora:          "'Lora', serif",
+    caveat:        "'Caveat', cursive",
+    courier_prime: "'Courier Prime', monospace",
+    patrick_hand:  "'Patrick Hand', cursive",
+};
+
+function applyFont(fontKey){
+    const css = FONT_CSS_MAP[fontKey] || FONT_CSS_MAP.dm_sans;
+    document.querySelectorAll('.note-text,.note-title,.live-preview').forEach(el=>{
+        el.style.fontFamily=css;
+    });
+}
+
+async function selectFont(btn){
+    const font=btn.dataset.font;
+    document.querySelectorAll('.font-option').forEach(b=>{
+        b.classList.remove('selected');
+        b.querySelector('.font-check') && b.querySelector('.font-check').remove();
+    });
+    btn.classList.add('selected');
+    if(!btn.querySelector('.font-check')){
+        const chk=document.createElement('span');
+        chk.className='font-check'; chk.textContent='✓';
+        btn.appendChild(chk);
+    }
+    applyFont(font);
+    // Save to server
+    const fd=new FormData();
+    fd.append('font',font);
+    fd.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    await fetch('/api/set-font/', {method:'POST', body:fd});
+}
+
+// Apply saved font on load
+applyFont('{{ current_font }}');
+</script>
+{% endblock %}

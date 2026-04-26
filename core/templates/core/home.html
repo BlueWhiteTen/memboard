@@ -1,0 +1,218 @@
+{% extends 'core/base.html' %}
+{% block title %}Memboard – My Boards{% endblock %}
+{% block nav_home %}active{% endblock %}
+
+{% block extra_css %}
+.page-header {
+    padding: 2rem 2.5rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap;
+    background: var(--warm-white);
+}
+.page-header h2 { font-family: 'Lora', serif; font-size: 1.6rem; font-weight: 600; color: var(--ink); letter-spacing: -0.02em; }
+.page-header p { font-size: 0.875rem; color: var(--ink-muted); margin-top: 0.2rem; font-weight: 300; }
+.page-content { padding: 2rem 2.5rem; }
+
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 2.25rem; }
+.stat-card { background: var(--warm-white); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.1rem; }
+.stat-label { font-size: 0.72rem; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; margin-bottom: 0.3rem; }
+.stat-value { font-family: 'Lora', serif; font-size: 1.75rem; font-weight: 600; color: var(--ink); }
+
+.section-title { font-size: 0.72rem; font-weight: 500; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
+
+.groups-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 1rem; margin-bottom: 2.5rem; }
+
+.group-card {
+    background: var(--warm-white); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden; text-decoration: none;
+    display: block; transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+}
+.group-card:hover { border-color: var(--border-strong); box-shadow: 0 4px 20px rgba(44,36,23,0.07); transform: translateY(-2px); }
+
+.group-banner { height: 68px; position: relative; }
+.banner-yellow   { background: linear-gradient(135deg,#FFF4A8,#F0D800 200%); }
+.banner-green    { background: linear-gradient(135deg,#C8F0D8,#68C88C 200%); }
+.banner-blue     { background: linear-gradient(135deg,#C8E4F8,#6AACD4 200%); }
+.banner-pink     { background: linear-gradient(135deg,#F8C8D8,#D46A8C 200%); }
+.banner-lavender { background: linear-gradient(135deg,#E4C8F8,#A46AD4 200%); }
+.banner-peach    { background: linear-gradient(135deg,#F8D8C0,#D48A5A 200%); }
+
+.privacy-badge {
+    position: absolute; top: 8px; right: 8px;
+    font-size: 0.65rem; font-weight: 500; padding: 2px 7px;
+    border-radius: 100px; background: rgba(255,255,255,0.65);
+    color: rgba(44,36,23,0.6); backdrop-filter: blur(4px);
+}
+.memory-count-badge {
+    position: absolute; bottom: 8px; left: 10px;
+    font-size: 0.65rem; font-weight: 500;
+    color: rgba(44,36,23,0.5);
+}
+.group-body { padding: 0.875rem 1rem 1rem; }
+.group-name { font-family: 'Lora', serif; font-size: 0.975rem; font-weight: 600; color: var(--ink); margin-bottom: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.group-desc { font-size: 0.78rem; color: var(--ink-muted); margin-bottom: 0.7rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.member-stack { display: flex; align-items: center; gap: 0.5rem; }
+.member-avatars { display: flex; }
+.member-av {
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.62rem; font-weight: 500; text-transform: uppercase;
+    border: 2px solid var(--warm-white); margin-left: -6px;
+}
+.member-av:first-child { margin-left: 0; }
+.member-count { font-size: 0.76rem; color: var(--ink-muted); }
+
+.empty-state {
+    text-align: center; padding: 4rem 2rem;
+    background: var(--warm-white); border: 1px dashed var(--border-strong);
+    border-radius: 16px; margin-bottom: 2.5rem;
+}
+.empty-icon {
+    width: 56px; height: 56px; background: var(--amber-pale);
+    border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.25rem;
+}
+.empty-icon svg { width: 28px; height: 28px; }
+.empty-state h3 { font-family: 'Lora', serif; font-size: 1.1rem; font-weight: 600; color: var(--ink); margin-bottom: 0.35rem; }
+.empty-state p { font-size: 0.875rem; color: var(--ink-muted); margin-bottom: 1.5rem; font-weight: 300; }
+
+/* Pending requests banner */
+.pending-banner {
+    background: var(--amber-pale); border-bottom: 1px solid rgba(201,123,42,0.25);
+    padding: 0.75rem 2.5rem; display: flex; align-items: center; gap: 0.75rem;
+    font-size: 0.875rem; color: var(--ink);
+}
+.pending-banner a { color: var(--amber); font-weight: 500; text-decoration: none; }
+.pending-banner a:hover { text-decoration: underline; }
+
+/* Friends row */
+.friends-row { display: flex; gap: 0.65rem; flex-wrap: wrap; align-items: center; }
+.friend-chip {
+    display: flex; align-items: center; gap: 0.4rem;
+    padding: 0.3rem 0.7rem 0.3rem 0.35rem;
+    background: var(--warm-white); border: 1px solid var(--border);
+    border-radius: 100px; font-size: 0.8rem; color: var(--ink);
+    text-decoration: none; transition: border-color 0.12s, background 0.12s;
+}
+.friend-chip:hover { border-color: var(--amber); background: var(--amber-pale); }
+.friend-chip .fav { width: 24px; height: 24px; border-radius: 50%; font-size: 0.62rem; font-weight: 500; display: flex; align-items: center; justify-content: center; text-transform: uppercase; }
+.add-friend-link {
+    display: flex; align-items: center; gap: 0.35rem;
+    padding: 0.3rem 0.7rem;
+    background: transparent; border: 1px dashed var(--border-strong);
+    border-radius: 100px; font-size: 0.8rem; color: var(--ink-light);
+    text-decoration: none; transition: all 0.12s; font-family: 'DM Sans', sans-serif;
+}
+.add-friend-link:hover { border-color: var(--amber); background: var(--amber-pale); color: var(--ink); }
+.add-friend-link svg { width: 12px; height: 12px; }
+
+@media (max-width: 680px) {
+    .page-header, .page-content { padding: 1.25rem; }
+    .stats-row { grid-template-columns: repeat(3, 1fr); }
+    .groups-grid { grid-template-columns: 1fr; }
+    .pending-banner { padding: 0.65rem 1.25rem; }
+}
+{% endblock %}
+
+{% block main %}
+
+{% if pending_requests %}
+<div class="pending-banner">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="var(--amber)" stroke-width="1.4"/><path d="M8 5v3.5L10 10" stroke="var(--amber)" stroke-width="1.4" stroke-linecap="round"/></svg>
+    You have {{ pending_requests.count }} pending friend request{{ pending_requests.count|pluralize }}.
+    <a href="{% url 'friends' %}">Review them →</a>
+</div>
+{% endif %}
+
+<div class="page-header">
+    <div>
+        <h2>My boards</h2>
+        <p>All the places your memories live</p>
+    </div>
+    <a href="{% url 'create_group' %}" class="btn-primary">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        New board
+    </a>
+</div>
+
+<div class="page-content">
+
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-label">Boards</div>
+            <div class="stat-value">{{ user_groups.count }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Friends</div>
+            <div class="stat-value">{{ friends.count }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Memories</div>
+            <div class="stat-value">{{ total_memories }}</div>
+        </div>
+    </div>
+
+    <div class="section-title">Your boards</div>
+
+    {% if user_groups %}
+    {% with banner_colours="yellow,green,blue,pink,lavender,peach" %}
+    <div class="groups-grid">
+        {% for group in user_groups %}
+        {% with idx=forloop.counter0|divisibleby:6 %}
+        <a href="{% url 'group_detail' group.pk %}" class="group-card">
+            <div class="group-banner banner-{% cycle 'yellow' 'green' 'blue' 'pink' 'lavender' 'peach' %}">
+                <span class="privacy-badge">{{ group.get_privacy_display }}</span>
+                <span class="memory-count-badge">{{ group.memory_count }} memor{{ group.memory_count|pluralize:"y,ies" }}</span>
+            </div>
+            <div class="group-body">
+                <div class="group-name">{{ group.name }}</div>
+                <div class="group-desc">{{ group.description|default:"No description yet." }}</div>
+                <div class="member-stack">
+                    <div class="member-avatars">
+                        {% for member in group.members.all|slice:":5" %}
+                        <div class="member-av av-{{ forloop.counter0 }}">{{ member.username|slice:":2"|upper }}</div>
+                        {% endfor %}
+                    </div>
+                    <span class="member-count">{{ group.members.count }} member{{ group.members.count|pluralize }}</span>
+                </div>
+            </div>
+        </a>
+        {% endwith %}
+        {% endfor %}
+    </div>
+    {% endwith %}
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">
+            <svg viewBox="0 0 28 28" fill="none">
+                <rect x="4" y="6" width="14" height="17" rx="2" fill="#C97B2A" opacity="0.35"/>
+                <rect x="10" y="4" width="14" height="17" rx="2" fill="#C97B2A" opacity="0.18"/>
+                <path d="M14 12v6M11 15h6" stroke="#C97B2A" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <h3>No boards yet</h3>
+        <p>Create your first group board and start collecting memories together.</p>
+        <a href="{% url 'create_group' %}" class="btn-primary">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Create first board
+        </a>
+    </div>
+    {% endif %}
+
+    <div class="section-title">Your friends</div>
+    <div class="friends-row">
+        {% for friend in friends %}
+        <a href="{% url 'friends' %}" class="friend-chip">
+            <div class="fav av-{{ forloop.counter0|divisibleby:6|yesno:'0,' }}{{ forloop.counter0 }}">{{ friend.username|slice:":2"|upper }}</div>
+            {{ friend.username }}
+        </a>
+        {% endfor %}
+        <a href="{% url 'friends' %}" class="add-friend-link">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            Add friend
+        </a>
+    </div>
+
+</div>
+{% endblock %}
