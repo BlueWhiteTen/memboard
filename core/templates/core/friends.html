@@ -2,7 +2,7 @@
 {% block title %}Memboard – Friends{% endblock %}
 {% block nav_friends %}active{% endblock %}
 
-{% block extra_css %}
+{% block extra_styles %}
 .page-header{padding:2rem 2.5rem 1.25rem;border-bottom:1px solid var(--border);background:var(--warm-white);display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
 .page-header h2{font-family:'Lora',serif;font-size:1.6rem;font-weight:600;color:var(--ink);letter-spacing:-0.02em;}
 .page-header p{font-size:0.875rem;color:var(--ink-muted);margin-top:0.2rem;font-weight:300;}
@@ -48,7 +48,7 @@
 @media(max-width:680px){.page-header,.page-content{padding:1.25rem;}.friends-grid{grid-template-columns:1fr 1fr;}}
 {% endblock %}
 
-{% block main %}
+{% block content %}
 <div class="page-header">
     <div>
         <h2>Friends</h2>
