@@ -63,21 +63,33 @@ class EmailAuthenticationForm(forms.Form):
 class GroupForm(forms.ModelForm):
     class Meta:
         model  = Group
-        fields = ('name', 'description', 'privacy')
+        fields = ('name', 'description', 'privacy', 'cover_photo')
         widgets = {
             'name':        forms.TextInput(attrs={'placeholder': 'e.g. Summer Trip 2024, Book Club…'}),
             'description': forms.Textarea(attrs={'placeholder': 'What is this board about?', 'rows': 3}),
         }
 
 
+class GroupCoverForm(forms.ModelForm):
+    class Meta:
+        model  = Group
+        fields = ('cover_photo',)
+
+
 class MemoryForm(forms.ModelForm):
     tagged = forms.ModelMultipleChoiceField(
         queryset=User.objects.none(), required=False,
         widget=forms.CheckboxSelectMultiple)
+    memory_date   = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
+    location_name = forms.CharField(required=False, max_length=255,
+        widget=forms.TextInput(attrs={'placeholder': 'Add a place…', 'id': 'location-name-input'}))
+    location_lat  = forms.FloatField(required=False, widget=forms.HiddenInput())
+    location_lng  = forms.FloatField(required=False, widget=forms.HiddenInput())
 
     class Meta:
         model  = Memory
-        fields = ('title', 'content', 'colour', 'photo', 'tagged', 'edit_permission')
+        fields = ('title', 'content', 'colour', 'photo', 'tagged', 'edit_permission',
+                  'memory_date', 'location_name', 'location_lat', 'location_lng')
         widgets = {
             'title':           forms.TextInput(attrs={'placeholder': 'Give this memory a name… (optional)'}),
             'content':         forms.Textarea(attrs={'placeholder': 'Write your memory here…', 'rows': 5}),
@@ -95,10 +107,16 @@ class EditMemoryForm(forms.ModelForm):
     tagged = forms.ModelMultipleChoiceField(
         queryset=User.objects.none(), required=False,
         widget=forms.CheckboxSelectMultiple)
+    memory_date   = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
+    location_name = forms.CharField(required=False, max_length=255,
+        widget=forms.TextInput(attrs={'placeholder': 'Add a place…', 'id': 'location-name-input'}))
+    location_lat  = forms.FloatField(required=False, widget=forms.HiddenInput())
+    location_lng  = forms.FloatField(required=False, widget=forms.HiddenInput())
 
     class Meta:
         model  = Memory
-        fields = ('title', 'content', 'colour', 'photo', 'tagged', 'edit_permission')
+        fields = ('title', 'content', 'colour', 'photo', 'tagged', 'edit_permission',
+                  'memory_date', 'location_name', 'location_lat', 'location_lng')
         widgets = {
             'title':           forms.TextInput(attrs={'placeholder': 'Give this memory a name… (optional)'}),
             'content':         forms.Textarea(attrs={'placeholder': 'Write your memory here…', 'rows': 5}),
@@ -133,7 +151,6 @@ class InviteMemberForm(forms.Form):
 
 
 class FriendRequestForm(forms.Form):
-    """Accepts either an email address or a name search — resolved in the view."""
     query = forms.CharField(max_length=200,
         widget=forms.TextInput(attrs={'placeholder': 'Name or email address…'}))
 
@@ -145,10 +162,8 @@ class FriendRequestForm(forms.Form):
         from .models import Friendship, FriendRequest as FR
         q = self.cleaned_data['query'].strip()
         user = None
-        # try email first
         if '@' in q:
             user = User.objects.filter(email__iexact=q).first()
-        # try full name
         if not user:
             parts = q.split()
             if len(parts) >= 2:
@@ -156,7 +171,6 @@ class FriendRequestForm(forms.Form):
                     first_name__iexact=parts[0],
                     last_name__iexact=' '.join(parts[1:])
                 ).first()
-        # try first name only
         if not user:
             qs = User.objects.filter(first_name__iexact=q)
             if qs.count() == 1:

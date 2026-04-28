@@ -1,0 +1,56 @@
+{% extends 'core/base.html' %}
+{% block title %}Notifications – Memboard{% endblock %}
+
+{% block extra_styles %}
+.page-header { padding:2rem 2.5rem 1.25rem; border-bottom:1px solid var(--border); background:var(--warm-white); }
+.page-header h2 { font-family:'Lora',serif; font-size:1.5rem; font-weight:600; }
+.page-content { padding:2rem 2.5rem; max-width:640px; }
+.notif-list { display:flex; flex-direction:column; gap:0.5rem; }
+.notif-item { display:flex; gap:0.75rem; align-items:flex-start; padding:0.9rem 1rem; background:var(--warm-white); border:1px solid var(--border); border-radius:12px; transition:border-color 0.12s; }
+.notif-item.unread { border-color: var(--amber); background: #FFFDF8; }
+.notif-av { width:36px; height:36px; border-radius:50%; background:var(--amber-pale); color:var(--amber); font-size:0.78rem; font-weight:500; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.notif-body { flex:1; }
+.notif-text { font-size:0.875rem; color:var(--ink); }
+.notif-time { font-size:0.72rem; color:var(--ink-muted); margin-top:0.2rem; }
+.notif-link { color:var(--amber); text-decoration:none; font-size:0.78rem; margin-top:0.3rem; display:inline-block; }
+.notif-type-icon { font-size:1rem; flex-shrink:0; }
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Notifications</h2>
+</div>
+<div class="page-content">
+    {% if notifs %}
+    <div class="notif-list">
+        {% for n in notifs %}
+        <div class="notif-item {% if not n.is_read %}unread{% endif %}">
+            <div class="notif-av">
+                {% if n.actor %}{{ n.actor.initials }}{% else %}📢{% endif %}
+            </div>
+            <div class="notif-body">
+                <div class="notif-text">{{ n.text }}</div>
+                <div class="notif-time">{{ n.created_at|timesince }} ago</div>
+                {% if n.memory %}
+                <a href="{% url 'group_detail' n.memory.group.pk %}" class="notif-link">View memory →</a>
+                {% elif n.group %}
+                <a href="{% url 'group_detail' n.group.pk %}" class="notif-link">View board →</a>
+                {% elif n.notif_type == 'friend_req' %}
+                <a href="{% url 'friends' %}" class="notif-link">View friend requests →</a>
+                {% endif %}
+            </div>
+            <span class="notif-type-icon">
+                {% if n.notif_type == 'reaction' %}❤️{% elif n.notif_type == 'comment' %}💬{% elif n.notif_type == 'tag' %}🏷{% elif n.notif_type == 'friend_req' %}👥{% elif n.notif_type == 'board_invite' %}📋{% elif n.notif_type == 'pin' %}📌{% endif %}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:4rem 2rem;color:var(--ink-muted);">
+        <div style="font-size:3rem;margin-bottom:1rem;">🔔</div>
+        <p>No notifications yet.</p>
+        <p style="font-size:0.875rem;margin-top:0.35rem;">They'll show up here when people react to or comment on your memories.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

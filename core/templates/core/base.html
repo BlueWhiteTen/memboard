@@ -4,7 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Memboard{% endblock %}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&family=Caveat:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#C97B2A">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Memboard">
+
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&family=Caveat:wght@400;600&family=Courier+Prime&family=Patrick+Hand&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -25,6 +33,7 @@
             --note-pink: #F8C8D8;
             --note-lavender: #E4C8F8;
             --note-peach: #F8D8C0;
+            --radius: 12px;
         }
 
         body {
@@ -65,13 +74,30 @@
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
         }
-
         .sidebar-logo-icon svg { width: 18px; height: 18px; }
 
         .sidebar-logo-text {
             font-family: 'Lora', serif;
             font-size: 1.15rem; font-weight: 600;
             color: var(--ink); letter-spacing: -0.02em;
+        }
+
+        /* Search bar in sidebar */
+        .sidebar-search {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .sidebar-search form { display: flex; gap: 0.4rem; }
+        .sidebar-search input {
+            flex: 1; padding: 0.4rem 0.65rem;
+            border: 1px solid var(--border-strong); border-radius: 8px;
+            background: var(--cream); font-family: inherit; font-size: 0.8rem;
+            color: var(--ink); outline: none;
+        }
+        .sidebar-search input:focus { border-color: var(--amber); }
+        .sidebar-search button {
+            padding: 0.4rem 0.65rem; border: none; border-radius: 8px;
+            background: var(--amber); color: white; cursor: pointer; font-size: 0.75rem;
         }
 
         .sidebar-nav { padding: 1rem 0.75rem; flex: 1; }
@@ -139,171 +165,166 @@
         /* ── Toast messages ── */
         .toast-list {
             position: fixed; top: 1.25rem; right: 1.25rem;
-            z-index: 999; display: flex; flex-direction: column; gap: 0.5rem;
+            z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem;
             max-width: 340px;
         }
-
         .toast {
             padding: 0.75rem 1rem;
             border-radius: 10px; font-size: 0.875rem;
             border: 1px solid; animation: toastIn 0.2s ease;
         }
+        @keyframes toastIn { from { opacity:0; transform:translateY(-8px); } }
 
-        @keyframes toastIn { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: none; } }
+        .toast-success { background:#F0FBF0; border-color:#89D08A; color:#1D5C1E; }
+        .toast-error   { background:#FDF0EE; border-color:#E8938B; color:#7A2418; }
+        .toast-info    { background:#F0F4FB; border-color:#89A8D0; color:#1A3A5C; }
+        .toast-warning { background:#FBF8EC; border-color:#D0BE89; color:#5C4A1A; }
 
-        .toast-success { background: #EAF5EA; border-color: #8BC88B; color: #1A5C1A; }
-        .toast-error   { background: #FCEAEA; border-color: #D48A8A; color: #6B1A1A; }
-        .toast-info    { background: var(--amber-pale); border-color: var(--amber); color: var(--ink); }
-
-        /* ── Shared component styles ── */
-        .btn-primary {
+        /* ── Buttons ── */
+        .btn {
             display: inline-flex; align-items: center; gap: 0.4rem;
-            height: 42px; padding: 0 1.25rem;
-            background: var(--ink); color: var(--warm-white);
-            border: none; border-radius: 9px;
-            font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500;
-            cursor: pointer; transition: background 0.15s; text-decoration: none;
+            padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.875rem;
+            font-family: inherit; cursor: pointer; border: none;
+            transition: background 0.12s, opacity 0.12s; text-decoration: none;
         }
-        .btn-primary:hover { background: #3d3323; }
-        .btn-primary svg { width: 15px; height: 15px; }
+        .btn-primary { background: var(--ink); color: white; }
+        .btn-primary:hover { background: #3d3425; }
+        .btn-amber { background: var(--amber); color: white; }
+        .btn-amber:hover { background: #b06a22; }
+        .btn-ghost { background: transparent; border: 1px solid var(--border-strong); color: var(--ink-light); }
+        .btn-ghost:hover { background: var(--cream); color: var(--ink); }
+        .btn-danger { background: #c0392b; color: white; }
+        .btn-danger:hover { background: #a93226; }
+        .btn-sm { padding: 0.3rem 0.65rem; font-size: 0.78rem; border-radius: 6px; }
 
-        .btn-outline {
-            display: inline-flex; align-items: center; gap: 0.4rem;
-            height: 38px; padding: 0 1rem;
-            background: transparent; color: var(--ink-light);
-            border: 1px solid var(--border-strong); border-radius: 9px;
-            font-family: 'DM Sans', sans-serif; font-size: 0.85rem;
-            cursor: pointer; transition: all 0.12s; text-decoration: none;
+        /* ── Modal ── */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(44,36,23,0.4); z-index: 1000;
+            align-items: center; justify-content: center;
         }
-        .btn-outline:hover { background: var(--amber-pale); border-color: var(--amber); color: var(--ink); }
-        .btn-outline svg { width: 14px; height: 14px; }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: var(--warm-white); border-radius: 16px;
+            padding: 1.75rem; width: 90%; max-width: 520px;
+            max-height: 90vh; overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(44,36,23,0.18);
+            animation: modalIn 0.18s ease;
+        }
+        @keyframes modalIn { from { opacity:0; transform:scale(0.97); } }
+        .modal-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1.25rem;
+        }
+        .modal-title { font-family:'Lora',serif; font-size:1.15rem; font-weight:600; }
+        .modal-close {
+            width:28px; height:28px; border-radius:50%; border:none;
+            background:var(--cream); cursor:pointer; font-size:1rem;
+            display:flex; align-items:center; justify-content:center;
+            color:var(--ink-light);
+        }
+        .modal-close:hover { background:var(--amber-pale); color:var(--ink); }
 
-        .btn-danger {
-            display: inline-flex; align-items: center; gap: 0.4rem;
-            height: 34px; padding: 0 0.9rem;
-            background: transparent; color: #A33030;
-            border: 1px solid rgba(163,48,48,0.3); border-radius: 8px;
-            font-family: 'DM Sans', sans-serif; font-size: 0.8rem;
-            cursor: pointer; transition: all 0.12s;
-        }
-        .btn-danger:hover { background: #FCEAEA; border-color: #D48A8A; }
-
-        /* Member avatar colour palette */
-        .av-0 { background: #FFF4A8; color: #7A6800; border: 1.5px solid #E8CE00; }
-        .av-1 { background: #C8F0D8; color: #1A6B3C; border: 1.5px solid #68C88C; }
-        .av-2 { background: #C8E4F8; color: #1A4E6B; border: 1.5px solid #6AACD4; }
-        .av-3 { background: #F8C8D8; color: #6B1A30; border: 1.5px solid #D46A8C; }
-        .av-4 { background: #E4C8F8; color: #4A1A6B; border: 1.5px solid #A46AD4; }
-        .av-5 { background: #F8D8C0; color: #6B3A1A; border: 1.5px solid #D48A5A; }
-
-        /* Django form styling */
-        .django-form p { margin-bottom: 1rem; }
-        .django-form p label {
-            display: block; font-size: 0.8rem; font-weight: 500;
-            color: var(--ink-light); text-transform: uppercase;
-            letter-spacing: 0.06em; margin-bottom: 0.4rem;
-        }
-        .django-form p input[type="text"],
-        .django-form p input[type="password"],
-        .django-form p input[type="email"],
-        .django-form p textarea,
-        .django-form p select {
-            width: 100%; border: 1px solid var(--border-strong);
-            border-radius: 10px; padding: 0.65rem 0.9rem;
-            font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
-            color: var(--ink); background: var(--cream);
-            transition: border-color 0.15s, box-shadow 0.15s; outline: none;
-        }
-        .django-form p input:focus,
-        .django-form p textarea:focus,
-        .django-form p select:focus {
-            border-color: var(--amber); box-shadow: 0 0 0 3px rgba(201,123,42,0.12);
-        }
-        .django-form .helptext { font-size: 0.78rem; color: var(--ink-muted); margin-top: 0.3rem; display: block; }
-        .django-form .errorlist { list-style: none; color: #B83232; font-size: 0.8rem; margin-top: 0.3rem; }
-
-        @media (max-width: 680px) {
-            .sidebar { display: none; }
-        }
-
-        {% block extra_css %}{% endblock %}
+        {% block extra_styles %}{% endblock %}
     </style>
 </head>
 <body>
+{% if user.is_authenticated %}
+<aside class="sidebar">
+    <a href="{% url 'home' %}" class="sidebar-logo">
+        <div class="sidebar-logo-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/>
+            </svg>
+        </div>
+        <span class="sidebar-logo-text">Memboard</span>
+    </a>
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <a href="{% url 'home' %}" class="sidebar-logo">
-            <div class="sidebar-logo-icon">
-                <svg viewBox="0 0 28 28" fill="none">
-                    <rect x="4" y="6" width="14" height="17" rx="2" fill="#F7F3EC" opacity="0.9"/>
-                    <rect x="10" y="4" width="14" height="17" rx="2" fill="#F7F3EC" opacity="0.6"/>
-                    <rect x="5" y="7" width="12" height="2" rx="1" fill="#C97B2A"/>
-                    <rect x="5" y="11" width="9" height="1.5" rx="0.75" fill="#C97B2A" opacity="0.5"/>
-                    <rect x="5" y="14" width="11" height="1.5" rx="0.75" fill="#C97B2A" opacity="0.5"/>
-                </svg>
-            </div>
-            <span class="sidebar-logo-text">Memboard</span>
+    <div class="sidebar-search">
+        <form action="{% url 'search' %}" method="get">
+            <input type="text" name="q" placeholder="Search memories…" value="{{ request.GET.q|default:'' }}">
+            <button type="submit">🔍</button>
+        </form>
+    </div>
+
+    <nav class="sidebar-nav">
+        <p class="nav-section-label">Navigation</p>
+        <a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Home
+        </a>
+        <a href="{% url 'friends' %}" class="nav-link {% if request.resolver_match.url_name == 'friends' %}active{% endif %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Friends
+            {% if pending_requests|length > 0 %}<span class="nav-badge">{{ pending_requests|length }}</span>{% endif %}
+        </a>
+        <a href="{% url 'notifications' %}" class="nav-link {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Notifications
+            {% if unread_notifs > 0 %}<span class="nav-badge">{{ unread_notifs }}</span>{% endif %}
+        </a>
+        <a href="{% url 'search' %}" class="nav-link {% if request.resolver_match.url_name == 'search' %}active{% endif %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Search
+        </a>
+        <a href="{% url 'annual_recap' %}" class="nav-link {% if 'recap' in request.resolver_match.url_name %}active{% endif %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Annual Recap
         </a>
 
-        <nav class="sidebar-nav">
-            <div class="nav-section-label">Main</div>
-            <a href="{% url 'home' %}" class="nav-link {% block nav_home %}{% endblock %}">
-                <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.4"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.4"/></svg>
-                My Boards
-            </a>
-            <a href="{% url 'friends' %}" class="nav-link {% block nav_friends %}{% endblock %}">
-                <svg viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="2.5" fill="currentColor" opacity="0.7"/><path d="M1 13c0-2.8 2.2-5 5-5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="11" cy="6" r="2" fill="currentColor" opacity="0.4"/><path d="M9 13c0-2.2 1.8-4 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.4"/></svg>
-                Friends
-                {% if pending_requests_count %}
-                <span class="nav-badge">{{ pending_requests_count }}</span>
-                {% endif %}
-            </a>
+        <p class="nav-section-label">My Boards</p>
+        {% for g in sidebar_groups %}
+        <a href="{% url 'group_detail' g.pk %}" class="nav-link {% if request.resolver_match.kwargs.pk == g.pk %}active{% endif %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            {{ g.name|truncatechars:22 }}
+        </a>
+        {% empty %}
+        <p style="font-size:0.78rem;color:var(--ink-muted);padding:0.25rem 0.5rem;">No boards yet</p>
+        {% endfor %}
 
-            {% if user_groups %}
-            <div class="nav-section-label">Your boards</div>
-            {% for g in user_groups %}
-            <a href="{% url 'group_detail' g.pk %}" class="nav-link {% if current_group_pk == g.pk %}active{% endif %}">
-                <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="10" height="12" rx="1.5" fill="currentColor" opacity="0.5"/><rect x="4" y="1" width="10" height="12" rx="1.5" fill="currentColor" opacity="0.3"/></svg>
-                {{ g.name }}
-            </a>
-            {% endfor %}
-            {% endif %}
-        </nav>
+        <a href="{% url 'create_group' %}" class="nav-link" style="margin-top:0.5rem;color:var(--amber);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Board
+        </a>
+    </nav>
 
-        <div class="sidebar-footer">
-            <div class="user-row">
-                <div class="avatar av-0">{{ user_initials }}</div>
-                <span class="user-name">{{ user_display }}</span>
-            </div>
-            <form method="post" action="{% url 'logout' %}" class="logout-form">
-                {% csrf_token %}
-                <button type="submit">Sign out</button>
-            </form>
+    <div class="sidebar-footer">
+        <div class="user-row">
+            <div class="avatar">{{ user_initials }}</div>
+            <span class="user-name">{{ user_display }}</span>
         </div>
-    </aside>
+        <form class="logout-form" method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit">Sign out</button>
+        </form>
+    </div>
+</aside>
+{% endif %}
 
-    <!-- Main -->
-    <main class="main">
-        {% block main %}{% endblock %}
-    </main>
-
+<div class="main">
     <!-- Toast messages -->
     {% if messages %}
-    <div class="toast-list" id="toastList">
-        {% for message in messages %}
-        <div class="toast toast-{{ message.tags|default:'info' }}">{{ message }}</div>
+    <div class="toast-list">
+        {% for msg in messages %}
+        <div class="toast toast-{{ msg.tags|default:'info' }}" onclick="this.remove()">{{ msg }}</div>
         {% endfor %}
     </div>
-    <script>
-        setTimeout(() => {
-            const list = document.getElementById('toastList');
-            if (list) list.style.opacity = '0';
-            setTimeout(() => list && list.remove(), 400);
-        }, 3500);
-    </script>
+    <script>setTimeout(()=>document.querySelectorAll('.toast').forEach(t=>t.remove()),4000);</script>
     {% endif %}
 
-    {% block extra_js %}{% endblock %}
+    {% block content %}{% endblock %}
+</div>
+
+{% if user.is_authenticated %}
+<script>
+// PWA Service Worker registration
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').then(reg => {
+        console.log('SW registered:', reg.scope);
+    }).catch(err => console.log('SW error:', err));
+}
+</script>
+{% endif %}
+{% block extra_scripts %}{% endblock %}
 </body>
 </html>

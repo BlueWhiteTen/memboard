@@ -1,0 +1,134 @@
+{% load i18n %}
+<style>
+.form-group { margin-bottom: 1rem; }
+.form-label { display:block; font-size:0.8rem; font-weight:500; color:var(--ink-muted); margin-bottom:0.35rem; }
+.form-input {
+    width:100%; padding:0.5rem 0.75rem;
+    border:1px solid var(--border); border-radius:8px;
+    font-family:inherit; font-size:0.875rem; color:var(--ink);
+    background:var(--cream); outline:none; transition:border-color 0.12s;
+}
+.form-input:focus { border-color:var(--amber); }
+textarea.form-input { resize:vertical; min-height:80px; }
+.colour-picker { display:flex; gap:0.4rem; flex-wrap:wrap; }
+.colour-swatch {
+    width:30px; height:30px; border-radius:50%;
+    border:3px solid transparent; cursor:pointer; transition:border-color 0.12s;
+}
+.colour-swatch.selected { border-color: var(--ink); }
+.colour-swatch.c-yellow   { background:var(--note-yellow); }
+.colour-swatch.c-green    { background:var(--note-green); }
+.colour-swatch.c-blue     { background:var(--note-blue); }
+.colour-swatch.c-pink     { background:var(--note-pink); }
+.colour-swatch.c-lavender { background:var(--note-lavender); }
+.colour-swatch.c-peach    { background:var(--note-peach); }
+.tag-checkboxes { display:flex; flex-wrap:wrap; gap:0.4rem; }
+.tag-check { display:none; }
+.tag-label { display:inline-flex; align-items:center; gap:0.3rem; padding:0.25rem 0.7rem; border-radius:100px; border:1px solid var(--border); font-size:0.78rem; cursor:pointer; transition:all 0.12s; }
+.tag-check:checked + .tag-label { background:var(--amber); color:white; border-color:var(--amber); }
+.perm-btns { display:flex; gap:0.4rem; flex-wrap:wrap; }
+.perm-radio { display:none; }
+.perm-label { display:inline-block; padding:0.25rem 0.75rem; border-radius:8px; border:1px solid var(--border); font-size:0.78rem; cursor:pointer; }
+.perm-radio:checked + .perm-label { background:var(--ink); color:white; border-color:var(--ink); }
+</style>
+
+<input type="hidden" name="colour" id="colour-field" value="yellow">
+<input type="hidden" name="edit_permission" id="perm-field" value="only_me">
+
+<div class="form-group">
+    <label class="form-label">Title (optional)</label>
+    <input type="text" name="title" class="form-input" placeholder="Give this memory a name…">
+</div>
+<div class="form-group">
+    <label class="form-label">Memory *</label>
+    <textarea name="content" class="form-input" rows="4" placeholder="Write your memory here…" required></textarea>
+</div>
+
+<div class="form-group">
+    <label class="form-label">📅 When did this happen?</label>
+    <input type="date" name="memory_date" class="form-input">
+</div>
+
+<div class="form-group">
+    <label class="form-label">📍 Location</label>
+    <input type="text" name="location_name" class="form-input" placeholder="Add a place…" id="location-name-input">
+    <input type="hidden" name="location_lat" id="location-lat">
+    <input type="hidden" name="location_lng" id="location-lng">
+    <div id="location-suggestions" style="font-size:0.78rem;color:var(--ink-muted);margin-top:0.25rem;"></div>
+</div>
+
+<div class="form-group">
+    <label class="form-label">🖼 Photo</label>
+    <input type="file" name="photo" class="form-input" accept="image/*" style="padding:0.35rem;">
+</div>
+
+<div class="form-group">
+    <label class="form-label">🎨 Colour</label>
+    <div class="colour-picker">
+        {% for val, lbl in colour_choices|default:"yellow,Yellow;green,Green;blue,Blue;pink,Pink;lavender,Lavender;peach,Peach" %}
+        {% endfor %}
+        <span class="colour-swatch c-yellow selected" onclick="setColour('yellow',this)" title="Yellow"></span>
+        <span class="colour-swatch c-green"    onclick="setColour('green',this)"    title="Green"></span>
+        <span class="colour-swatch c-blue"     onclick="setColour('blue',this)"     title="Blue"></span>
+        <span class="colour-swatch c-pink"     onclick="setColour('pink',this)"     title="Pink"></span>
+        <span class="colour-swatch c-lavender" onclick="setColour('lavender',this)" title="Lavender"></span>
+        <span class="colour-swatch c-peach"    onclick="setColour('peach',this)"    title="Peach"></span>
+    </div>
+</div>
+
+<div class="form-group">
+    <label class="form-label">👥 Tag people</label>
+    <div class="tag-checkboxes">
+        {% for member in all_members %}
+        {% if member != request.user %}
+        <input type="checkbox" name="tagged" value="{{ member.pk }}" id="tag-{{ member.pk }}" class="tag-check">
+        <label for="tag-{{ member.pk }}" class="tag-label">{{ member.initials }}</label>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<div class="form-group">
+    <label class="form-label">✏️ Who can edit?</label>
+    <div class="perm-btns">
+        <input type="radio" name="edit_permission_r" value="only_me"     id="p1" class="perm-radio" checked onchange="setPerm('only_me')">
+        <label for="p1" class="perm-label">Only me</label>
+        <input type="radio" name="edit_permission_r" value="tagged"      id="p2" class="perm-radio" onchange="setPerm('tagged')">
+        <label for="p2" class="perm-label">Me & tagged</label>
+        <input type="radio" name="edit_permission_r" value="all_members" id="p3" class="perm-radio" onchange="setPerm('all_members')">
+        <label for="p3" class="perm-label">All members</label>
+    </div>
+</div>
+
+<script>
+function setColour(c, el) {
+    document.getElementById('colour-field').value = c;
+    document.querySelectorAll('.colour-swatch').forEach(s => s.classList.remove('selected'));
+    el.classList.add('selected');
+}
+function setPerm(p) { document.getElementById('perm-field').value = p; }
+
+// Location autocomplete using Nominatim
+let locationTimer;
+document.getElementById('location-name-input').addEventListener('input', function() {
+    clearTimeout(locationTimer);
+    const q = this.value.trim();
+    if (q.length < 3) { document.getElementById('location-suggestions').innerHTML=''; return; }
+    locationTimer = setTimeout(() => {
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=3`)
+        .then(r => r.json()).then(results => {
+            const sug = document.getElementById('location-suggestions');
+            sug.innerHTML = results.map(r =>
+                `<span style="cursor:pointer;margin-right:0.5rem;color:var(--amber);" onclick="selectLocation('${r.display_name.replace(/'/g,"\\'")}','${r.lat}','${r.lon}')">📍 ${r.display_name.substring(0,50)}</span>`
+            ).join('<br>');
+        });
+    }, 400);
+});
+
+function selectLocation(name, lat, lng) {
+    document.getElementById('location-name-input').value = name.split(',').slice(0,2).join(',').trim();
+    document.getElementById('location-lat').value = lat;
+    document.getElementById('location-lng').value = lng;
+    document.getElementById('location-suggestions').innerHTML = '';
+}
+</script>

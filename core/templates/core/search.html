@@ -1,0 +1,66 @@
+{% extends 'core/base.html' %}
+{% block title %}Search – Memboard{% endblock %}
+
+{% block extra_styles %}
+.page-header { padding:2rem 2.5rem 1.25rem; border-bottom:1px solid var(--border); background:var(--warm-white); }
+.page-header h2 { font-family:'Lora',serif; font-size:1.5rem; font-weight:600; }
+.page-content { padding:2rem 2.5rem; }
+.search-bar { display:flex; gap:0.5rem; margin-bottom:2rem; }
+.search-input { flex:1; padding:0.65rem 1rem; border:1.5px solid var(--border-strong); border-radius:10px; font-size:0.95rem; font-family:inherit; color:var(--ink); background:var(--warm-white); outline:none; }
+.search-input:focus { border-color:var(--amber); }
+.search-submit { padding:0.65rem 1.25rem; background:var(--ink); color:white; border:none; border-radius:10px; cursor:pointer; font-size:0.875rem; }
+.results-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:1rem; }
+.result-card { background:var(--warm-white); border:1px solid var(--border); border-radius:12px; padding:1rem; text-decoration:none; display:block; transition:box-shadow 0.12s; }
+.result-card:hover { box-shadow:0 4px 16px rgba(44,36,23,0.08); border-color:var(--border-strong); }
+.result-board { font-size:0.72rem; color:var(--amber); font-weight:500; margin-bottom:0.35rem; }
+.result-title { font-weight:600; font-size:0.9rem; color:var(--ink); margin-bottom:0.25rem; }
+.result-content { font-size:0.8rem; color:var(--ink-muted); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.result-meta { font-size:0.72rem; color:var(--ink-muted); margin-top:0.5rem; display:flex; gap:0.5rem; flex-wrap:wrap; }
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Search memories</h2>
+</div>
+<div class="page-content">
+    <form action="{% url 'search' %}" method="get">
+        <div class="search-bar">
+            <input type="text" name="q" class="search-input" placeholder="Search by title, content, or location…" value="{{ query }}" autofocus>
+            <button type="submit" class="search-submit">Search</button>
+        </div>
+    </form>
+
+    {% if query %}
+        {% if memories %}
+        <p style="font-size:0.875rem;color:var(--ink-muted);margin-bottom:1rem;">{{ memories.count }} result{{ memories.count|pluralize }} for "<strong>{{ query }}</strong>"</p>
+        <div class="results-grid">
+            {% for m in memories %}
+            <a href="{% url 'group_detail' m.group.pk %}" class="result-card">
+                {% if m.photo %}
+                <img src="{{ m.photo.url }}" alt="" style="width:100%;height:100px;object-fit:cover;border-radius:8px;margin-bottom:0.6rem;">
+                {% endif %}
+                <div class="result-board">{{ m.group.name }}</div>
+                {% if m.title %}<div class="result-title">{{ m.title }}</div>{% endif %}
+                <div class="result-content">{{ m.content }}</div>
+                <div class="result-meta">
+                    <span>{{ m.creator_display }}</span>
+                    {% if m.memory_date %}<span>📅 {{ m.memory_date|date:"M j, Y" }}</span>{% endif %}
+                    {% if m.location_name %}<span>📍 {{ m.location_name }}</span>{% endif %}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align:center;padding:3rem;color:var(--ink-muted);">
+            <div style="font-size:2.5rem;margin-bottom:0.75rem;">🔍</div>
+            <p>No memories found for "<strong>{{ query }}</strong>"</p>
+        </div>
+        {% endif %}
+    {% else %}
+    <div style="text-align:center;padding:3rem;color:var(--ink-muted);">
+        <div style="font-size:2.5rem;margin-bottom:0.75rem;">🔍</div>
+        <p>Search across all your boards and memories</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,156 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ year }} Recap – Memboard{% endblock %}
+
+{% block extra_styles %}
+.recap-hero { background:linear-gradient(135deg,#2C2417,#6B5E4A); color:white; padding:3rem 2.5rem; position:relative; overflow:hidden; }
+.recap-hero::after { content:''; position:absolute; top:-40%; right:-10%; width:300px; height:300px; background:rgba(201,123,42,0.15); border-radius:50%; }
+.recap-year { font-size:0.8rem; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; opacity:0.7; margin-bottom:0.5rem; }
+.recap-title { font-family:'Lora',serif; font-size:2.5rem; font-weight:600; margin-bottom:0.5rem; }
+.recap-subtitle { opacity:0.75; font-size:1rem; }
+.year-nav { display:flex; gap:0.5rem; margin-top:1.5rem; }
+.year-btn { padding:0.4rem 1rem; border-radius:8px; font-size:0.85rem; text-decoration:none; border:1px solid rgba(255,255,255,0.25); color:white; }
+.year-btn:hover { background:rgba(255,255,255,0.12); }
+
+.recap-content { padding:2rem 2.5rem; }
+
+.stats-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:1rem; margin-bottom:2.5rem; }
+.recap-stat { background:var(--warm-white); border:1px solid var(--border); border-radius:14px; padding:1.25rem; text-align:center; }
+.recap-stat-num { font-family:'Lora',serif; font-size:2.25rem; font-weight:600; color:var(--ink); }
+.recap-stat-label { font-size:0.75rem; color:var(--ink-muted); text-transform:uppercase; letter-spacing:0.06em; margin-top:0.25rem; }
+
+.section-heading { font-family:'Lora',serif; font-size:1.15rem; font-weight:600; color:var(--ink); margin-bottom:1rem; margin-top:2rem; }
+
+/* Month chart */
+.month-chart { display:flex; align-items:flex-end; gap:0.4rem; height:100px; margin-bottom:0.5rem; }
+.month-bar-wrap { display:flex; flex-direction:column; align-items:center; flex:1; }
+.month-bar { width:100%; border-radius:4px 4px 0 0; background:var(--amber); opacity:0.75; min-height:4px; transition:opacity 0.12s; }
+.month-bar:hover { opacity:1; }
+.month-label { font-size:0.62rem; color:var(--ink-muted); margin-top:4px; }
+
+/* Reactions */
+.reaction-row { display:flex; gap:0.75rem; flex-wrap:wrap; }
+.reaction-chip { display:flex; align-items:center; gap:0.4rem; padding:0.4rem 0.85rem; background:var(--warm-white); border:1px solid var(--border); border-radius:100px; font-size:0.875rem; }
+.reaction-chip .emoji { font-size:1.1rem; }
+.reaction-chip .count { font-size:0.78rem; color:var(--ink-muted); font-weight:500; }
+
+/* Top boards */
+.boards-list { display:flex; flex-direction:column; gap:0.5rem; }
+.board-recap-row { display:flex; align-items:center; gap:0.75rem; padding:0.65rem 0.85rem; background:var(--warm-white); border:1px solid var(--border); border-radius:10px; text-decoration:none; }
+.board-recap-row:hover { border-color:var(--amber); }
+.board-count-bar { flex:1; height:6px; background:var(--amber-pale); border-radius:3px; overflow:hidden; }
+.board-count-fill { height:100%; background:var(--amber); border-radius:3px; }
+.board-recap-name { font-size:0.875rem; font-weight:500; color:var(--ink); min-width:120px; }
+.board-recap-num { font-size:0.78rem; color:var(--ink-muted); min-width:50px; text-align:right; }
+
+/* Pinned memories mini-grid */
+.pinned-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:0.75rem; }
+.pinned-card { border-radius:8px; padding:0.85rem; border:1px solid var(--border); font-size:0.8rem; color:var(--ink); }
+
+.empty-year { text-align:center; padding:4rem 2rem; color:var(--ink-muted); }
+{% endblock %}
+
+{% block content %}
+<div class="recap-hero">
+    <div class="recap-year">Your year in memories</div>
+    <div class="recap-title">{{ year }} Recap ✨</div>
+    <div class="recap-subtitle">{% if total %}{{ total }} memor{{ total|pluralize:"y,ies" }} across {{ boards_used }} board{{ boards_used|pluralize }}{% else %}No memories this year — start creating!{% endif %}</div>
+    <div class="year-nav">
+        <a href="{% url 'annual_recap_year' prev_year %}" class="year-btn">← {{ prev_year }}</a>
+        {% if next_year %}<a href="{% url 'annual_recap_year' next_year %}" class="year-btn">{{ next_year }} →</a>{% endif %}
+    </div>
+</div>
+
+{% if total %}
+<div class="recap-content">
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="recap-stat">
+            <div class="recap-stat-num">{{ total }}</div>
+            <div class="recap-stat-label">Memories</div>
+        </div>
+        <div class="recap-stat">
+            <div class="recap-stat-num">{{ boards_used }}</div>
+            <div class="recap-stat-label">Boards</div>
+        </div>
+        <div class="recap-stat">
+            <div class="recap-stat-num">{{ total_photos }}</div>
+            <div class="recap-stat-label">Photos</div>
+        </div>
+        <div class="recap-stat">
+            <div class="recap-stat-num">{% if top_reactions %}{{ top_reactions.0.1 }}{% else %}0{% endif %}</div>
+            <div class="recap-stat-label">Top reactions</div>
+        </div>
+    </div>
+
+    <!-- Monthly chart -->
+    <div class="section-heading">Memories by month</div>
+    {% with max_val=by_month.values|dictsort:0|last %}
+    <div class="month-chart">
+        {% for month, count in by_month.items %}
+        <div class="month-bar-wrap">
+            {% if count > 0 %}
+            <div class="month-bar" style="height:{% widthratio count 1 1 %}%" title="{{ count }} memories"></div>
+            {% else %}
+            <div class="month-bar" style="height:4px;opacity:0.2;"></div>
+            {% endif %}
+            <span class="month-label">{% if month == 1 %}J{% elif month == 2 %}F{% elif month == 3 %}M{% elif month == 4 %}A{% elif month == 5 %}M{% elif month == 6 %}J{% elif month == 7 %}J{% elif month == 8 %}A{% elif month == 9 %}S{% elif month == 10 %}O{% elif month == 11 %}N{% else %}D{% endif %}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endwith %}
+
+    <!-- Top reactions -->
+    {% if top_reactions %}
+    <div class="section-heading">Most-used reactions</div>
+    <div class="reaction-row">
+        {% for emoji, count in top_reactions %}
+        <div class="reaction-chip">
+            <span class="emoji">{{ emoji }}</span>
+            <span class="count">{{ count }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Top boards -->
+    {% if top_boards %}
+    <div class="section-heading">Most active boards</div>
+    {% with max_count=top_boards.0.count %}
+    <div class="boards-list">
+        {% for b in top_boards %}
+        <a href="{% url 'group_detail' b.group__pk %}" class="board-recap-row">
+            <span class="board-recap-name">{{ b.group__name }}</span>
+            <div class="board-count-bar">
+                <div class="board-count-fill" style="width:{% widthratio b.count max_count 100 %}%"></div>
+            </div>
+            <span class="board-recap-num">{{ b.count }} memor{{ b.count|pluralize:"y,ies" }}</span>
+        </a>
+        {% endfor %}
+    </div>
+    {% endwith %}
+    {% endif %}
+
+    <!-- Pinned highlights -->
+    {% if pinned %}
+    <div class="section-heading">📌 Pinned highlights</div>
+    <div class="pinned-grid">
+        {% for m in pinned %}
+        <div class="pinned-card" style="background:var(--note-{{ m.colour }});">
+            {% if m.title %}<strong>{{ m.title }}</strong><br>{% endif %}
+            {{ m.content|truncatechars:80 }}
+            <div style="font-size:0.68rem;color:var(--ink-muted);margin-top:0.4rem;">{{ m.group.name }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+{% else %}
+<div class="empty-year">
+    <div style="font-size:3rem;margin-bottom:1rem;">📭</div>
+    <p style="font-size:1rem;font-weight:500;">No memories in {{ year }}</p>
+    <p style="font-size:0.875rem;margin-top:0.35rem;">Try a different year, or start creating memories!</p>
+    <a href="{% url 'home' %}" class="btn btn-primary" style="display:inline-flex;margin-top:1.5rem;">Go to boards</a>
+</div>
+{% endif %}
+{% endblock %}

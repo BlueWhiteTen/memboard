@@ -1,9 +1,9 @@
-db.sqlite3
 __pycache__/
 *.pyc
 *.pyo
-venv/
+db.sqlite3
 media/
-.env
 staticfiles/
+.env
 *.egg-info/
+.DS_Store
