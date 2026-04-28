@@ -1,1 +1,1 @@
-web: gunicorn memboard.wsgi --log-file -
+web: gunicorn memboard.wsgi --log-file - --log-level debug
