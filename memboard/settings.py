@@ -11,6 +11,9 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = ['*']
 
+APP_URL = os.environ.get('APP_URL', 'http://localhost:8000')
+CSRF_TRUSTED_ORIGINS = [APP_URL] if APP_URL.startswith('https') else []
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
