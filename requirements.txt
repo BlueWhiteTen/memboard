@@ -7,7 +7,3 @@ psycopg2-binary
 python-dotenv
 boto3>=1.26
 django-storages[s3]>=1.13
-django-celery-beat>=2.5
-celery>=5.3
-redis>=4.6
-djangorestframework>=3.14
