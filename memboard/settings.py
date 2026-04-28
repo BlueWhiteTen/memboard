@@ -57,7 +57,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'memboard.wsgi.application'
 
-# ── Database ──────────────────────────────────────────────────────────────────
+# Database
 DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
     DATABASES = {'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)}
@@ -81,25 +81,28 @@ TIME_ZONE     = 'UTC'
 USE_I18N      = True
 USE_TZ        = True
 
-# ── Static files ──────────────────────────────────────────────────────────────
+# Static files
 STATIC_URL  = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# ── Media / Cloudflare R2 ─────────────────────────────────────────────────────
+# Media / Cloudflare R2
 USE_R2 = os.environ.get('USE_R2', 'False') == 'True'
 
 if USE_R2:
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    AWS_ACCESS_KEY_ID        = os.environ.get('R2_ACCESS_KEY_ID', '')
-    AWS_SECRET_ACCESS_KEY    = os.environ.get('R2_SECRET_ACCESS_KEY', '')
-    AWS_STORAGE_BUCKET_NAME  = os.environ.get('R2_BUCKET_NAME', '')
-    AWS_S3_ENDPOINT_URL      = os.environ.get('R2_ENDPOINT_URL', '')   # https://<accountid>.r2.cloudflarestorage.com
-    AWS_S3_CUSTOM_DOMAIN     = os.environ.get('R2_PUBLIC_DOMAIN', '')  # e.g. media.yourdomain.com
-    AWS_DEFAULT_ACL          = None
-    AWS_S3_FILE_OVERWRITE    = False
-    AWS_QUERYSTRING_AUTH     = False
-    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/' if AWS_S3_CUSTOM_DOMAIN else f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/'
+    AWS_ACCESS_KEY_ID       = os.environ.get('R2_ACCESS_KEY_ID', '')
+    AWS_SECRET_ACCESS_KEY   = os.environ.get('R2_SECRET_ACCESS_KEY', '')
+    AWS_STORAGE_BUCKET_NAME = os.environ.get('R2_BUCKET_NAME', '')
+    AWS_S3_ENDPOINT_URL     = os.environ.get('R2_ENDPOINT_URL', '')
+    AWS_S3_CUSTOM_DOMAIN    = os.environ.get('R2_PUBLIC_DOMAIN', '')
+    AWS_DEFAULT_ACL         = None
+    AWS_S3_FILE_OVERWRITE   = False
+    AWS_QUERYSTRING_AUTH    = False
+    if AWS_S3_CUSTOM_DOMAIN:
+        MEDIA_URL = 'https://{}/'.format(AWS_S3_CUSTOM_DOMAIN)
+    else:
+        MEDIA_URL = '{}/{}/'.format(AWS_S3_ENDPOINT_URL, AWS_STORAGE_BUCKET_NAME)
 else:
     MEDIA_URL  = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
@@ -110,7 +113,7 @@ LOGIN_URL           = '/login/'
 LOGIN_REDIRECT_URL  = '/'
 LOGOUT_REDIRECT_URL = '/login/'
 
-# ── Email ─────────────────────────────────────────────────────────────────────
+# Email
 EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST          = 'smtp.gmail.com'
 EMAIL_PORT          = 587
@@ -119,24 +122,32 @@ EMAIL_HOST_USER     = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL  = os.environ.get('EMAIL_HOST_USER', '')
 
-# ── Password reset ────────────────────────────────────────────────────────────
-PASSWORD_RESET_TIMEOUT = 86400  # 24 hours
+# Password reset
+PASSWORD_RESET_TIMEOUT = 86400
 
-# ── Celery (for weekly digest) ────────────────────────────────────────────────
-CELERY_BROKER_URL         = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
-CELERY_RESULT_BACKEND     = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
-CELERY_TIMEZONE           = 'UTC'
-CELERY_BEAT_SCHEDULE = {
-    'weekly-digest': {
-        'task': 'core.tasks.send_weekly_digest',
-        'schedule': 604800,  # every 7 days
-    },
-}
-
-# ── App URL (for emails/links) ────────────────────────────────────────────────
-APP_URL = os.environ.get('APP_URL', 'http://localhost:8000')
-
-# ── Push notifications (VAPID) ────────────────────────────────────────────────
+# Push notifications (VAPID)
 VAPID_PUBLIC_KEY  = os.environ.get('VAPID_PUBLIC_KEY', '')
 VAPID_PRIVATE_KEY = os.environ.get('VAPID_PRIVATE_KEY', '')
 VAPID_ADMIN_EMAIL = os.environ.get('EMAIL_HOST_USER', '')
+
+# Logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+}
