@@ -4,7 +4,7 @@ from django.conf import settings
 
 def send_invite_email(inviter, email, group, token):
     invite_url = f"{getattr(settings, 'APP_URL', 'http://localhost:8000')}/register/?invite={token}"
-    subject = f"{inviter.first_name} invited you to join "{group.name}" on Memboard"
+    subject = f"{inviter.first_name} invited you to join \"{group.name}\" on Memboard"
     body = (
         f"Hi!\n\n"
         f"{inviter.first_name} {inviter.last_name} has invited you to join the memory board "
