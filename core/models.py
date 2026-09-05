@@ -195,6 +195,8 @@ class Memory(models.Model):
     location_lat    = models.FloatField(blank=True, null=True)
     location_lng    = models.FloatField(blank=True, null=True)
     is_pinned       = models.BooleanField(default=False)
+    is_deleted      = models.BooleanField(default=False)
+    deleted_at      = models.DateTimeField(blank=True, null=True)
     created_at      = models.DateTimeField(auto_now_add=True)
     updated_at      = models.DateTimeField(auto_now=True)
 
@@ -203,6 +205,15 @@ class Memory(models.Model):
 
     def __str__(self):
         return f"{self.group.name} – {self.title or self.content[:40]}"
+
+    @property
+    def days_left_in_trash(self):
+        """Days remaining before this memory is permanently purged (soft delete only)."""
+        if not self.is_deleted or not self.deleted_at:
+            return None
+        from django.utils import timezone
+        elapsed = (timezone.now() - self.deleted_at).days
+        return max(0, 30 - elapsed)
 
     def save(self, *args, **kwargs):
         if not self.pk:

@@ -3,6 +3,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from .models import Group, Memory, EDIT_PERMISSION_CHOICES
+from .image_utils import compress_image
 
 
 class RegisterForm(UserCreationForm):
@@ -69,11 +70,23 @@ class GroupForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'placeholder': 'What is this board about?', 'rows': 3}),
         }
 
+    def clean_cover_photo(self):
+        photo = self.cleaned_data.get('cover_photo')
+        if photo and not isinstance(photo, str):
+            photo = compress_image(photo)
+        return photo
+
 
 class GroupCoverForm(forms.ModelForm):
     class Meta:
         model  = Group
         fields = ('cover_photo',)
+
+    def clean_cover_photo(self):
+        photo = self.cleaned_data.get('cover_photo')
+        if photo and not isinstance(photo, str):
+            photo = compress_image(photo)
+        return photo
 
 
 class MemoryForm(forms.ModelForm):
@@ -102,6 +115,12 @@ class MemoryForm(forms.ModelForm):
         if group:
             self.fields['tagged'].queryset = group.members.all()
 
+    def clean_photo(self):
+        photo = self.cleaned_data.get('photo')
+        if photo and not isinstance(photo, str):
+            photo = compress_image(photo)
+        return photo
+
 
 class EditMemoryForm(forms.ModelForm):
     tagged = forms.ModelMultipleChoiceField(
@@ -128,6 +147,12 @@ class EditMemoryForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if group:
             self.fields['tagged'].queryset = group.members.all()
+
+    def clean_photo(self):
+        photo = self.cleaned_data.get('photo')
+        if photo and not isinstance(photo, str):
+            photo = compress_image(photo)
+        return photo
 
 
 class InviteMemberForm(forms.Form):
