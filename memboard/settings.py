@@ -113,6 +113,15 @@ LOGIN_URL           = '/login/'
 LOGIN_REDIRECT_URL  = '/'
 LOGOUT_REDIRECT_URL = '/login/'
 
+# Rate limiting (django-ratelimit) — in production, gunicorn is reached
+# through a Unix socket behind nginx, so REMOTE_ADDR is empty. nginx's
+# default proxy_params sets X-Real-IP to the real client address, so read
+# the visitor's IP from there instead. Only do this when actually running
+# behind that proxy (DATABASE_URL is only set in production) — locally,
+# runserver populates REMOTE_ADDR itself and there's no X-Real-IP header.
+if DATABASE_URL:
+    RATELIMIT_IP_META_KEY = 'HTTP_X_REAL_IP'
+
 # Email
 EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST          = 'smtp.gmail.com'
