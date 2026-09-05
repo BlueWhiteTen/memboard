@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from .models import Group, Memory, FriendGroup, EDIT_PERMISSION_CHOICES
+from .models import Group, Memory, FriendGroup, UserProfile, EDIT_PERMISSION_CHOICES
 from .image_utils import compress_image
 
 
@@ -238,3 +238,14 @@ class FriendRequestForm(forms.Form):
             raise forms.ValidationError(f"You already sent a request to {user.get_full_name()}.")
         self._resolved_user = user
         return q
+
+
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model  = UserProfile
+        fields = ('bio', 'location', 'birthday', 'info_visibility')
+        widgets = {
+            'bio':      forms.TextInput(attrs={'placeholder': 'A short line about you…', 'maxlength': 200}),
+            'location': forms.TextInput(attrs={'placeholder': 'e.g. Oxford, UK'}),
+            'birthday': forms.DateInput(attrs={'type': 'date'}),
+        }

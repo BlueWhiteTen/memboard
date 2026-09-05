@@ -60,6 +60,9 @@ urlpatterns = [
     path('friends/remove/<int:user_id>/',     views.remove_friend_view,          name='remove_friend'),
     path('friends/<int:user_id>/',            views.friend_profile_view,         name='friend_profile'),
 
+    # My Profile
+    path('profile/', views.my_profile_view, name='my_profile'),
+
     # API / settings
     path('api/set-font/',           views.set_font_view,              name='set_font'),
     path('api/set-theme/',          views.set_theme_view,             name='set_theme'),

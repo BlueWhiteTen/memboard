@@ -20,7 +20,7 @@
 
 {% block content %}
 <div class="page-header">
-    <a href="{% url 'friend_groups' %}" class="back-btn">
+    <a href="{% url 'friends' %}" class="back-btn">
         <svg viewBox="0 0 13 13" fill="none"><path d="M8.5 2L4 6.5l4.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Back
     </a>
@@ -37,7 +37,7 @@
             {% if form.name.errors %}<div style="color:#B83232;font-size:0.8rem;margin-top:0.3rem;">{{ form.name.errors.0 }}</div>{% endif %}
         </div>
         <div class="form-actions">
-            <a href="{% url 'friend_groups' %}" class="btn-cancel">Cancel</a>
+            <a href="{% url 'friends' %}" class="btn-cancel">Cancel</a>
             <button type="submit" class="btn-primary btn-save">Create group</button>
         </div>
     </form>

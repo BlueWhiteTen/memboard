@@ -116,6 +116,11 @@ THEME_CHOICES = [
     ('dark',   'Dark'),
 ]
 
+PROFILE_VISIBILITY_CHOICES = [
+    ('friends', 'Visible to friends'),
+    ('private', 'Only me'),
+]
+
 FONT_CSS = {
     'dm_sans':       "'DM Sans', sans-serif",
     'lora':          "'Lora', serif",
@@ -125,12 +130,16 @@ FONT_CSS = {
 }
 
 REACTION_CHOICES = [
+    ('😊',  'Smile'),
     ('❤️',  'Heart'),
     ('😂',  'Laugh'),
     ('😮',  'Wow'),
     ('😢',  'Sad'),
     ('🔥',  'Fire'),
     ('🎉',  'Party'),
+    ('👍',  'Thumbs up'),
+    ('😍',  'Love it'),
+    ('😆',  'Haha'),
 ]
 
 NOTIFICATION_TYPES = [
@@ -171,12 +180,23 @@ class UserProfile(models.Model):
     weekly_digest  = models.BooleanField(default=True)
     theme          = models.CharField(max_length=10, choices=THEME_CHOICES, default='system')
 
+    # Personal info shown on the profile page — visible to friends or kept
+    # private, controlled by info_visibility (one toggle for the whole bundle).
+    bio             = models.CharField(max_length=200, blank=True, help_text="A short line about you")
+    location        = models.CharField(max_length=100, blank=True)
+    birthday        = models.DateField(null=True, blank=True)
+    info_visibility = models.CharField(max_length=10, choices=PROFILE_VISIBILITY_CHOICES, default='friends')
+
     def __str__(self):
         return f"{self.user.username} profile"
 
     @property
     def note_font_css(self):
         return FONT_CSS.get(self.note_font, FONT_CSS['dm_sans'])
+
+    @property
+    def has_info(self):
+        return bool(self.bio or self.location or self.birthday)
 
 
 @receiver(post_save, sender=User)
