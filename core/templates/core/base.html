@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" {% if user_theme == 'dark' %}data-theme="dark"{% elif user_theme == 'light' %}data-theme="light"{% endif %}>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -36,12 +36,50 @@
             --radius: 12px;
         }
 
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+                --cream: #1C1812;
+                --warm-white: #242019;
+                --ink: #F2ECE0;
+                --ink-light: #C9BCA4;
+                --ink-muted: #8C7F68;
+                --amber: #E0964A;
+                --amber-pale: rgba(224, 150, 74, 0.16);
+                --border: rgba(255, 255, 255, 0.08);
+                --border-strong: rgba(255, 255, 255, 0.18);
+                --note-yellow: #6B5F2A;
+                --note-green: #234A35;
+                --note-blue: #223A4D;
+                --note-pink: #4A2836;
+                --note-lavender: #3A2A4D;
+                --note-peach: #4A3324;
+            }
+        }
+        :root[data-theme="dark"] {
+            --cream: #1C1812;
+            --warm-white: #242019;
+            --ink: #F2ECE0;
+            --ink-light: #C9BCA4;
+            --ink-muted: #8C7F68;
+            --amber: #E0964A;
+            --amber-pale: rgba(224, 150, 74, 0.16);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-strong: rgba(255, 255, 255, 0.18);
+            --note-yellow: #6B5F2A;
+            --note-green: #234A35;
+            --note-blue: #223A4D;
+            --note-pink: #4A2836;
+            --note-lavender: #3A2A4D;
+            --note-peach: #4A3324;
+        }
+
         body {
             font-family: 'DM Sans', sans-serif;
             background: var(--cream);
             color: var(--ink);
             min-height: 100vh;
             display: flex;
+            transition: background 0.15s, color 0.15s;
         }
 
         /* ── Sidebar ── */
@@ -159,6 +197,23 @@
         }
         .logout-form button:hover { background: var(--cream); color: var(--ink); }
 
+        .theme-toggle-row {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 0.75rem; font-size: 0.8rem; color: var(--ink-light);
+        }
+        .theme-switch { position: relative; display: inline-block; width: 38px; height: 22px; flex-shrink: 0; }
+        .theme-switch input { opacity: 0; width: 0; height: 0; }
+        .theme-slider {
+            position: absolute; cursor: pointer; inset: 0;
+            background: var(--border-strong); border-radius: 22px; transition: background 0.15s;
+        }
+        .theme-slider::before {
+            content: ""; position: absolute; height: 16px; width: 16px; left: 3px; bottom: 3px;
+            background: white; border-radius: 50%; transition: transform 0.15s;
+        }
+        .theme-switch input:checked + .theme-slider { background: var(--amber); }
+        .theme-switch input:checked + .theme-slider::before { transform: translateX(16px); }
+
         /* ── Main ── */
         .main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; min-width: 0; }
 
@@ -271,6 +326,14 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             Annual Recap
         </a>
+        <a href="{% url 'on_this_day' %}" class="nav-link {% if request.resolver_match.url_name == 'on_this_day' %}active{% endif %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            On This Day
+        </a>
+        <a href="{% url 'friend_groups' %}" class="nav-link {% if 'friend_group' in request.resolver_match.url_name %}active{% endif %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Groups
+        </a>
 
         <p class="nav-section-label">My Boards</p>
         {% for g in sidebar_groups %}
@@ -292,6 +355,13 @@
         <div class="user-row">
             <div class="avatar">{{ user_initials }}</div>
             <span class="user-name">{{ user_display }}</span>
+        </div>
+        <div class="theme-toggle-row">
+            <span>🌙 Dark mode</span>
+            <label class="theme-switch">
+                <input type="checkbox" id="theme-toggle" {% if user_theme == 'dark' %}checked{% endif %} onchange="setTheme(this.checked ? 'dark' : 'light')">
+                <span class="theme-slider"></span>
+            </label>
         </div>
         <form class="logout-form" method="post" action="{% url 'logout' %}">
             {% csrf_token %}
@@ -323,6 +393,24 @@ if ('serviceWorker' in navigator) {
         console.log('SW registered:', reg.scope);
     }).catch(err => console.log('SW error:', err));
 }
+
+// Theme toggle
+const THEME_CSRF = '{{ csrf_token }}';
+function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    fetch("{% url 'set_theme' %}", {
+        method: 'POST',
+        headers: {'X-CSRFToken': THEME_CSRF, 'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'theme=' + theme,
+    });
+}
+(function() {
+    // If the user hasn't picked an explicit theme, reflect the OS preference in the switch.
+    const toggle = document.getElementById('theme-toggle');
+    if (toggle && !document.documentElement.hasAttribute('data-theme')) {
+        toggle.checked = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+})();
 </script>
 {% endif %}
 {% block extra_scripts %}{% endblock %}

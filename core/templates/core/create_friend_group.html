@@ -1,0 +1,45 @@
+{% extends 'core/base.html' %}
+{% block title %}Memboard – New Group{% endblock %}
+
+{% block extra_styles %}
+.page-header{padding:1.75rem 2.5rem 1.25rem;border-bottom:1px solid var(--border);background:var(--warm-white);display:flex;align-items:center;gap:0.75rem;}
+.back-btn{display:flex;align-items:center;gap:0.3rem;font-size:0.85rem;color:var(--ink-light);text-decoration:none;padding:0.3rem 0.6rem;border-radius:7px;transition:background 0.12s;}
+.back-btn:hover{background:var(--amber-pale);color:var(--ink);}
+.back-btn svg{width:13px;height:13px;}
+.page-header h2{font-family:'Lora',serif;font-size:1.35rem;font-weight:600;color:var(--ink);}
+.page-content{padding:2rem 2.5rem;max-width:480px;}
+.form-group{margin-bottom:1.25rem;}
+.form-label{display:block;font-size:0.78rem;font-weight:500;color:var(--ink-light);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.45rem;}
+.form-input{width:100%;height:44px;border:1px solid var(--border-strong);border-radius:10px;padding:0 0.9rem;font-family:'DM Sans',sans-serif;font-size:0.95rem;color:var(--ink);background:var(--warm-white);outline:none;}
+.form-input:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(201,123,42,0.12);}
+.form-actions{display:flex;gap:0.75rem;margin-top:1.5rem;}
+.btn-cancel{height:44px;padding:0 1.25rem;background:transparent;border:1px solid var(--border-strong);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.875rem;color:var(--ink-light);cursor:pointer;text-decoration:none;display:flex;align-items:center;transition:background 0.12s;}
+.btn-cancel:hover{background:var(--amber-pale);color:var(--ink);}
+.btn-save{flex:1;height:44px;}
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <a href="{% url 'friend_groups' %}" class="back-btn">
+        <svg viewBox="0 0 13 13" fill="none"><path d="M8.5 2L4 6.5l4.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back
+    </a>
+    <h2>New group</h2>
+</div>
+<div class="page-content">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label" for="id_name">Group name</label>
+            <input type="text" class="form-input" id="id_name" name="name"
+                   placeholder="e.g. Close friends, Family, Uni mates…"
+                   value="{{ form.name.value|default:'' }}" required autofocus>
+            {% if form.name.errors %}<div style="color:#B83232;font-size:0.8rem;margin-top:0.3rem;">{{ form.name.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-actions">
+            <a href="{% url 'friend_groups' %}" class="btn-cancel">Cancel</a>
+            <button type="submit" class="btn-primary btn-save">Create group</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

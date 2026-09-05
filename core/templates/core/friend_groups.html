@@ -1,0 +1,51 @@
+{% extends 'core/base.html' %}
+{% block title %}Memboard – Groups{% endblock %}
+
+{% block extra_styles %}
+.page-header{padding:2rem 2.5rem 1.25rem;border-bottom:1px solid var(--border);background:var(--warm-white);display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+.page-header h2{font-family:'Lora',serif;font-size:1.6rem;font-weight:600;color:var(--ink);}
+.page-header p{font-size:0.875rem;color:var(--ink-muted);margin-top:0.2rem;font-weight:300;}
+.page-content{padding:2rem 2.5rem;}
+.fg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;}
+.fg-card{background:var(--warm-white);border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.25rem;text-decoration:none;display:block;transition:border-color 0.15s,transform 0.12s;}
+.fg-card:hover{border-color:var(--border-strong);transform:translateY(-2px);}
+.fg-name{font-family:'Lora',serif;font-size:1rem;font-weight:600;color:var(--ink);margin-bottom:0.3rem;}
+.fg-count{font-size:0.8rem;color:var(--ink-muted);}
+.empty-state{text-align:center;padding:4rem 2rem;background:var(--warm-white);border:1px dashed var(--border-strong);border-radius:16px;}
+.empty-icon{width:56px;height:56px;background:var(--amber-pale);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;font-size:1.5rem;}
+.empty-state h3{font-family:'Lora',serif;font-size:1.1rem;font-weight:600;color:var(--ink);margin-bottom:0.35rem;}
+.empty-state p{font-size:0.875rem;color:var(--ink-muted);margin-bottom:1.5rem;font-weight:300;}
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Groups</h2>
+        <p>Cluster your friends to control who sees a board, or quick-add them to a new one</p>
+    </div>
+    <a href="{% url 'create_friend_group' %}" class="btn btn-primary">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        New group
+    </a>
+</div>
+
+<div class="page-content">
+    {% if friend_groups %}
+    <div class="fg-grid">
+        {% for fg in friend_groups %}
+        <a href="{% url 'friend_group_detail' fg.pk %}" class="fg-card">
+            <div class="fg-name">{{ fg.name }}</div>
+            <div class="fg-count">{{ fg.member_count }} friend{{ fg.member_count|pluralize }}</div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">👥</div>
+        <h3>No groups yet</h3>
+        <p>Groups let you share a board with a subset of friends, or quick-add a bunch of people when creating a board.</p>
+        <a href="{% url 'create_friend_group' %}" class="btn btn-primary">Create your first group</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

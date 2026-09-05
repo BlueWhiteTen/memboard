@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from .models import Group, Memory, EDIT_PERMISSION_CHOICES
+from .models import Group, Memory, FriendGroup, EDIT_PERMISSION_CHOICES
 from .image_utils import compress_image
 
 
@@ -64,11 +64,24 @@ class EmailAuthenticationForm(forms.Form):
 class GroupForm(forms.ModelForm):
     class Meta:
         model  = Group
-        fields = ('name', 'description', 'privacy', 'cover_photo')
+        fields = ('name', 'description', 'privacy', 'visible_to_group', 'cover_photo')
         widgets = {
             'name':        forms.TextInput(attrs={'placeholder': 'e.g. Summer Trip 2024, Book Club…'}),
             'description': forms.Textarea(attrs={'placeholder': 'What is this board about?', 'rows': 3}),
         }
+
+    def __init__(self, *args, owner=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['visible_to_group'].required = False
+        self.fields['visible_to_group'].queryset = (
+            FriendGroup.objects.filter(owner=owner) if owner is not None else FriendGroup.objects.none()
+        )
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get('privacy') == 'friend_group' and not cleaned.get('visible_to_group'):
+            self.add_error('visible_to_group', "Choose which friend group can see this board.")
+        return cleaned
 
     def clean_cover_photo(self):
         photo = self.cleaned_data.get('cover_photo')
@@ -87,6 +100,34 @@ class GroupCoverForm(forms.ModelForm):
         if photo and not isinstance(photo, str):
             photo = compress_image(photo)
         return photo
+
+
+class GroupSettingsForm(forms.ModelForm):
+    class Meta:
+        model  = Group
+        fields = ('privacy', 'visible_to_group', 'memory_delete_permission', 'board_delete_permission')
+
+    def __init__(self, *args, owner=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['visible_to_group'].required = False
+        self.fields['visible_to_group'].queryset = (
+            FriendGroup.objects.filter(owner=owner) if owner is not None else FriendGroup.objects.none()
+        )
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get('privacy') == 'friend_group' and not cleaned.get('visible_to_group'):
+            self.add_error('visible_to_group', "Choose which friend group can see this board.")
+        return cleaned
+
+
+class FriendGroupForm(forms.ModelForm):
+    class Meta:
+        model  = FriendGroup
+        fields = ('name',)
+        widgets = {
+            'name': forms.TextInput(attrs={'placeholder': 'e.g. Close friends, Family, Uni mates…'}),
+        }
 
 
 class MemoryForm(forms.ModelForm):

@@ -123,8 +123,11 @@
     <div class="friends-grid">
         {% for friend in friends %}
         <div class="friend-card">
-            <div class="friend-big-av av-{{ forloop.counter0 }}">{{ friend.initials }}</div>
-            <div class="friend-name">{{ friend.display_name }}</div>
+            <a href="{% url 'friend_profile' friend.pk %}" style="text-decoration:none;color:inherit;">
+                <div class="friend-big-av av-{{ forloop.counter0 }}">{{ friend.initials }}</div>
+                <div class="friend-name">{{ friend.display_name }}</div>
+            </a>
+            {% if friend.shared_boards %}<div style="font-size:0.72rem;color:var(--ink-muted);margin-top:-0.5rem;margin-bottom:0.6rem;">{{ friend.shared_boards }} shared board{{ friend.shared_boards|pluralize }}</div>{% endif %}
             <form method="post" action="{% url 'remove_friend' friend.pk %}">
                 {% csrf_token %}
                 <button type="submit" class="btn-unfriend"
