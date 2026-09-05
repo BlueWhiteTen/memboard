@@ -4,29 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Memboard – Sign in</title>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Karla:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-        :root{--cream:#F7F3EC;--warm-white:#FDFAF5;--ink:#2C2417;--ink-light:#6B5E4A;--amber:#C97B2A;--amber-pale:#F5E8D0;--border:rgba(44,36,23,0.15);--border-strong:rgba(44,36,23,0.28);}
-        body{font-family:'DM Sans',sans-serif;background:var(--cream);min-height:100vh;display:flex;align-items:center;justify-content:center;background-image:radial-gradient(circle at 20% 20%,rgba(201,123,42,0.07) 0%,transparent 50%),radial-gradient(circle at 80% 80%,rgba(201,123,42,0.04) 0%,transparent 50%);}
+        :root{--cream:#EDEAE1;--warm-white:#FFFFFF;--ink:#17171A;--ink-light:#3A3A3D;--amber:#2A4B9B;--amber-pale:#DCEBFF;--coral:#F0553F;--yellow:#FFC93C;--border:rgba(23,23,26,0.16);--border-strong:#17171A;--shadow-ink:4px 4px 0 var(--ink);}
+        body{font-family:'Karla',sans-serif;background:var(--cream);min-height:100vh;display:flex;align-items:center;justify-content:center;}
         .wrap{width:100%;max-width:420px;padding:1.5rem;}
         .logo-area{text-align:center;margin-bottom:2.5rem;}
-        .logo-icon{width:52px;height:52px;background:var(--ink);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:1rem;}
+        .logo-icon{width:52px;height:52px;background:var(--ink);border:2px solid var(--border-strong);border-radius:0;display:inline-flex;align-items:center;justify-content:center;margin-bottom:1rem;}
         .logo-icon svg{width:28px;height:28px;}
-        .logo-area h1{font-family:'Lora',serif;font-size:1.9rem;font-weight:600;color:var(--ink);letter-spacing:-0.02em;}
-        .logo-area p{font-size:0.875rem;color:var(--ink-light);margin-top:0.3rem;font-weight:300;}
-        .card{background:var(--warm-white);border:1px solid var(--border);border-radius:18px;padding:2rem;box-shadow:0 2px 24px rgba(44,36,23,0.06);}
-        .card h2{font-family:'Lora',serif;font-size:1.15rem;font-weight:600;color:var(--ink);margin-bottom:1.5rem;}
+        .logo-area h1{font-family:'Big Shoulders Display',sans-serif;font-size:2.1rem;font-weight:900;color:var(--amber);letter-spacing:0.01em;text-transform:uppercase;position:relative;display:inline-block;}
+        .logo-area h1::after{content:'Memboard';position:absolute;left:2px;top:2px;color:var(--coral);z-index:-1;}
+        .logo-area p{font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--ink-light);margin-top:0.5rem;text-transform:uppercase;letter-spacing:0.04em;}
+        .card{background:var(--warm-white);border:2.5px solid var(--border-strong);border-radius:0;padding:2rem;box-shadow:var(--shadow-ink);}
+        .card h2{font-family:'Big Shoulders Display',sans-serif;font-size:1.4rem;font-weight:800;text-transform:uppercase;color:var(--ink);margin-bottom:1.5rem;}
         .field{margin-bottom:1rem;}
-        .field label{display:block;font-size:0.78rem;font-weight:500;color:var(--ink-light);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.4rem;}
-        .field input{width:100%;height:44px;border:1px solid var(--border-strong);border-radius:10px;padding:0 0.9rem;font-family:'DM Sans',sans-serif;font-size:0.95rem;color:var(--ink);background:var(--cream);outline:none;transition:border-color 0.15s,box-shadow 0.15s;}
-        .field input:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(201,123,42,0.12);}
-        .field input::placeholder{color:rgba(107,94,74,0.4);}
-        .error-msg{background:#FCEAEA;border:1px solid #D48A8A;border-radius:8px;padding:0.6rem 0.9rem;margin-bottom:1rem;color:#6B1A1A;font-size:0.875rem;}
-        .btn{width:100%;height:46px;background:var(--ink);color:var(--warm-white);border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:500;cursor:pointer;transition:background 0.15s;margin-top:0.5rem;}
-        .btn:hover{background:#3d3323;}
+        .field label{display:block;font-family:'JetBrains Mono',monospace;font-size:0.7rem;font-weight:700;color:var(--ink-light);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.4rem;}
+        .field input{width:100%;height:44px;border:2px solid var(--border-strong);border-radius:0;padding:0 0.9rem;font-family:'Karla',sans-serif;font-size:0.95rem;color:var(--ink);background:var(--cream);outline:none;transition:border-color 0.15s,box-shadow 0.15s;}
+        .field input:focus{border-color:var(--amber);box-shadow:2px 2px 0 var(--amber);}
+        .field input::placeholder{color:rgba(58,58,61,0.4);}
+        .error-msg{background:#FFE3DE;border:2px solid var(--coral);border-radius:0;padding:0.6rem 0.9rem;margin-bottom:1rem;color:#7A2418;font-size:0.875rem;font-weight:600;}
+        .btn{width:100%;height:46px;background:var(--ink);color:var(--warm-white);border:2px solid var(--border-strong);border-radius:0;font-family:'JetBrains Mono',sans-serif;font-size:0.85rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;cursor:pointer;box-shadow:var(--shadow-ink);transition:transform 0.08s,box-shadow 0.08s;margin-top:0.5rem;}
+        .btn:hover{background:var(--ink-light);}
+        .btn:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink);}
         .footer-link{text-align:center;margin-top:1.25rem;font-size:0.875rem;color:var(--ink-light);}
-        .footer-link a{color:var(--amber);text-decoration:none;font-weight:500;}
+        .footer-link a{color:var(--amber);text-decoration:none;font-weight:700;}
         .footer-link a:hover{text-decoration:underline;}
     </style>
 </head>
@@ -35,11 +37,11 @@
     <div class="logo-area">
         <div class="logo-icon">
             <svg viewBox="0 0 28 28" fill="none">
-                <rect x="4" y="6" width="14" height="17" rx="2" fill="#F7F3EC" opacity="0.9"/>
-                <rect x="10" y="4" width="14" height="17" rx="2" fill="#F7F3EC" opacity="0.6"/>
-                <rect x="5" y="7" width="12" height="2" rx="1" fill="#C97B2A"/>
-                <rect x="5" y="11" width="9" height="1.5" rx="0.75" fill="#C97B2A" opacity="0.5"/>
-                <rect x="5" y="14" width="11" height="1.5" rx="0.75" fill="#C97B2A" opacity="0.5"/>
+                <rect x="4" y="6" width="14" height="17" rx="0" fill="#EDEAE1" opacity="0.9"/>
+                <rect x="10" y="4" width="14" height="17" rx="0" fill="#EDEAE1" opacity="0.6"/>
+                <rect x="5" y="7" width="12" height="2" rx="0" fill="#FFC93C"/>
+                <rect x="5" y="11" width="9" height="1.5" rx="0" fill="#FFC93C" opacity="0.7"/>
+                <rect x="5" y="14" width="11" height="1.5" rx="0" fill="#FFC93C" opacity="0.7"/>
             </svg>
         </div>
         <h1>Memboard</h1>

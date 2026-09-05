@@ -4,44 +4,43 @@
 
 {% block extra_styles %}
 .page-header{padding:2rem 2.5rem 1.25rem;border-bottom:1px solid var(--border);background:var(--warm-white);display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
-.page-header h2{font-family:'Lora',serif;font-size:1.6rem;font-weight:600;color:var(--ink);letter-spacing:-0.02em;}
+.page-header h2{font-family:'Big Shoulders Display',sans-serif;font-size:1.6rem;font-weight:600;color:var(--ink);letter-spacing:-0.02em;}
 .page-header p{font-size:0.875rem;color:var(--ink-muted);margin-top:0.2rem;font-weight:300;}
 .page-content{padding:2rem 2.5rem;max-width:700px;}
 .section-title{font-size:0.72rem;font-weight:500;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:1rem;}
 
 /* Add friend card */
-.add-friend-card{background:var(--warm-white);border:1px solid var(--border);border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:2.25rem;}
-.add-friend-card h3{font-family:'Lora',serif;font-size:1rem;font-weight:600;color:var(--ink);margin-bottom:0.3rem;}
+.add-friend-card{background:var(--warm-white);border:1px solid var(--border);border-radius:0;padding:1.25rem 1.5rem;margin-bottom:2.25rem;}
+.add-friend-card h3{font-family:'Big Shoulders Display',sans-serif;font-size:1rem;font-weight:600;color:var(--ink);margin-bottom:0.3rem;}
 .add-friend-card p{font-size:0.85rem;color:var(--ink-muted);margin-bottom:1rem;font-weight:300;}
 .search-row{display:flex;gap:0.5rem;}
-.search-row input{flex:1;height:44px;border:1px solid var(--border-strong);border-radius:10px;padding:0 0.9rem;font-family:'DM Sans',sans-serif;font-size:0.9rem;color:var(--ink);background:var(--cream);outline:none;transition:border-color 0.15s,box-shadow 0.15s;}
-.search-row input:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(201,123,42,0.12);}
-.search-hint{font-size:0.78rem;color:var(--ink-muted);margin-top:0.4rem;}
+.search-row input{flex:1;height:44px;border:1px solid var(--border-strong);border-radius:0;padding:0 0.9rem;font-family:'Karla',sans-serif;font-size:0.9rem;color:var(--ink);background:var(--cream);outline:none;transition:border-color 0.15s,box-shadow 0.15s;}
+.search-row input:focus{border-color:var(--amber);box-shadow:2px 2px 0 var(--amber);}
 
 /* Pending */
 .pending-list{display:flex;flex-direction:column;gap:0.6rem;margin-bottom:2.25rem;}
-.pending-card{display:flex;align-items:center;justify-content:space-between;gap:0.75rem;background:linear-gradient(135deg,var(--warm-white),var(--amber-pale));border:1px solid var(--amber);border-radius:12px;padding:0.85rem 1rem;}
+.pending-card{display:flex;align-items:center;justify-content:space-between;gap:0.75rem;background:var(--amber-pale);border:2.5px solid var(--border-strong);border-radius:0;padding:0.85rem 1rem;box-shadow:var(--shadow-ink-sm);}
 .pending-left{display:flex;align-items:center;gap:0.65rem;}
 .pending-name{font-size:0.9rem;font-weight:500;color:var(--ink);}
 .pending-sub{font-size:0.78rem;color:var(--ink-muted);}
 .pending-actions{display:flex;gap:0.5rem;flex-shrink:0;}
-.btn-accept{height:34px;padding:0 0.9rem;background:var(--ink);color:var(--warm-white);border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:500;cursor:pointer;transition:background 0.12s;}
+.btn-accept{height:34px;padding:0 0.9rem;background:var(--ink);color:var(--warm-white);border:none;border-radius:0;font-family:'Karla',sans-serif;font-size:0.8rem;font-weight:500;cursor:pointer;transition:background 0.12s;}
 .btn-accept:hover{background:#3d3323;}
-.btn-decline{height:34px;padding:0 0.9rem;background:transparent;color:var(--ink-light);border:1px solid var(--border-strong);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;transition:background 0.12s;}
+.btn-decline{height:34px;padding:0 0.9rem;background:transparent;color:var(--ink-light);border:1px solid var(--border-strong);border-radius:0;font-family:'Karla',sans-serif;font-size:0.8rem;cursor:pointer;transition:background 0.12s;}
 .btn-decline:hover{background:var(--cream);}
 
 /* Outgoing */
 .outgoing-list{display:flex;flex-direction:column;gap:0.5rem;margin-bottom:2.25rem;}
-.outgoing-item{display:flex;align-items:center;justify-content:space-between;gap:0.75rem;background:var(--warm-white);border:1px solid var(--border);border-radius:12px;padding:0.75rem 1rem;}
+.outgoing-item{display:flex;align-items:center;justify-content:space-between;gap:0.75rem;background:var(--warm-white);border:1px solid var(--border);border-radius:0;padding:0.75rem 1rem;}
 .status-dot{width:6px;height:6px;border-radius:50%;background:var(--amber);flex-shrink:0;}
 
 /* Friends grid */
 .friends-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.75rem;}
-.friend-card{background:var(--warm-white);border:1px solid var(--border);border-radius:12px;padding:1rem;display:flex;flex-direction:column;align-items:center;text-align:center;transition:border-color 0.12s,box-shadow 0.12s;}
-.friend-card:hover{border-color:var(--border-strong);box-shadow:0 3px 12px rgba(44,36,23,0.06);}
+.friend-card{background:var(--warm-white);border:1px solid var(--border);border-radius:0;padding:1rem;display:flex;flex-direction:column;align-items:center;text-align:center;transition:border-color 0.12s,box-shadow 0.12s;}
+.friend-card:hover{border-color:var(--border-strong);box-shadow:0 3px 12px rgba(23, 23, 26,0.06);}
 .friend-big-av{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:500;text-transform:uppercase;margin-bottom:0.6rem;}
 .friend-name{font-size:0.9rem;font-weight:500;color:var(--ink);margin-bottom:0.75rem;}
-.btn-unfriend{font-size:0.75rem;color:var(--ink-muted);background:transparent;border:1px solid var(--border);border-radius:7px;padding:3px 10px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.12s;}
+.btn-unfriend{font-size:0.75rem;color:var(--ink-muted);background:transparent;border:1px solid var(--border);border-radius:0;padding:3px 10px;cursor:pointer;font-family:'Karla',sans-serif;transition:all 0.12s;}
 .btn-unfriend:hover{border-color:#D48A8A;color:#A33030;background:#FCEAEA;}
 .empty-msg{text-align:center;padding:2.5rem;color:var(--ink-muted);font-size:0.875rem;}
 
@@ -61,14 +60,13 @@
     <!-- Add friend -->
     <div class="add-friend-card">
         <h3>Add a friend</h3>
-        <p>Search by their name or email address.</p>
+        <p>Enter their email address.</p>
         <form method="post" action="{% url 'send_friend_request' %}">
             {% csrf_token %}
             <div class="search-row">
-                <input type="text" name="query" placeholder="Name or email address…" required autocomplete="off">
+                <input type="email" name="query" placeholder="Their email address…" required autocomplete="off">
                 <button type="submit" class="btn-primary">Send request</button>
             </div>
-            <div class="search-hint">e.g. "Alex Smith" or "alex@email.com"</div>
         </form>
     </div>
 

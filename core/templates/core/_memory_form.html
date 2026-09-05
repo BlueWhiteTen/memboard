@@ -4,7 +4,7 @@
 .form-label { display:block; font-size:0.8rem; font-weight:500; color:var(--ink-muted); margin-bottom:0.35rem; }
 .form-input {
     width:100%; padding:0.5rem 0.75rem;
-    border:1px solid var(--border); border-radius:8px;
+    border:1px solid var(--border); border-radius:0;
     font-family:inherit; font-size:0.875rem; color:var(--ink);
     background:var(--cream); outline:none; transition:border-color 0.12s;
 }
@@ -24,11 +24,11 @@ textarea.form-input { resize:vertical; min-height:80px; }
 .colour-swatch.c-peach    { background:var(--note-peach); }
 .tag-checkboxes { display:flex; flex-wrap:wrap; gap:0.4rem; }
 .tag-check { display:none; }
-.tag-label { display:inline-flex; align-items:center; gap:0.3rem; padding:0.25rem 0.7rem; border-radius:100px; border:1px solid var(--border); font-size:0.78rem; cursor:pointer; transition:all 0.12s; }
+.tag-label { display:inline-flex; align-items:center; gap:0.3rem; padding:0.25rem 0.7rem; border-radius:0; border:1px solid var(--border); font-size:0.78rem; cursor:pointer; transition:all 0.12s; }
 .tag-check:checked + .tag-label { background:var(--amber); color:white; border-color:var(--amber); }
 .perm-btns { display:flex; gap:0.4rem; flex-wrap:wrap; }
 .perm-radio { display:none; }
-.perm-label { display:inline-block; padding:0.25rem 0.75rem; border-radius:8px; border:1px solid var(--border); font-size:0.78rem; cursor:pointer; }
+.perm-label { display:inline-block; padding:0.25rem 0.75rem; border-radius:0; border:1px solid var(--border); font-size:0.78rem; cursor:pointer; }
 .perm-radio:checked + .perm-label { background:var(--ink); color:white; border-color:var(--ink); }
 </style>
 
