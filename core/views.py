@@ -12,7 +12,7 @@ import json
 from .models import (
     Group, Memory, Friendship, FriendRequest, UserProfile,
     GroupInvite, Reaction, Comment, Notification, ActivityLog,
-    FONT_CHOICES, REACTION_CHOICES,
+    FONT_CHOICES, REACTION_CHOICES, COLOUR_CHOICES
 )
 from .forms import (
     RegisterForm, EmailAuthenticationForm, GroupForm, GroupCoverForm,
@@ -270,6 +270,7 @@ def group_detail_view(request, pk):
         'map_memories':    json.dumps(map_memories),
         'activity_log':    activity_log,
         'reaction_choices': REACTION_CHOICES,
+        'colour_choices':   COLOUR_CHOICES,
     })
 
 
