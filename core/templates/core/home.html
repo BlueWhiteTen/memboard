@@ -2,100 +2,86 @@
 {% block title %}Memboard – My Boards{% endblock %}
 
 {% block extra_styles %}
-.page-header {
-    padding: 2rem 2.5rem 1.25rem;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: flex-end; justify-content: space-between;
-    gap: 1rem; flex-wrap: wrap;
-    background: var(--warm-white);
+.page-content { padding: 2.2rem 2.6rem 4rem; max-width: 1180px; }
+
+.pending-banner { background: var(--yellow); border-bottom: 3px solid var(--border-strong); padding: 0.7rem 2.6rem; display: flex; align-items: center; gap: 0.75rem; font-size: 0.875rem; font-weight: 600; }
+.pending-banner a { color: var(--ink); text-decoration: underline; }
+
+.masthead {
+    border-bottom: 4px solid var(--border-strong); padding-bottom: 1rem; margin-bottom: 1.6rem;
+    display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 0.8rem;
 }
-.page-header h2 { font-family: 'Lora', serif; font-size: 1.6rem; font-weight: 600; color: var(--ink); }
-.page-header p { font-size: 0.875rem; color: var(--ink-muted); margin-top: 0.2rem; font-weight: 300; }
-.page-content { padding: 2rem 2.5rem; }
+.mh-title { font-family: 'Big Shoulders Display', sans-serif; font-weight: 800; font-size: 2rem; text-transform: uppercase; letter-spacing: 0.01em; }
+.mh-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--ink-muted); letter-spacing: 0.04em; text-transform: uppercase; }
 
-.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 2.25rem; }
-.stat-card { background: var(--warm-white); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.1rem; text-decoration: none; display: block; }
-.stat-label { font-size: 0.72rem; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; margin-bottom: 0.3rem; }
-.stat-value { font-family: 'Lora', serif; font-size: 1.75rem; font-weight: 600; color: var(--ink); }
+/* stat gauges */
+.gauges { display: flex; gap: 0.9rem; margin: 1.4rem 0 2.2rem; flex-wrap: wrap; }
+.gauge { flex: 1; min-width: 130px; border: 2.5px solid var(--border-strong); background: var(--warm-white); padding: 0.75rem 1.1rem; box-shadow: var(--shadow-ink); text-decoration: none; display: block; }
+.gauge:nth-child(2) { transform: rotate(0.5deg); }
+.gauge:nth-child(3) { transform: rotate(-0.4deg); }
+.gauge:nth-child(4) { transform: rotate(0.3deg); }
+.gauge b { display: block; font-family: 'JetBrains Mono', monospace; font-size: 1.9rem; color: var(--coral); font-variant-numeric: tabular-nums; }
+.gauge span { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-muted); font-weight: 700; }
 
-.section-title { font-size: 0.72rem; font-weight: 500; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; }
-
-.groups-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 2.5rem; }
-
-.group-card {
-    background: var(--warm-white); border: 1px solid var(--border);
-    border-radius: 14px; overflow: hidden; text-decoration: none;
-    display: block; transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+.section-title {
+    font-family: 'Big Shoulders Display', sans-serif; font-weight: 800; font-size: 1.2rem; text-transform: uppercase;
+    margin: 0 0 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
 }
-.group-card:hover { border-color: var(--border-strong); box-shadow: 0 4px 20px rgba(44,36,23,0.07); transform: translateY(-2px); }
+.section-title .see { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--amber); font-weight: 600; text-transform: none; text-decoration: none; }
 
-.group-banner { height: 80px; position: relative; background-size: cover; background-position: center; }
-.banner-yellow   { background: linear-gradient(135deg,#FFF4A8,#F0D800 200%); }
-.banner-green    { background: linear-gradient(135deg,#C8F0D8,#68C88C 200%); }
-.banner-blue     { background: linear-gradient(135deg,#C8E4F8,#6AACD4 200%); }
-.banner-pink     { background: linear-gradient(135deg,#F8C8D8,#D46A8C 200%); }
-.banner-lavender { background: linear-gradient(135deg,#E4C8F8,#A46AD4 200%); }
-.banner-peach    { background: linear-gradient(135deg,#F8D8C0,#D48A5A 200%); }
-
-.privacy-badge {
-    position: absolute; top: 8px; right: 8px;
-    font-size: 0.65rem; font-weight: 500; padding: 2px 7px;
-    border-radius: 100px; background: rgba(255,255,255,0.75);
-    color: rgba(44,36,23,0.6); backdrop-filter: blur(4px);
-}
-.memory-count-badge {
-    position: absolute; bottom: 8px; left: 10px;
-    font-size: 0.65rem; font-weight: 500;
-    color: rgba(44,36,23,0.5);
-}
-.group-body { padding: 0.875rem 1rem 1rem; }
-.group-name { font-family: 'Lora', serif; font-size: 0.975rem; font-weight: 600; color: var(--ink); margin-bottom: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.group-desc { font-size: 0.78rem; color: var(--ink-muted); margin-bottom: 0.7rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.member-stack { display: flex; align-items: center; gap: 0.5rem; }
-.member-avatars { display: flex; }
-.member-av { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 500; text-transform: uppercase; border: 2px solid var(--warm-white); margin-left: -6px; background: var(--amber-pale); color: var(--amber); }
-.member-av:first-child { margin-left: 0; }
-.member-count { font-size: 0.76rem; color: var(--ink-muted); }
-
-.empty-state { text-align: center; padding: 4rem 2rem; background: var(--warm-white); border: 1px dashed var(--border-strong); border-radius: 16px; margin-bottom: 2.5rem; }
-.empty-icon { width: 56px; height: 56px; background: var(--amber-pale); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; }
-.empty-state h3 { font-family: 'Lora', serif; font-size: 1.1rem; font-weight: 600; color: var(--ink); margin-bottom: 0.35rem; }
-.empty-state p { font-size: 0.875rem; color: var(--ink-muted); margin-bottom: 1.5rem; font-weight: 300; }
-
-.pending-banner { background: var(--amber-pale); border-bottom: 1px solid rgba(201,123,42,0.25); padding: 0.75rem 2.5rem; display: flex; align-items: center; gap: 0.75rem; font-size: 0.875rem; }
-.pending-banner a { color: var(--amber); font-weight: 500; text-decoration: none; }
-.pending-banner a:hover { text-decoration: underline; }
-
-.friends-row { display: flex; gap: 0.65rem; flex-wrap: wrap; align-items: center; margin-bottom: 2rem; }
-.friend-chip { display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.7rem 0.3rem 0.35rem; background: var(--warm-white); border: 1px solid var(--border); border-radius: 100px; font-size: 0.8rem; color: var(--ink); text-decoration: none; transition: border-color 0.12s, background 0.12s; }
-.friend-chip:hover { border-color: var(--amber); background: var(--amber-pale); }
-.fav { width: 24px; height: 24px; border-radius: 50%; font-size: 0.62rem; font-weight: 500; display: flex; align-items: center; justify-content: center; text-transform: uppercase; background: var(--amber-pale); color: var(--amber); }
-.friend-chip-count { font-size: 0.68rem; color: var(--ink-muted); }
-.add-friend-link { display: flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.7rem; background: transparent; border: 1px dashed var(--border-strong); border-radius: 100px; font-size: 0.8rem; color: var(--ink-light); text-decoration: none; transition: all 0.12s; }
-.add-friend-link:hover { border-color: var(--amber); background: var(--amber-pale); color: var(--ink); }
-
-/* Onboarding (no friends yet) */
-.onboard-card { background: linear-gradient(135deg,var(--warm-white),var(--amber-pale)); border: 1px solid var(--amber); border-radius: 14px; padding: 1.25rem 1.5rem; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-.onboard-card h3 { font-family:'Lora',serif; font-size: 1rem; font-weight: 600; color: var(--ink); margin-bottom: 0.3rem; }
-.onboard-card p { font-size: 0.85rem; color: var(--ink-muted); max-width: 480px; }
+/* On this day strip */
+.otd-strip { display: flex; gap: 0.9rem; overflow-x: auto; padding-bottom: 0.4rem; margin-bottom: 2.4rem; }
+.otd-card { flex: 0 0 220px; border: 2.5px solid var(--border-strong); background: var(--warm-white); padding: 0.85rem 1rem; position: relative; box-shadow: var(--shadow-ink-sm); }
+.otd-card:nth-child(odd) { transform: rotate(-0.5deg); }
+.otd-card:nth-child(even) { transform: rotate(0.4deg); }
+.otd-year { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; color: var(--coral); text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 0.4rem; font-weight: 700; }
+.otd-text { font-size: 0.85rem; color: var(--ink); font-weight: 600; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.otd-board { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--ink-muted); margin-top: 0.5rem; }
 
 /* Shared with me */
-.shared-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2.5rem; }
-.shared-card { background: var(--warm-white); border: 1px dashed var(--border-strong); border-radius: 14px; overflow: hidden; }
-.shared-banner { height: 64px; background-size: cover; background-position: center; }
-.shared-body { padding: 0.8rem 1rem 1rem; }
-.shared-name { font-family:'Lora',serif; font-size: 0.9rem; font-weight: 600; color: var(--ink); margin-bottom: 0.15rem; }
-.shared-owner { font-size: 0.75rem; color: var(--ink-muted); margin-bottom: 0.7rem; }
-.shared-card form { display: inline; }
-.btn-request { width: 100%; height: 34px; border-radius: 8px; border: 1px solid var(--amber); background: var(--amber-pale); color: var(--amber); font-family:'DM Sans',sans-serif; font-size: 0.78rem; font-weight: 500; cursor: pointer; }
-.btn-request:disabled { opacity: 0.6; cursor: default; }
+.shared-list { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 2.4rem; }
+.shared-item { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; border: 2px dashed var(--border-strong); padding: 0.6rem 0.9rem; font-size: 0.88rem; font-weight: 600; flex-wrap: wrap; }
+.shared-item .owner { font-weight: 400; color: var(--ink-muted); font-size: 0.8rem; }
+.btn-request { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; border: 2px solid var(--border-strong); background: var(--amber); color: var(--warm-white); padding: 0.35rem 0.7rem; box-shadow: var(--shadow-ink-sm); cursor: pointer; }
+.btn-request:disabled { opacity: 0.55; cursor: default; background: var(--ink-muted); box-shadow: none; }
 
-/* On this day */
-.otd-strip { display: flex; gap: 0.75rem; overflow-x: auto; padding-bottom: 0.3rem; margin-bottom: 2.5rem; }
-.otd-card { flex: 0 0 200px; background: var(--warm-white); border: 1px solid var(--border); border-radius: 12px; padding: 0.85rem; }
-.otd-year { font-size: 0.68rem; color: var(--amber); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem; }
-.otd-text { font-size: 0.82rem; color: var(--ink); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.otd-board { font-size: 0.72rem; color: var(--ink-muted); margin-top: 0.4rem; }
+/* Boards as flyers */
+.boards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.1rem; margin-bottom: 2.4rem; }
+.flyer { border: 2.5px solid var(--border-strong); background: var(--warm-white); padding: 0; position: relative; box-shadow: var(--shadow-ink); text-decoration: none; display: block; color: var(--ink); overflow: visible; }
+.flyer:nth-child(odd) { transform: rotate(-0.6deg); }
+.flyer:nth-child(even) { transform: rotate(0.5deg); }
+.flyer .tape { position: absolute; top: -10px; left: 20px; width: 54px; height: 18px; background: rgba(240,85,63,0.55); transform: rotate(-4deg); z-index: 2; }
+.flyer-photo { height: 84px; background-size: cover; background-position: center; border-bottom: 2.5px solid var(--border-strong); }
+.flyer-photo.no-photo { background: repeating-linear-gradient(135deg, var(--amber-pale), var(--amber-pale) 10px, var(--warm-white) 10px, var(--warm-white) 20px); }
+.flyer-body { padding: 0.9rem 1.05rem 1.05rem; }
+.flyer-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; }
+.flyer h3 { font-family: 'Big Shoulders Display', sans-serif; font-size: 1.25rem; text-transform: uppercase; margin: 0.1rem 0 0.35rem; line-height: 1.05; }
+.flyer .desc { font-size: 0.78rem; color: var(--ink-muted); margin-bottom: 0.6rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.flyer .row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+.flyer .m { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--ink-muted); }
+.badge { display: inline-flex; align-items: center; gap: 0.25rem; border: 2px solid var(--border-strong); background: var(--yellow); font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.6rem; text-transform: uppercase; padding: 0.1rem 0.5rem; box-shadow: var(--shadow-ink-sm); flex-shrink: 0; white-space: nowrap; }
+.flyer .bar { height: 6px; border: 1.5px solid var(--border-strong); margin-top: 0.6rem; background: var(--warm-white); overflow: hidden; }
+.flyer .bar i { display: block; height: 100%; background: var(--amber); }
+
+.empty-state { text-align: center; padding: 3.5rem 2rem; background: var(--warm-white); border: 2.5px dashed var(--border-strong); margin-bottom: 2.5rem; }
+.empty-state h3 { font-family: 'Big Shoulders Display', sans-serif; font-size: 1.3rem; text-transform: uppercase; color: var(--ink); margin-bottom: 0.4rem; }
+.empty-state p { font-size: 0.875rem; color: var(--ink-muted); margin-bottom: 1.5rem; }
+
+/* Onboarding (no friends yet) */
+.onboard-card { background: var(--amber-pale); border: 2.5px solid var(--border-strong); padding: 1.15rem 1.4rem; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; box-shadow: var(--shadow-ink); }
+.onboard-card h3 { font-family: 'Big Shoulders Display', sans-serif; font-size: 1.15rem; text-transform: uppercase; color: var(--ink); margin-bottom: 0.3rem; }
+.onboard-card p { font-size: 0.85rem; color: var(--ink-light); max-width: 480px; }
+
+/* Friends row */
+.friends-row { display: flex; gap: 0.65rem; flex-wrap: wrap; align-items: center; margin-bottom: 1rem; }
+.friend-chip { display: flex; align-items: center; gap: 0.5rem; border: 2px solid var(--border-strong); background: var(--yellow); padding: 0.3rem 0.75rem 0.3rem 0.3rem; font-weight: 700; font-size: 0.85rem; box-shadow: var(--shadow-ink-sm); text-decoration: none; color: var(--ink); }
+.friend-chip:nth-child(4n+2) { background: var(--amber-pale); }
+.friend-chip:nth-child(4n+3) { background: #FFD8CF; }
+.friend-chip:nth-child(4n+4) { background: #DFF5DA; }
+.fav { width: 26px; height: 26px; border: 1.5px solid var(--border-strong); background: var(--warm-white); display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; }
+.friend-chip-count { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--ink-light); font-weight: 600; }
+.add-friend-link { display: inline-flex; align-items: center; border: 2px dashed var(--border-strong); color: var(--ink-muted); font-weight: 700; font-size: 0.85rem; padding: 0.3rem 0.8rem; text-decoration: none; }
+.add-friend-link:hover { color: var(--ink); border-color: var(--amber); }
 {% endblock %}
 
 {% block content %}
@@ -107,46 +93,29 @@
 </div>
 {% endif %}
 
-<div class="page-header">
-    <div>
-        <h2>My boards</h2>
-        <p>All the places your memories live</p>
-    </div>
-    <a href="{% url 'create_group' %}" class="btn btn-primary">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        New board
-    </a>
-</div>
-
 <div class="page-content">
-    <div class="stats-row">
-        <div class="stat-card">
-            <div class="stat-label">Boards</div>
-            <div class="stat-value">{{ user_groups.count }}</div>
+    <div class="masthead">
+        <div>
+            <div class="mh-title">Your Boards</div>
+            <div class="mh-sub">All the places your memories live</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-label">Friends</div>
-            <div class="stat-value">{{ friends.count }}</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">Memories</div>
-            <div class="stat-value">{{ total_memories }}</div>
-        </div>
-        <a href="{% url 'notifications' %}" class="stat-card" style="text-decoration:none;">
-            <div class="stat-label">Notifications</div>
-            <div class="stat-value">{{ unread_notifs }}</div>
+        <a href="{% url 'create_group' %}" class="btn btn-primary">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            New board
         </a>
     </div>
 
-    <div class="section-title">
-        <span>Your boards</span>
-        <a href="{% url 'annual_recap' %}" style="font-size:0.78rem;color:var(--amber);text-decoration:none;font-weight:500;">View {{ "now"|date:"Y" }} recap →</a>
+    <div class="gauges">
+        <div class="gauge"><b>{{ user_groups.count }}</b><span>Boards</span></div>
+        <div class="gauge"><b>{{ friends.count }}</b><span>Friends</span></div>
+        <div class="gauge"><b>{{ total_memories }}</b><span>Memories</span></div>
+        <a href="{% url 'notifications' %}" class="gauge"><b>{{ unread_notifs }}</b><span>Notifications</span></a>
     </div>
 
     {% if on_this_day %}
     <div class="section-title">
         <span>On this day</span>
-        <a href="{% url 'on_this_day' %}" style="font-size:0.78rem;color:var(--amber);text-decoration:none;font-weight:500;">See more →</a>
+        <a href="{% url 'on_this_day' %}" class="see">See more →</a>
     </div>
     <div class="otd-strip">
         {% for m in on_this_day %}
@@ -161,53 +130,53 @@
 
     {% if shared_with_me %}
     <div class="section-title"><span>Shared with me</span></div>
-    <div class="shared-grid">
+    <div class="shared-list">
         {% for g in shared_with_me %}
-        <div class="shared-card">
-            <div class="shared-banner {% if g.cover_photo %}{% else %}{% cycle 'banner-yellow' 'banner-green' 'banner-blue' 'banner-pink' 'banner-lavender' 'banner-peach' %}{% endif %}"
-                 {% if g.cover_photo %}style="background-image:url('{{ g.cover_photo.url }}');"{% endif %}></div>
-            <div class="shared-body">
-                <div class="shared-name">{{ g.name }}</div>
-                <div class="shared-owner">by {{ g.owner.first_name|default:g.owner.username }}</div>
-                <form method="post" action="{% url 'request_join_board' g.pk %}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-request" {% if g.already_requested %}disabled{% endif %}>
-                        {% if g.already_requested %}Request sent{% else %}Request to join{% endif %}
-                    </button>
-                </form>
-            </div>
+        <div class="shared-item">
+            <span>{{ g.name }} <span class="owner">by {{ g.owner.first_name|default:g.owner.username }}</span></span>
+            <form method="post" action="{% url 'request_join_board' g.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn-request" {% if g.already_requested %}disabled{% endif %}>
+                    {% if g.already_requested %}Request sent{% else %}Request to join{% endif %}
+                </button>
+            </form>
         </div>
         {% endfor %}
     </div>
     {% endif %}
 
+    <div class="section-title">
+        <span>Boards</span>
+        <a href="{% url 'annual_recap' %}" class="see">View {{ "now"|date:"Y" }} recap →</a>
+    </div>
+
     {% if user_groups %}
-    <div class="groups-grid">
+    <div class="boards">
         {% for group in user_groups %}
-        <a href="{% url 'group_detail' group.pk %}" class="group-card">
-            <div class="group-banner {% if group.cover_photo %}{% else %}{% cycle 'banner-yellow' 'banner-green' 'banner-blue' 'banner-pink' 'banner-lavender' 'banner-peach' %}{% endif %}"
-                 {% if group.cover_photo %}style="background-image:url('{{ group.cover_photo.url }}');"{% endif %}>
-                <span class="privacy-badge">{{ group.get_privacy_display }}</span>
-                <span class="memory-count-badge">{{ group.memory_count }} memor{{ group.memory_count|pluralize:"y,ies" }}</span>
-            </div>
-            <div class="group-body">
-                <div class="group-name">{{ group.name }}</div>
-                <div class="group-desc">{{ group.description|default:"No description yet." }}</div>
-                <div class="member-stack">
-                    <div class="member-avatars">
-                        {% for member in group.members.all|slice:":5" %}
-                        <div class="member-av">{{ member.first_name|first|upper }}{{ member.last_name|first|upper }}</div>
-                        {% endfor %}
-                    </div>
-                    <span class="member-count">{{ group.members.count }} member{{ group.members.count|pluralize }}</span>
+        <a href="{% url 'group_detail' group.pk %}" class="flyer">
+            <div class="tape"></div>
+            {% if group.cover_photo %}
+            <div class="flyer-photo" style="background-image:url('{{ group.cover_photo.url }}');"></div>
+            {% else %}
+            <div class="flyer-photo no-photo"></div>
+            {% endif %}
+            <div class="flyer-body">
+                <div class="flyer-top">
+                    <h3>{{ group.name }}</h3>
+                    <span class="badge">{{ group.get_privacy_display }}</span>
                 </div>
+                <div class="desc">{{ group.description|default:"No description yet." }}</div>
+                <div class="row">
+                    <span class="m">{{ group.members.count }} member{{ group.members.count|pluralize }}</span>
+                    <span class="m">{{ group.memory_count }} memor{{ group.memory_count|pluralize:"y,ies" }}</span>
+                </div>
+                <div class="bar"><i style="width:{% widthratio group.memory_count 50 100 %}%;"></i></div>
             </div>
         </a>
         {% endfor %}
     </div>
     {% else %}
     <div class="empty-state">
-        <div class="empty-icon">📋</div>
         <h3>No boards yet</h3>
         <p>Create your first group board and start collecting memories together.</p>
         <a href="{% url 'create_group' %}" class="btn btn-primary">Create first board</a>
@@ -217,7 +186,7 @@
     {% if not friends %}
     <div class="onboard-card">
         <div>
-            <h3>👋 New here? Start with a friend</h3>
+            <h3>New here? Start with a friend</h3>
             <p>Boards can hold memories on their own, but Memboard really comes alive when you share them. Add your first friend to start collaborating.</p>
         </div>
         <a href="{% url 'friends' %}" class="btn btn-primary">Add a friend</a>
@@ -228,9 +197,9 @@
     <div class="friends-row">
         {% for friend in friends %}
         <a href="{% url 'friend_profile' friend.pk %}" class="friend-chip">
-            <div class="fav">{{ friend.initials }}</div>
+            <span class="fav">{{ friend.initials }}</span>
             {{ friend.display_name|truncatechars:16 }}
-            {% if friend.shared_boards %}<span class="friend-chip-count">· {{ friend.shared_boards }} board{{ friend.shared_boards|pluralize }}</span>{% endif %}
+            {% if friend.shared_boards %}<span class="friend-chip-count">{{ friend.shared_boards }} board{{ friend.shared_boards|pluralize }}</span>{% endif %}
         </a>
         {% endfor %}
         <a href="{% url 'friends' %}" class="add-friend-link">+ Add friend</a>

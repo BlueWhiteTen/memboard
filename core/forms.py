@@ -217,8 +217,8 @@ class InviteMemberForm(forms.Form):
 
 
 class FriendRequestForm(forms.Form):
-    query = forms.CharField(max_length=200,
-        widget=forms.TextInput(attrs={'placeholder': 'Name or email address…'}))
+    query = forms.EmailField(max_length=200,
+        widget=forms.EmailInput(attrs={'placeholder': 'Their email address…'}))
 
     def __init__(self, *args, from_user=None, **kwargs):
         self.from_user = from_user
@@ -227,22 +227,9 @@ class FriendRequestForm(forms.Form):
     def clean_query(self):
         from .models import Friendship, FriendRequest as FR
         q = self.cleaned_data['query'].strip()
-        user = None
-        if '@' in q:
-            user = User.objects.filter(email__iexact=q).first()
+        user = User.objects.filter(email__iexact=q).first()
         if not user:
-            parts = q.split()
-            if len(parts) >= 2:
-                user = User.objects.filter(
-                    first_name__iexact=parts[0],
-                    last_name__iexact=' '.join(parts[1:])
-                ).first()
-        if not user:
-            qs = User.objects.filter(first_name__iexact=q)
-            if qs.count() == 1:
-                user = qs.first()
-        if not user:
-            raise forms.ValidationError("No Memboard account found. Try their email address.")
+            raise forms.ValidationError("No Memboard account found with that email address.")
         if user == self.from_user:
             raise forms.ValidationError("That's you!")
         if Friendship.are_friends(self.from_user, user):
