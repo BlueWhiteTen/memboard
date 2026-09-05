@@ -49,6 +49,25 @@ class Friendship(models.Model):
         Friendship.objects.get_or_create(user1=u1, user2=u2)
 
 
+# ── Friend Groups ─────────────────────────────────────────────────────────────
+# A user's own way of clustering their friends — used to control who can see a
+# board (privacy = 'friend_group'), and reusable anywhere else a friend picker
+# needs a shortcut (e.g. adding a bunch of people to a new board at once).
+
+class FriendGroup(models.Model):
+    owner      = models.ForeignKey(User, related_name='friend_groups', on_delete=models.CASCADE)
+    name       = models.CharField(max_length=80)
+    members    = models.ManyToManyField(User, related_name='friend_group_memberships', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('owner', 'name')
+        ordering = ['name']
+
+    def __str__(self):
+        return f"{self.name} ({self.owner})"
+
+
 # ── Choices ───────────────────────────────────────────────────────────────────
 
 FONT_CHOICES = [
@@ -60,9 +79,10 @@ FONT_CHOICES = [
 ]
 
 PRIVACY_CHOICES = [
-    ('friends', 'Friends only'),
-    ('invite',  'Invite only'),
-    ('private', 'Just me'),
+    ('private',      'Just me'),
+    ('members',      'Only members'),
+    ('friend_group', 'A specific friend group'),
+    ('all_friends',  'All my friends'),
 ]
 
 COLOUR_CHOICES = [
@@ -78,6 +98,22 @@ EDIT_PERMISSION_CHOICES = [
     ('only_me',     'Only me'),
     ('tagged',      'Me & tagged friends'),
     ('all_members', 'All board members'),
+]
+
+MEMORY_DELETE_PERMISSION_CHOICES = [
+    ('creator_only', 'Only the person who added it'),
+    ('all_members',  'Any board member'),
+]
+
+BOARD_DELETE_PERMISSION_CHOICES = [
+    ('owner_only',  'Only the board owner'),
+    ('all_members', 'Any board member'),
+]
+
+THEME_CHOICES = [
+    ('system', 'Match system'),
+    ('light',  'Light'),
+    ('dark',   'Dark'),
 ]
 
 FONT_CSS = {
@@ -98,12 +134,16 @@ REACTION_CHOICES = [
 ]
 
 NOTIFICATION_TYPES = [
-    ('reaction',     'Reaction on memory'),
-    ('comment',      'Comment on memory'),
-    ('tag',          'Tagged in memory'),
-    ('friend_req',   'Friend request'),
-    ('board_invite', 'Board invitation'),
-    ('pin',          'Memory pinned'),
+    ('reaction',      'Reaction on memory'),
+    ('comment',       'Comment on memory'),
+    ('tag',           'Tagged in memory'),
+    ('friend_req',    'Friend request'),
+    ('board_invite',  'Board invitation'),
+    ('pin',           'Memory pinned'),
+    ('board_visible', 'Board shared with you'),
+    ('join_request',  'Board join request'),
+    ('join_approved', 'Join request approved'),
+    ('on_this_day',   'On this day memories'),
 ]
 
 ACTIVITY_TYPES = [
@@ -129,6 +169,7 @@ class UserProfile(models.Model):
     push_p256dh    = models.TextField(blank=True)
     push_auth      = models.TextField(blank=True)
     weekly_digest  = models.BooleanField(default=True)
+    theme          = models.CharField(max_length=10, choices=THEME_CHOICES, default='system')
 
     def __str__(self):
         return f"{self.user.username} profile"
@@ -164,11 +205,22 @@ class GroupInvite(models.Model):
 class Group(models.Model):
     name        = models.CharField(max_length=120)
     description = models.TextField(blank=True)
-    privacy     = models.CharField(max_length=10, choices=PRIVACY_CHOICES, default='friends')
+    privacy     = models.CharField(max_length=12, choices=PRIVACY_CHOICES, default='members')
     owner       = models.ForeignKey(User, related_name='owned_groups', on_delete=models.CASCADE)
     members     = models.ManyToManyField(User, related_name='member_groups', blank=True)
     cover_photo = models.ImageField(upload_to='covers/', blank=True, null=True)
     created_at  = models.DateTimeField(auto_now_add=True)
+
+    # Only used when privacy == 'friend_group': the one friend-group whose
+    # members can see this board (as a listing) even before they join.
+    visible_to_group = models.ForeignKey(
+        FriendGroup, related_name='visible_boards', on_delete=models.SET_NULL,
+        null=True, blank=True)
+
+    memory_delete_permission = models.CharField(
+        max_length=15, choices=MEMORY_DELETE_PERMISSION_CHOICES, default='creator_only')
+    board_delete_permission = models.CharField(
+        max_length=15, choices=BOARD_DELETE_PERMISSION_CHOICES, default='owner_only')
 
     def __str__(self):
         return self.name
@@ -176,6 +228,42 @@ class Group(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         self.members.add(self.owner)
+
+    def user_can_delete_board(self, user):
+        if user == self.owner:
+            return True
+        if self.board_delete_permission == 'all_members':
+            return self.members.filter(pk=user.pk).exists()
+        return False
+
+    def is_member(self, user):
+        return self.members.filter(pk=user.pk).exists()
+
+    def is_visible_to(self, user):
+        """Whether `user` can see this board at all — as a member, or as a
+        bare listing under 'Shared with me' if the privacy settings allow it."""
+        if user == self.owner or self.is_member(user):
+            return True
+        if self.privacy == 'all_friends':
+            return Friendship.are_friends(self.owner, user)
+        if self.privacy == 'friend_group' and self.visible_to_group_id:
+            return self.visible_to_group.members.filter(pk=user.pk).exists()
+        return False
+
+
+class BoardJoinRequest(models.Model):
+    """A request from a non-member who can see a board (via 'Shared with me')
+    to actually join it. The board owner approves or declines it."""
+    board      = models.ForeignKey(Group, related_name='join_requests', on_delete=models.CASCADE)
+    requester  = models.ForeignKey(User, related_name='sent_join_requests', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('board', 'requester')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.requester} → {self.board.name}"
 
 
 # ── Memory ────────────────────────────────────────────────────────────────────
@@ -228,6 +316,13 @@ class Memory(models.Model):
         if self.edit_permission == 'tagged':
             return self.tagged.filter(pk=user.pk).exists()
         if self.edit_permission == 'all_members':
+            return self.group.members.filter(pk=user.pk).exists()
+        return False
+
+    def can_delete(self, user):
+        if user == self.creator:
+            return True
+        if self.group.memory_delete_permission == 'all_members':
             return self.group.members.filter(pk=user.pk).exists()
         return False
 

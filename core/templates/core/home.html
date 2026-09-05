@@ -70,8 +70,32 @@
 .friend-chip { display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.7rem 0.3rem 0.35rem; background: var(--warm-white); border: 1px solid var(--border); border-radius: 100px; font-size: 0.8rem; color: var(--ink); text-decoration: none; transition: border-color 0.12s, background 0.12s; }
 .friend-chip:hover { border-color: var(--amber); background: var(--amber-pale); }
 .fav { width: 24px; height: 24px; border-radius: 50%; font-size: 0.62rem; font-weight: 500; display: flex; align-items: center; justify-content: center; text-transform: uppercase; background: var(--amber-pale); color: var(--amber); }
+.friend-chip-count { font-size: 0.68rem; color: var(--ink-muted); }
 .add-friend-link { display: flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.7rem; background: transparent; border: 1px dashed var(--border-strong); border-radius: 100px; font-size: 0.8rem; color: var(--ink-light); text-decoration: none; transition: all 0.12s; }
 .add-friend-link:hover { border-color: var(--amber); background: var(--amber-pale); color: var(--ink); }
+
+/* Onboarding (no friends yet) */
+.onboard-card { background: linear-gradient(135deg,var(--warm-white),var(--amber-pale)); border: 1px solid var(--amber); border-radius: 14px; padding: 1.25rem 1.5rem; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.onboard-card h3 { font-family:'Lora',serif; font-size: 1rem; font-weight: 600; color: var(--ink); margin-bottom: 0.3rem; }
+.onboard-card p { font-size: 0.85rem; color: var(--ink-muted); max-width: 480px; }
+
+/* Shared with me */
+.shared-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2.5rem; }
+.shared-card { background: var(--warm-white); border: 1px dashed var(--border-strong); border-radius: 14px; overflow: hidden; }
+.shared-banner { height: 64px; background-size: cover; background-position: center; }
+.shared-body { padding: 0.8rem 1rem 1rem; }
+.shared-name { font-family:'Lora',serif; font-size: 0.9rem; font-weight: 600; color: var(--ink); margin-bottom: 0.15rem; }
+.shared-owner { font-size: 0.75rem; color: var(--ink-muted); margin-bottom: 0.7rem; }
+.shared-card form { display: inline; }
+.btn-request { width: 100%; height: 34px; border-radius: 8px; border: 1px solid var(--amber); background: var(--amber-pale); color: var(--amber); font-family:'DM Sans',sans-serif; font-size: 0.78rem; font-weight: 500; cursor: pointer; }
+.btn-request:disabled { opacity: 0.6; cursor: default; }
+
+/* On this day */
+.otd-strip { display: flex; gap: 0.75rem; overflow-x: auto; padding-bottom: 0.3rem; margin-bottom: 2.5rem; }
+.otd-card { flex: 0 0 200px; background: var(--warm-white); border: 1px solid var(--border); border-radius: 12px; padding: 0.85rem; }
+.otd-year { font-size: 0.68rem; color: var(--amber); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem; }
+.otd-text { font-size: 0.82rem; color: var(--ink); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.otd-board { font-size: 0.72rem; color: var(--ink-muted); margin-top: 0.4rem; }
 {% endblock %}
 
 {% block content %}
@@ -119,6 +143,44 @@
         <a href="{% url 'annual_recap' %}" style="font-size:0.78rem;color:var(--amber);text-decoration:none;font-weight:500;">View {{ "now"|date:"Y" }} recap →</a>
     </div>
 
+    {% if on_this_day %}
+    <div class="section-title">
+        <span>On this day</span>
+        <a href="{% url 'on_this_day' %}" style="font-size:0.78rem;color:var(--amber);text-decoration:none;font-weight:500;">See more →</a>
+    </div>
+    <div class="otd-strip">
+        {% for m in on_this_day %}
+        <div class="otd-card">
+            <div class="otd-year">{{ m.on_this_day_year }}</div>
+            <div class="otd-text">{{ m.title|default:m.content }}</div>
+            <div class="otd-board">{{ m.group.name }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if shared_with_me %}
+    <div class="section-title"><span>Shared with me</span></div>
+    <div class="shared-grid">
+        {% for g in shared_with_me %}
+        <div class="shared-card">
+            <div class="shared-banner {% if g.cover_photo %}{% else %}{% cycle 'banner-yellow' 'banner-green' 'banner-blue' 'banner-pink' 'banner-lavender' 'banner-peach' %}{% endif %}"
+                 {% if g.cover_photo %}style="background-image:url('{{ g.cover_photo.url }}');"{% endif %}></div>
+            <div class="shared-body">
+                <div class="shared-name">{{ g.name }}</div>
+                <div class="shared-owner">by {{ g.owner.first_name|default:g.owner.username }}</div>
+                <form method="post" action="{% url 'request_join_board' g.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-request" {% if g.already_requested %}disabled{% endif %}>
+                        {% if g.already_requested %}Request sent{% else %}Request to join{% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     {% if user_groups %}
     <div class="groups-grid">
         {% for group in user_groups %}
@@ -152,12 +214,23 @@
     </div>
     {% endif %}
 
+    {% if not friends %}
+    <div class="onboard-card">
+        <div>
+            <h3>👋 New here? Start with a friend</h3>
+            <p>Boards can hold memories on their own, but Memboard really comes alive when you share them. Add your first friend to start collaborating.</p>
+        </div>
+        <a href="{% url 'friends' %}" class="btn btn-primary">Add a friend</a>
+    </div>
+    {% endif %}
+
     <div class="section-title">Your friends</div>
     <div class="friends-row">
         {% for friend in friends %}
-        <a href="{% url 'friends' %}" class="friend-chip">
+        <a href="{% url 'friend_profile' friend.pk %}" class="friend-chip">
             <div class="fav">{{ friend.initials }}</div>
             {{ friend.display_name|truncatechars:16 }}
+            {% if friend.shared_boards %}<span class="friend-chip-count">· {{ friend.shared_boards }} board{{ friend.shared_boards|pluralize }}</span>{% endif %}
         </a>
         {% endfor %}
         <a href="{% url 'friends' %}" class="add-friend-link">+ Add friend</a>

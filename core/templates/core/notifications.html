@@ -37,10 +37,12 @@
                 <a href="{% url 'group_detail' n.group.pk %}" class="notif-link">View board →</a>
                 {% elif n.notif_type == 'friend_req' %}
                 <a href="{% url 'friends' %}" class="notif-link">View friend requests →</a>
+                {% elif n.notif_type == 'on_this_day' %}
+                <a href="{% url 'on_this_day' %}" class="notif-link">See memories →</a>
                 {% endif %}
             </div>
             <span class="notif-type-icon">
-                {% if n.notif_type == 'reaction' %}❤️{% elif n.notif_type == 'comment' %}💬{% elif n.notif_type == 'tag' %}🏷{% elif n.notif_type == 'friend_req' %}👥{% elif n.notif_type == 'board_invite' %}📋{% elif n.notif_type == 'pin' %}📌{% endif %}
+                {% if n.notif_type == 'reaction' %}❤️{% elif n.notif_type == 'comment' %}💬{% elif n.notif_type == 'tag' %}🏷{% elif n.notif_type == 'friend_req' %}👥{% elif n.notif_type == 'board_invite' %}📋{% elif n.notif_type == 'pin' %}📌{% elif n.notif_type == 'board_visible' %}🔓{% elif n.notif_type == 'join_request' %}🙋{% elif n.notif_type == 'join_approved' %}✅{% elif n.notif_type == 'on_this_day' %}📅{% endif %}
             </span>
         </div>
         {% endfor %}

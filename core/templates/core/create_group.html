@@ -96,6 +96,10 @@
     <form method="post" id="groupForm">
         {% csrf_token %}
 
+        {% if form.visible_to_group.errors %}
+        <div style="color:#B83232;font-size:0.8rem;margin-bottom:1rem;">{{ form.visible_to_group.errors.0 }}</div>
+        {% endif %}
+
         <div class="form-group">
             <label class="form-label" for="id_name">Board name</label>
             <input type="text" class="form-input" id="id_name" name="name"
@@ -114,29 +118,48 @@
 
         <!-- Privacy -->
         <div class="form-group">
-            <label class="form-label">Privacy</label>
-            <div class="privacy-grid">
+            <label class="form-label">Who can see this board?</label>
+            <div class="privacy-grid" style="grid-template-columns:1fr 1fr;">
                 <div class="privacy-option">
-                    <input type="radio" name="privacy" id="priv_friends" value="friends" checked>
-                    <label for="priv_friends">
-                        <svg viewBox="0 0 20 20" fill="none"><circle cx="7" cy="6" r="3" fill="currentColor" opacity="0.6"/><path d="M1 16c0-3.3 2.7-6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="13" cy="7" r="2.5" fill="currentColor" opacity="0.35"/></svg>
-                        Friends only
-                    </label>
-                </div>
-                <div class="privacy-option">
-                    <input type="radio" name="privacy" id="priv_invite" value="invite">
-                    <label for="priv_invite">
+                    <input type="radio" name="privacy" id="priv_members" value="members" {% if form.privacy.value|default:'members' == 'members' %}checked{% endif %} onchange="updatePrivacyExtra()">
+                    <label for="priv_members">
                         <svg viewBox="0 0 20 20" fill="none"><rect x="3" y="6" width="14" height="10" rx="2" fill="currentColor" opacity="0.25"/><path d="M3 8l7 5 7-5" stroke="currentColor" stroke-width="1.4"/></svg>
-                        Invite only
+                        Only members
                     </label>
                 </div>
                 <div class="privacy-option">
-                    <input type="radio" name="privacy" id="priv_private" value="private">
+                    <input type="radio" name="privacy" id="priv_all_friends" value="all_friends" {% if form.privacy.value == 'all_friends' %}checked{% endif %} onchange="updatePrivacyExtra()">
+                    <label for="priv_all_friends">
+                        <svg viewBox="0 0 20 20" fill="none"><circle cx="7" cy="6" r="3" fill="currentColor" opacity="0.6"/><path d="M1 16c0-3.3 2.7-6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="13" cy="7" r="2.5" fill="currentColor" opacity="0.35"/></svg>
+                        All my friends
+                    </label>
+                </div>
+                <div class="privacy-option">
+                    <input type="radio" name="privacy" id="priv_friend_group" value="friend_group" {% if form.privacy.value == 'friend_group' %}checked{% endif %} onchange="updatePrivacyExtra()">
+                    <label for="priv_friend_group">
+                        <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="6" r="3" fill="currentColor" opacity="0.5"/><path d="M4 16c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                        A friend group
+                    </label>
+                </div>
+                <div class="privacy-option">
+                    <input type="radio" name="privacy" id="priv_private" value="private" {% if form.privacy.value == 'private' %}checked{% endif %} onchange="updatePrivacyExtra()">
                     <label for="priv_private">
                         <svg viewBox="0 0 20 20" fill="none"><rect x="5" y="9" width="10" height="8" rx="2" fill="currentColor" opacity="0.25"/><path d="M7 9V7a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.4"/></svg>
                         Just me
                     </label>
                 </div>
+            </div>
+            <p style="font-size:0.78rem;color:var(--ink-muted);margin-top:0.5rem;">"Only members" means nobody else can see it. The other options let friends see it listed under "Shared with me" and request to join.</p>
+            <div id="friendGroupPicker" style="display:{% if form.privacy.value == 'friend_group' %}block{% else %}none{% endif %};margin-top:0.75rem;">
+                <select name="visible_to_group" class="form-input" style="height:40px;">
+                    <option value="">Choose a friend group…</option>
+                    {% for fg in friend_groups %}
+                    <option value="{{ fg.pk }}" {% if form.visible_to_group.value|stringformat:"s" == fg.pk|stringformat:"s" %}selected{% endif %}>{{ fg.name }}</option>
+                    {% endfor %}
+                </select>
+                {% if not friend_groups %}
+                <p style="font-size:0.78rem;color:var(--ink-muted);margin-top:0.4rem;">You don't have any friend groups yet. <a href="{% url 'create_friend_group' %}" style="color:var(--amber);">Create one</a> first.</p>
+                {% endif %}
             </div>
         </div>
 
@@ -144,6 +167,15 @@
         <div class="form-group">
             <label class="form-label">Add friends to this board <span class="opt">optional</span></label>
             {% if friends %}
+            {% if friend_groups %}
+            <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:0.6rem;">
+                {% for fg in friend_groups %}
+                <button type="button" class="friend-pick-btn" style="border-style:dashed;"
+                        data-member-ids="{% for m in fg.members.all %}{{ m.id }} {% endfor %}"
+                        onclick="quickAddGroup(this)">+ All of "{{ fg.name }}"</button>
+                {% endfor %}
+            </div>
+            {% endif %}
             <div class="friend-picker" id="friendPicker">
                 {% for friend in friends %}
                 <button type="button"
@@ -180,6 +212,22 @@
 <script>
 const AV_COLOURS = ['av-0','av-1','av-2','av-3','av-4','av-5'];
 let selectedFriends = [];
+
+function updatePrivacyExtra() {
+    const picker = document.getElementById('friendGroupPicker');
+    const chosen = document.querySelector('input[name="privacy"]:checked').value;
+    picker.style.display = (chosen === 'friend_group') ? 'block' : 'none';
+}
+
+function quickAddGroup(btn) {
+    const ids = btn.dataset.memberIds.trim().split(/\s+/).filter(Boolean);
+    ids.forEach(id => {
+        const target = document.querySelector(`.friend-pick-btn[data-id="${id}"]`);
+        if (target && !target.classList.contains('selected')) {
+            toggleFriend(target);
+        }
+    });
+}
 
 function toggleFriend(btn) {
     btn.classList.toggle('selected');

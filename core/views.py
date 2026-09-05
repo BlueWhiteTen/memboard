@@ -13,13 +13,17 @@ import json
 from .models import (
     Group, Memory, Friendship, FriendRequest, UserProfile,
     GroupInvite, Reaction, Comment, Notification, ActivityLog,
-    FONT_CHOICES, REACTION_CHOICES, COLOUR_CHOICES
+    FriendGroup, BoardJoinRequest,
+    FONT_CHOICES, REACTION_CHOICES, COLOUR_CHOICES, THEME_CHOICES, PRIVACY_CHOICES,
+    MEMORY_DELETE_PERMISSION_CHOICES, BOARD_DELETE_PERMISSION_CHOICES,
 )
 from .forms import (
     RegisterForm, EmailAuthenticationForm, GroupForm, GroupCoverForm,
     MemoryForm, EditMemoryForm, InviteMemberForm, FriendRequestForm,
+    GroupSettingsForm, FriendGroupForm,
 )
 from .email_utils import send_invite_email
+from .on_this_day import get_on_this_day_memories
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -60,6 +64,49 @@ def log_activity(group, actor, action_type, description, memory=None):
         group=group, actor=actor, action_type=action_type,
         description=description, memory=memory,
     )
+
+
+def _visible_user_ids_for(group, privacy, visible_to_group_id):
+    """Which user ids would see `group` as a 'Shared with me' listing under
+    the given (privacy, visible_to_group_id) combination — used to diff
+    old vs. new state after a settings change."""
+    if privacy == 'all_friends':
+        return set(Friendship.get_friends(group.owner).values_list('pk', flat=True))
+    if privacy == 'friend_group' and visible_to_group_id:
+        return set(FriendGroup.objects.filter(pk=visible_to_group_id)
+                   .values_list('members__pk', flat=True)) - {None}
+    return set()
+
+
+def notify_newly_visible_users(group, old_privacy, old_visible_to_group_id):
+    """After a board's privacy settings change, notify anyone who can newly
+    see it (and isn't already a member) that it's been shared with them."""
+    old_visible = _visible_user_ids_for(group, old_privacy, old_visible_to_group_id)
+    new_visible = _visible_user_ids_for(group, group.privacy, group.visible_to_group_id)
+    member_ids  = set(group.members.values_list('pk', flat=True))
+    for uid in (new_visible - old_visible) - member_ids:
+        try:
+            u = User.objects.get(pk=uid)
+        except User.DoesNotExist:
+            continue
+        create_notification(
+            u, group.owner, 'board_visible',
+            f'{get_display_name(group.owner)} shared the board "{group.name}" with you',
+            group=group,
+        )
+
+
+def notify_boards_visible_after_friendship(user_a, user_b):
+    """When two people become friends, any 'all friends' boards either of
+    them owns become newly visible to the other."""
+    for owner, viewer in ((user_a, user_b), (user_b, user_a)):
+        boards = Group.objects.filter(owner=owner, privacy='all_friends').exclude(members=viewer)
+        for board in boards:
+            create_notification(
+                viewer, owner, 'board_visible',
+                f'{get_display_name(owner)} shared the board "{board.name}" with you',
+                group=board,
+            )
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
@@ -125,17 +172,41 @@ def home_view(request):
     user_groups    = (Group.objects.filter(members=user)
                       .annotate(memory_count=Count('memories', filter=Q(memories__is_deleted=False)))
                       .order_by('-created_at'))
-    friends        = Friendship.get_friends(user)
+    friends        = list(Friendship.get_friends(user))
     pending_in     = FriendRequest.objects.filter(to_user=user, accepted=False)
     total_memories = Memory.objects.filter(group__members=user, is_deleted=False).count()
     unread_notifs  = Notification.objects.filter(recipient=user, is_read=False).count()
     annotate_users(friends)
+
+    # Shared-boards count on each friend chip.
+    for f in friends:
+        f.shared_boards = Group.objects.filter(members=user).filter(members=f).count()
+
+    # Shared with me: boards visible via privacy settings that the user
+    # hasn't joined yet — shown as a bare listing with a request-to-join action.
+    candidates = (Group.objects
+                  .exclude(members=user)
+                  .filter(privacy__in=['all_friends', 'friend_group'])
+                  .select_related('owner'))
+    shared_with_me = [g for g in candidates if g.is_visible_to(user)]
+    requested_ids  = set(BoardJoinRequest.objects.filter(requester=user).values_list('board_id', flat=True))
+    for g in shared_with_me:
+        g.already_requested = g.pk in requested_ids
+
+    # On this day (preview for the home widget).
+    on_this_day = get_on_this_day_memories(user)[:6]
+    for m in on_this_day:
+        m.creator_initials = get_initials(m.creator)
+        m.creator_display  = get_display_name(m.creator)
+
     return render(request, 'core/home.html', {
         'user_groups':      user_groups,
         'friends':          friends,
         'pending_requests': pending_in,
         'total_memories':   total_memories,
         'unread_notifs':    unread_notifs,
+        'shared_with_me':   shared_with_me,
+        'on_this_day':      on_this_day,
         'user_initials':    get_initials(user),
         'user_display':     get_display_name(user),
     })
@@ -196,10 +267,11 @@ def mark_notif_read_view(request, pk):
 
 @login_required
 def create_group_view(request):
-    user    = request.user
-    friends = annotate_users(list(Friendship.get_friends(user)))
+    user         = request.user
+    friends      = annotate_users(list(Friendship.get_friends(user)))
+    friend_groups = FriendGroup.objects.filter(owner=user).prefetch_related('members')
     if request.method == 'POST':
-        form = GroupForm(request.POST, request.FILES)
+        form = GroupForm(request.POST, request.FILES, owner=user)
         if form.is_valid():
             group = form.save(commit=False)
             group.owner = user
@@ -215,9 +287,9 @@ def create_group_view(request):
             messages.success(request, f'Board "{group.name}" created!')
             return redirect('group_detail', pk=group.pk)
     else:
-        form = GroupForm()
+        form = GroupForm(owner=user)
     return render(request, 'core/create_group.html', {
-        'form': form, 'friends': friends,
+        'form': form, 'friends': friends, 'friend_groups': friend_groups,
         'user_initials': get_initials(user),
         'user_display':  get_display_name(user),
     })
@@ -238,6 +310,7 @@ def group_detail_view(request, pk):
 
     for memory in memories:
         memory.user_can_edit    = memory.can_edit(user)
+        memory.user_can_delete  = memory.can_delete(user)
         memory.creator_initials = get_initials(memory.creator)
         memory.creator_display  = get_display_name(memory.creator)
         memory.reaction_counts  = memory.reaction_summary()
@@ -267,10 +340,21 @@ def group_detail_view(request, pk):
 
     profile, _ = UserProfile.objects.get_or_create(user=user)
 
-    # Recycle bin — memories the current user deleted, still within the 30-day window
-    trashed_memories = (group.memories
-                        .filter(is_deleted=True, creator=user)
-                        .select_related('creator'))
+    is_owner = group.owner == user
+    friend_groups = FriendGroup.objects.filter(owner=user) if is_owner else FriendGroup.objects.none()
+    join_requests = (group.join_requests.select_related('requester') if is_owner
+                      else BoardJoinRequest.objects.none())
+    for jr in join_requests:
+        jr.requester.initials     = get_initials(jr.requester)
+        jr.requester.display_name = get_display_name(jr.requester)
+
+    # Recycle bin. With the default (creator-only) delete policy this is your
+    # own deletions; if the board allows any member to delete, the bin is
+    # shared so anyone who can restore a memory can see it there.
+    if group.memory_delete_permission == 'all_members':
+        trashed_memories = group.memories.filter(is_deleted=True).select_related('creator')
+    else:
+        trashed_memories = group.memories.filter(is_deleted=True, creator=user).select_related('creator')
     for m in trashed_memories:
         m.creator_display = get_display_name(m.creator)
 
@@ -289,7 +373,13 @@ def group_detail_view(request, pk):
         'activity_log':     activity_log,
         'reaction_choices': REACTION_CHOICES,
         'colour_choices':   COLOUR_CHOICES,
-        'is_owner':         group.owner == user,
+        'is_owner':         is_owner,
+        'can_delete_board': group.user_can_delete_board(user),
+        'memory_delete_choices': MEMORY_DELETE_PERMISSION_CHOICES,
+        'board_delete_choices':  BOARD_DELETE_PERMISSION_CHOICES,
+        'privacy_choices':  PRIVACY_CHOICES,
+        'friend_groups':    friend_groups,
+        'join_requests':    join_requests,
     })
 
 
@@ -317,6 +407,36 @@ def set_font_view(request):
             profile.save()
             return JsonResponse({'ok': True})
     return JsonResponse({'ok': False}, status=400)
+
+
+@login_required
+def set_theme_view(request):
+    if request.method == 'POST':
+        theme = request.POST.get('theme', 'system')
+        valid = [t[0] for t in THEME_CHOICES]
+        if theme in valid:
+            profile, _ = UserProfile.objects.get_or_create(user=request.user)
+            profile.theme = theme
+            profile.save(update_fields=['theme'])
+            return JsonResponse({'ok': True})
+    return JsonResponse({'ok': False}, status=400)
+
+
+@login_required
+def update_board_settings_view(request, pk):
+    group = get_object_or_404(Group, pk=pk, owner=request.user)
+    if request.method == 'POST':
+        old_privacy  = group.privacy
+        old_group_id = group.visible_to_group_id
+        form = GroupSettingsForm(request.POST, instance=group, owner=request.user)
+        if form.is_valid():
+            form.save()
+            notify_newly_visible_users(group, old_privacy, old_group_id)
+            messages.success(request, "Board settings updated.")
+        else:
+            for error in form.errors.values():
+                messages.error(request, error.as_text())
+    return redirect('group_detail', pk=pk)
 
 
 @login_required
@@ -395,12 +515,165 @@ def lookup_user_view(request):
 
 @login_required
 def delete_group_view(request, pk):
-    group = get_object_or_404(Group, pk=pk, owner=request.user)
+    group = get_object_or_404(Group, pk=pk)
+    if not group.user_can_delete_board(request.user):
+        messages.error(request, "You don't have permission to delete this board.")
+        return redirect('group_detail', pk=pk)
     if request.method == 'POST':
         name = group.name
         group.delete()
         messages.success(request, f'Board "{name}" deleted.')
     return redirect('home')
+
+
+@login_required
+def request_join_board_view(request, pk):
+    group = get_object_or_404(Group, pk=pk)
+    if request.method == 'POST':
+        if group.is_member(request.user):
+            messages.info(request, "You're already a member of that board.")
+        elif not group.is_visible_to(request.user):
+            messages.error(request, "You don't have permission to request to join that board.")
+        else:
+            _, created = BoardJoinRequest.objects.get_or_create(board=group, requester=request.user)
+            if created:
+                create_notification(
+                    group.owner, request.user, 'join_request',
+                    f'{get_display_name(request.user)} asked to join "{group.name}"',
+                    group=group,
+                )
+                messages.success(request, f'Request sent — {get_display_name(group.owner)} will need to approve it.')
+            else:
+                messages.info(request, "You already requested to join this board.")
+    return redirect('home')
+
+
+@login_required
+def approve_join_request_view(request, pk, req_id):
+    group    = get_object_or_404(Group, pk=pk, owner=request.user)
+    join_req = get_object_or_404(BoardJoinRequest, pk=req_id, board=group)
+    if request.method == 'POST':
+        requester = join_req.requester
+        group.members.add(requester)
+        join_req.delete()
+        log_activity(group, request.user, 'member_join', f'{get_display_name(requester)} joined the board')
+        create_notification(
+            requester, request.user, 'join_approved',
+            f'{get_display_name(request.user)} approved your request to join "{group.name}"',
+            group=group,
+        )
+        messages.success(request, f'{get_display_name(requester)} added to the board!')
+    return redirect('group_detail', pk=pk)
+
+
+@login_required
+def decline_join_request_view(request, pk, req_id):
+    group    = get_object_or_404(Group, pk=pk, owner=request.user)
+    join_req = get_object_or_404(BoardJoinRequest, pk=req_id, board=group)
+    if request.method == 'POST':
+        join_req.delete()
+        messages.info(request, "Join request declined.")
+    return redirect('group_detail', pk=pk)
+
+
+# ── Friend Groups ─────────────────────────────────────────────────────────────
+
+@login_required
+def friend_groups_view(request):
+    user   = request.user
+    groups = FriendGroup.objects.filter(owner=user).annotate(member_count=Count('members'))
+    return render(request, 'core/friend_groups.html', {
+        'friend_groups': groups,
+        'user_initials': get_initials(user),
+        'user_display':  get_display_name(user),
+    })
+
+
+@login_required
+def create_friend_group_view(request):
+    user = request.user
+    if request.method == 'POST':
+        form = FriendGroupForm(request.POST)
+        if form.is_valid():
+            fg = form.save(commit=False)
+            fg.owner = user
+            try:
+                fg.save()
+            except Exception:
+                form.add_error('name', 'You already have a group with that name.')
+            else:
+                messages.success(request, f'"{fg.name}" created — add friends to it below.')
+                return redirect('friend_group_detail', pk=fg.pk)
+    else:
+        form = FriendGroupForm()
+    return render(request, 'core/create_friend_group.html', {
+        'form': form,
+        'user_initials': get_initials(user),
+        'user_display':  get_display_name(user),
+    })
+
+
+@login_required
+def friend_group_detail_view(request, pk):
+    fg   = get_object_or_404(FriendGroup, pk=pk, owner=request.user)
+    user = request.user
+    current_member_ids = set(fg.members.values_list('pk', flat=True))
+
+    if request.method == 'POST':
+        form = FriendGroupForm(request.POST, instance=fg)
+        if form.is_valid():
+            form.save()
+
+        valid_friend_ids = set(Friendship.get_friends(user).values_list('pk', flat=True))
+        selected_ids = set()
+        for fid in request.POST.getlist('selected_friends'):
+            try:
+                selected_ids.add(int(fid))
+            except ValueError:
+                pass
+        new_member_ids = selected_ids & valid_friend_ids
+        fg.members.set(new_member_ids)
+
+        newly_added = new_member_ids - current_member_ids
+        if newly_added:
+            visible_boards = Group.objects.filter(
+                owner=user, privacy='friend_group', visible_to_group=fg)
+            for uid in newly_added:
+                try:
+                    newly_member = User.objects.get(pk=uid)
+                except User.DoesNotExist:
+                    continue
+                for board in visible_boards.exclude(members=newly_member):
+                    create_notification(
+                        newly_member, user, 'board_visible',
+                        f'{get_display_name(user)} shared the board "{board.name}" with you',
+                        group=board,
+                    )
+        messages.success(request, f'"{fg.name}" updated.')
+        return redirect('friend_group_detail', pk=fg.pk)
+
+    friends = annotate_users(list(Friendship.get_friends(user)))
+    for f in friends:
+        f.in_group = f.pk in current_member_ids
+
+    return render(request, 'core/friend_group_detail.html', {
+        'friend_group': fg,
+        'friends':      friends,
+        'user_initials': get_initials(user),
+        'user_display':  get_display_name(user),
+    })
+
+
+@login_required
+def delete_friend_group_view(request, pk):
+    fg = get_object_or_404(FriendGroup, pk=pk, owner=request.user)
+    if request.method == 'POST':
+        name = fg.name
+        # Boards that relied on this group for visibility fall back to "only members".
+        Group.objects.filter(visible_to_group=fg).update(privacy='members', visible_to_group=None)
+        fg.delete()
+        messages.success(request, f'"{name}" deleted.')
+    return redirect('friend_groups')
 
 
 # ── Memories ──────────────────────────────────────────────────────────────────
@@ -460,8 +733,11 @@ def edit_memory_view(request, pk):
 
 @login_required
 def delete_memory_view(request, pk):
-    memory   = get_object_or_404(Memory, pk=pk, creator=request.user, is_deleted=False)
+    memory   = get_object_or_404(Memory, pk=pk, is_deleted=False)
     group_pk = memory.group.pk
+    if not memory.can_delete(request.user):
+        messages.error(request, "You don't have permission to delete that memory.")
+        return redirect('group_detail', pk=group_pk)
     if request.method == 'POST':
         log_activity(memory.group, request.user, 'memory_delete',
                      f'{get_display_name(request.user)} deleted a memory: {memory.title or memory.content[:40]}')
@@ -474,8 +750,15 @@ def delete_memory_view(request, pk):
 
 @login_required
 def restore_memory_view(request, pk):
-    memory   = get_object_or_404(Memory, pk=pk, creator=request.user, is_deleted=True)
+    memory   = get_object_or_404(Memory, pk=pk, is_deleted=True)
     group_pk = memory.group.pk
+    can_restore = (memory.creator == request.user) or (
+        memory.group.memory_delete_permission == 'all_members'
+        and memory.group.members.filter(pk=request.user.pk).exists()
+    )
+    if not can_restore:
+        messages.error(request, "You don't have permission to restore that memory.")
+        return redirect('group_detail', pk=group_pk)
     if request.method == 'POST':
         memory.is_deleted = False
         memory.deleted_at = None
@@ -666,15 +949,56 @@ def annual_recap_view(request, year=None):
     })
 
 
+# ── On This Day ───────────────────────────────────────────────────────────────
+
+@login_required
+def on_this_day_view(request):
+    import calendar
+    from datetime import date, timedelta
+
+    user  = request.user
+    today = timezone.localdate()
+    try:
+        month = int(request.GET.get('month', today.month))
+        day   = int(request.GET.get('day', today.day))
+    except ValueError:
+        month, day = today.month, today.day
+    month = min(max(month, 1), 12)
+    day   = min(max(day, 1), calendar.monthrange(2000, month)[1])  # 2000 is a leap year
+
+    memories = get_on_this_day_memories(user, month, day)
+    for m in memories:
+        m.creator_initials = get_initials(m.creator)
+        m.creator_display  = get_display_name(m.creator)
+
+    anchor    = date(2000, month, day)
+    prev_date = anchor - timedelta(days=1)
+    next_date = anchor + timedelta(days=1)
+
+    return render(request, 'core/on_this_day.html', {
+        'memories':     memories,
+        'month':        month,
+        'day':          day,
+        'is_today':     (month == today.month and day == today.day),
+        'display_date': f"{calendar.month_name[month]} {day}",
+        'prev_month':   prev_date.month, 'prev_day': prev_date.day,
+        'next_month':   next_date.month, 'next_day': next_date.day,
+        'user_initials': get_initials(user),
+        'user_display':  get_display_name(user),
+    })
+
+
 # ── Friends ───────────────────────────────────────────────────────────────────
 
 @login_required
 def friends_view(request):
     user        = request.user
-    friends     = Friendship.get_friends(user)
+    friends     = list(Friendship.get_friends(user))
     pending_in  = FriendRequest.objects.filter(to_user=user, accepted=False).select_related('from_user')
     pending_out = FriendRequest.objects.filter(from_user=user, accepted=False).select_related('to_user')
     annotate_users(friends)
+    for f in friends:
+        f.shared_boards = Group.objects.filter(members=user).filter(members=f).count()
     for r in pending_in:
         r.from_user.initials     = get_initials(r.from_user)
         r.from_user.display_name = get_display_name(r.from_user)
@@ -715,6 +1039,7 @@ def accept_friend_request_view(request, request_id):
         freq.accepted = True
         freq.save()
         Friendship.make_friends(freq.from_user, freq.to_user)
+        notify_boards_visible_after_friendship(freq.from_user, freq.to_user)
         messages.success(request, f"You're now friends with {get_display_name(freq.from_user)}!")
     return redirect('friends')
 
@@ -735,6 +1060,36 @@ def remove_friend_view(request, user_id):
         Friendship.objects.filter(user1=u1, user2=u2).delete()
         messages.info(request, f"Removed {get_display_name(other)} from friends.")
     return redirect('friends')
+
+
+@login_required
+def friend_profile_view(request, user_id):
+    friend = get_object_or_404(User, pk=user_id)
+    user   = request.user
+    if not Friendship.are_friends(user, friend):
+        messages.error(request, "You're not friends with that person.")
+        return redirect('friends')
+
+    shared_boards = (Group.objects.filter(members=user).filter(members=friend)
+                      .annotate(memory_count=Count('memories', filter=Q(memories__is_deleted=False))))
+    mutual_ids     = set(Friendship.get_friends(user).values_list('pk', flat=True)) & \
+                     set(Friendship.get_friends(friend).values_list('pk', flat=True))
+    mutual_friends = annotate_users(list(User.objects.filter(pk__in=mutual_ids)))
+
+    u1, u2 = (user, friend) if user.id < friend.id else (friend, user)
+    friendship   = Friendship.objects.filter(user1=u1, user2=u2).first()
+    friends_since = friendship.created_at if friendship else None
+
+    return render(request, 'core/friend_profile.html', {
+        'friend':          friend,
+        'friend_initials': get_initials(friend),
+        'friend_display':  get_display_name(friend),
+        'shared_boards':   shared_boards,
+        'mutual_friends':  mutual_friends,
+        'friends_since':   friends_since,
+        'user_initials':   get_initials(user),
+        'user_display':    get_display_name(user),
+    })
 
 
 # ── PWA / Push ────────────────────────────────────────────────────────────────

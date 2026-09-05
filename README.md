@@ -4,11 +4,25 @@ A Django-based shared memory-keeping app with rich social features, PWA support,
 
 ---
 
-## ✨ What's new in v8 (this round)
+## ✨ What's new in v8.1 (social features)
 
-This round focused on bug fixes and the design flaws flagged as most urgent. The
-bigger new-features list (friend groups, board privacy rework, "on this day",
-notifications, better onboarding, etc.) is being scoped as a follow-up phase.
+This round adds the bigger new-features list that was deferred from the first
+v8 pass:
+
+| Feature | Details |
+|---|---|
+| **Groups** (friend groups) | Cluster your friends into named groups (Settings → Groups in the sidebar). A group can be used to control who sees a board, or as a shortcut to quick-add a bunch of people when creating a new board. |
+| **Board privacy rework** | Boards now have 4 privacy levels: *Just me*, *Only members*, *A specific friend group*, or *All my friends*. The latter two make the board show up (as a bare listing — name and cover only) under "Shared with me" on the home dashboard for people who can see it but haven't joined. |
+| **Request to join** | Anyone who can see a board under "Shared with me" can request to join it. The board owner gets a notification and can approve or decline from the board's Members tab. |
+| **Visibility notifications** | You're notified when a board becomes newly visible to you — because the owner changed its privacy, you became friends with the owner, or you were added to the friend group a board is shared with. |
+| **Shared-boards count** | Friend chips (home page, Friends page) now show how many boards you have in common. |
+| **Friend mini-profile** | Click a friend to see a small profile page: boards you share and mutual friends. |
+| **On this day** | Memories from this date in past years now surface in three places: a widget on the home dashboard, a dedicated `/on-this-day/` page you can browse day by day, and a daily notification (new `send_on_this_day_notifications` management command — see housekeeping below). |
+| **New-user onboarding** | The home dashboard now shows a friendly prompt to add your first friend when you don't have any yet, and board activity/trash empty states got clearer copy. |
+
+## ✨ What's new in v8 (first round)
+
+This round focused on bug fixes and the design flaws flagged as most urgent.
 
 | Fix | Details |
 |---|---|
@@ -26,21 +40,22 @@ Deliberately **not** in this round (flagged for later, on request): moving photo
 storage to Cloudflare R2, and the SQLite→PostgreSQL item (which turned out to
 be about the separate *Vault* project, not Memboard).
 
-### 🗑 Recycle bin & backups housekeeping
+### 🗑 Recycle bin, backups & on-this-day housekeeping
 
-Two new management commands need to run on a schedule — they don't run themselves:
+Three management commands need to run on a schedule — they don't run themselves:
 
 ```bash
-python manage.py backup_db                 # dumps + stores a compressed backup, prunes old ones (default: keeps 14)
-python manage.py purge_deleted_memories     # permanently removes memories deleted more than 30 days ago
+python manage.py backup_db                       # dumps + stores a compressed backup, prunes old ones (default: keeps 14)
+python manage.py purge_deleted_memories           # permanently removes memories deleted more than 30 days ago
+python manage.py send_on_this_day_notifications   # notifies users who have "on this day" memories today
 ```
 
-On Render, add both as **Cron Jobs** (Dashboard → New → Cron Job), pointed at
-this same repo/build, running daily, e.g.:
+Add all three to crontab (or your host's scheduled-job equivalent), running daily, e.g.:
 
 ```
 0 3 * * *   python manage.py backup_db
 0 4 * * *   python manage.py purge_deleted_memories
+0 8 * * *   python manage.py send_on_this_day_notifications
 ```
 
 **Important:** `backup_db` writes through whatever `DEFAULT_FILE_STORAGE` is

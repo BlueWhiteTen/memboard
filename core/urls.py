@@ -22,6 +22,16 @@ urlpatterns = [
     path('groups/<int:pk>/delete/',       views.delete_group_view,    name='delete_group'),
     path('groups/<int:pk>/cover/',        views.update_cover_view,    name='update_cover'),
     path('groups/<int:pk>/leave/',        views.leave_board_view,     name='leave_board'),
+    path('groups/<int:pk>/settings/',     views.update_board_settings_view, name='update_board_settings'),
+    path('groups/<int:pk>/request-join/', views.request_join_board_view, name='request_join_board'),
+    path('groups/<int:pk>/join-requests/<int:req_id>/approve/', views.approve_join_request_view, name='approve_join_request'),
+    path('groups/<int:pk>/join-requests/<int:req_id>/decline/', views.decline_join_request_view, name='decline_join_request'),
+
+    # Friend Groups
+    path('friend-groups/',            views.friend_groups_view,        name='friend_groups'),
+    path('friend-groups/new/',        views.create_friend_group_view,  name='create_friend_group'),
+    path('friend-groups/<int:pk>/',   views.friend_group_detail_view,  name='friend_group_detail'),
+    path('friend-groups/<int:pk>/delete/', views.delete_friend_group_view, name='delete_friend_group'),
 
     # Memories
     path('groups/<int:pk>/memory/add/', views.add_memory_view,    name='add_memory'),
@@ -39,15 +49,20 @@ urlpatterns = [
     path('recap/',             views.annual_recap_view, name='annual_recap'),
     path('recap/<int:year>/',  views.annual_recap_view, name='annual_recap_year'),
 
+    # On This Day
+    path('on-this-day/', views.on_this_day_view, name='on_this_day'),
+
     # Friends
     path('friends/',                          views.friends_view,                name='friends'),
     path('friends/request/',                  views.send_friend_request_view,    name='send_friend_request'),
     path('friends/accept/<int:request_id>/',  views.accept_friend_request_view,  name='accept_friend_request'),
     path('friends/decline/<int:request_id>/', views.decline_friend_request_view, name='decline_friend_request'),
     path('friends/remove/<int:user_id>/',     views.remove_friend_view,          name='remove_friend'),
+    path('friends/<int:user_id>/',            views.friend_profile_view,         name='friend_profile'),
 
     # API / settings
     path('api/set-font/',           views.set_font_view,              name='set_font'),
+    path('api/set-theme/',          views.set_theme_view,             name='set_theme'),
     path('api/lookup-user/',        views.lookup_user_view,           name='lookup_user'),
     path('api/push-subscribe/',     views.save_push_subscription_view, name='push_subscribe'),
 

@@ -1,0 +1,75 @@
+{% extends 'core/base.html' %}
+{% block title %}Memboard – {{ friend_display }}{% endblock %}
+{% block nav_friends %}active{% endblock %}
+
+{% block extra_styles %}
+.page-header{padding:2rem 2.5rem 1.25rem;border-bottom:1px solid var(--border);background:var(--warm-white);display:flex;align-items:center;gap:1rem;}
+.back-btn{display:flex;align-items:center;gap:0.3rem;font-size:0.85rem;color:var(--ink-light);text-decoration:none;padding:0.3rem 0.6rem;border-radius:7px;transition:background 0.12s;}
+.back-btn:hover{background:var(--amber-pale);color:var(--ink);}
+.back-btn svg{width:13px;height:13px;}
+.page-content{padding:2rem 2.5rem;max-width:700px;}
+
+.profile-card{display:flex;align-items:center;gap:1.25rem;background:var(--warm-white);border:1px solid var(--border);border-radius:14px;padding:1.5rem;margin-bottom:2rem;}
+.profile-av{width:64px;height:64px;border-radius:50%;background:var(--amber-pale);color:var(--amber);font-size:1.3rem;font-weight:600;display:flex;align-items:center;justify-content:center;text-transform:uppercase;flex-shrink:0;}
+.profile-name{font-family:'Lora',serif;font-size:1.3rem;font-weight:600;color:var(--ink);}
+.profile-sub{font-size:0.85rem;color:var(--ink-muted);margin-top:0.2rem;}
+
+.section-title{font-size:0.72rem;font-weight:500;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:1rem;}
+.boards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.85rem;margin-bottom:2.25rem;}
+.mini-board-card{background:var(--warm-white);border:1px solid var(--border);border-radius:12px;padding:0.9rem 1rem;text-decoration:none;display:block;}
+.mini-board-card:hover{border-color:var(--border-strong);}
+.mini-board-name{font-family:'Lora',serif;font-size:0.9rem;font-weight:600;color:var(--ink);}
+.mini-board-meta{font-size:0.75rem;color:var(--ink-muted);margin-top:0.2rem;}
+
+.mutual-row{display:flex;gap:0.5rem;flex-wrap:wrap;}
+.mutual-chip{display:flex;align-items:center;gap:0.4rem;padding:0.3rem 0.7rem 0.3rem 0.35rem;background:var(--warm-white);border:1px solid var(--border);border-radius:100px;font-size:0.8rem;color:var(--ink);}
+.mutual-av{width:22px;height:22px;border-radius:50%;background:var(--amber-pale);color:var(--amber);font-size:0.6rem;font-weight:500;display:flex;align-items:center;justify-content:center;text-transform:uppercase;}
+.empty-msg{font-size:0.85rem;color:var(--ink-muted);}
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <a href="{% url 'friends' %}" class="back-btn">
+        <svg viewBox="0 0 13 13" fill="none"><path d="M8.5 2L4 6.5l4.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back
+    </a>
+</div>
+
+<div class="page-content">
+    <div class="profile-card">
+        <div class="profile-av">{{ friend_initials }}</div>
+        <div>
+            <div class="profile-name">{{ friend_display }}</div>
+            {% if friends_since %}<div class="profile-sub">Friends since {{ friends_since|date:"j M Y" }}</div>{% endif %}
+        </div>
+    </div>
+
+    <div class="section-title">Boards you share ({{ shared_boards.count }})</div>
+    {% if shared_boards %}
+    <div class="boards-grid">
+        {% for board in shared_boards %}
+        <a href="{% url 'group_detail' board.pk %}" class="mini-board-card">
+            <div class="mini-board-name">{{ board.name }}</div>
+            <div class="mini-board-meta">{{ board.memory_count }} memor{{ board.memory_count|pluralize:"y,ies" }}</div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty-msg" style="margin-bottom:2.25rem;">No boards in common yet.</p>
+    {% endif %}
+
+    <div class="section-title">Mutual friends ({{ mutual_friends|length }})</div>
+    {% if mutual_friends %}
+    <div class="mutual-row">
+        {% for m in mutual_friends %}
+        <a href="{% url 'friend_profile' m.pk %}" class="mutual-chip" style="text-decoration:none;">
+            <div class="mutual-av">{{ m.initials }}</div>
+            {{ m.display_name|truncatechars:16 }}
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty-msg">No mutual friends yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

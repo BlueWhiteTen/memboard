@@ -116,14 +116,14 @@
 
 /* Add memory — big CTA below the header */
 .add-memory-cta {
-    display: flex; align-items: center; justify-content: center; gap: 0.6rem;
-    width: 100%; padding: 1rem 1.25rem; margin-bottom: 1.5rem;
-    background: var(--ink); color: white; border: none; border-radius: var(--radius);
-    font-family: inherit; font-size: 1rem; font-weight: 500; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+    padding: 0.55rem 1.1rem; margin-bottom: 1.25rem;
+    background: var(--ink); color: white; border: none; border-radius: 8px;
+    font-family: inherit; font-size: 0.85rem; font-weight: 500; cursor: pointer;
     transition: background 0.12s, transform 0.12s;
 }
 .add-memory-cta:hover { background: #3d3425; transform: translateY(-1px); }
-.add-memory-cta .plus-icon { font-size: 1.3rem; line-height: 1; }
+.add-memory-cta .plus-icon { font-size: 1.05rem; line-height: 1; }
 
 /* Lightbox */
 .lightbox-overlay {
@@ -185,7 +185,7 @@
 <div class="board-header">
     <div class="board-cover">
         {% if group.cover_photo %}
-        <img src="{{ group.cover_photo.url }}" alt="Board cover">
+        <img src="{{ group.cover_photo.url }}" alt="Board cover" style="cursor:zoom-in;" onclick="openLightbox('{{ group.cover_photo.url }}')">
         {% endif %}
         {% if group.owner == request.user %}
         <button class="cover-upload-btn" onclick="document.getElementById('cover-input').click()">
@@ -297,7 +297,7 @@
                         {% if memory.user_can_edit %}
                         <button class="mem-action-btn" onclick="openEditModal({{ memory.pk }})">✏️ Edit</button>
                         {% endif %}
-                        {% if memory.creator == request.user %}
+                        {% if memory.user_can_delete %}
                         <button class="mem-action-btn danger" onclick="if(confirm('Delete this memory?')) deleteMemory({{ memory.pk }})">🗑</button>
                         {% endif %}
                     </div>
@@ -356,15 +356,42 @@
             {% endfor %}
         </div>
         {% if group.owner == request.user %}
-        <div style="margin-top:1.5rem;">
+        {% if join_requests %}
+        <div style="margin-top:1.5rem;margin-bottom:1rem;">
+            <p class="section-label" style="font-size:0.72rem;font-weight:500;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.75rem;">Pending join requests</p>
+            {% for jr in join_requests %}
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;background:var(--amber-pale);border:1px solid var(--amber);border-radius:10px;padding:0.65rem 0.9rem;margin-bottom:0.5rem;">
+                <div style="display:flex;align-items:center;gap:0.6rem;">
+                    <div class="member-av-lg" style="width:32px;height:32px;font-size:0.7rem;">{{ jr.requester.initials }}</div>
+                    <span style="font-size:0.875rem;">{{ jr.requester.display_name }}</span>
+                </div>
+                <div style="display:flex;gap:0.4rem;">
+                    <form method="post" action="{% url 'approve_join_request' group.pk jr.pk %}">
+                        {% csrf_token %}<button type="submit" class="btn btn-primary btn-sm">Approve</button>
+                    </form>
+                    <form method="post" action="{% url 'decline_join_request' group.pk jr.pk %}">
+                        {% csrf_token %}<button type="submit" class="btn btn-ghost btn-sm">Decline</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <div style="margin-top:1rem;">
             <button class="btn btn-ghost btn-sm" onclick="document.getElementById('invite-modal').classList.add('open')">+ Add member</button>
         </div>
         {% else %}
-        <div style="margin-top:1.5rem;">
+        <div style="margin-top:1.5rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
             <form method="post" action="{% url 'leave_board' group.pk %}" onsubmit="return confirm('Leave \'{{ group.name }}\'? You can be added back later by the board owner.');">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-ghost btn-sm" style="color:#c0392b;border-color:rgba(192,57,43,0.3);">🚪 Leave board</button>
             </form>
+            {% if can_delete_board %}
+            <form method="post" action="{% url 'delete_group' group.pk %}" onsubmit="return confirm('Delete board \'{{ group.name }}\'? This cannot be undone.');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-ghost btn-sm" style="color:#c0392b;border-color:rgba(192,57,43,0.3);">🗑 Delete board</button>
+            </form>
+            {% endif %}
         </div>
         {% endif %}
     </div>
@@ -386,7 +413,11 @@
             {% endfor %}
         </div>
         {% else %}
-        <p style="color:var(--ink-muted);font-size:0.875rem;">No activity yet.</p>
+        <div style="text-align:center;padding:3rem 2rem;color:var(--ink-muted);">
+            <div style="font-size:2.5rem;margin-bottom:0.75rem;">📜</div>
+            <p style="font-size:1rem;font-weight:500;">Nothing here yet</p>
+            <p style="font-size:0.85rem;margin-top:0.3rem;">Adding memories, reacting, and commenting will show up here as board activity.</p>
+        </div>
         {% endif %}
     </div>
 </div>
@@ -486,6 +517,36 @@
         <div class="modal-title">Board settings</div>
         <button class="modal-close" onclick="document.getElementById('settings-modal').classList.remove('open')">✕</button>
     </div>
+    <form method="post" action="{% url 'update_board_settings' group.pk %}" style="margin-bottom:1.25rem;padding-bottom:1.25rem;border-bottom:1px solid var(--border);">
+        {% csrf_token %}
+        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);display:block;margin-bottom:0.4rem;">Who can see this board?</label>
+        <select name="privacy" id="settings-privacy" class="comment-input" style="width:100%;padding:0.5rem 0.75rem;margin-bottom:0.6rem;" onchange="document.getElementById('settings-fg-row').style.display = (this.value === 'friend_group') ? 'block' : 'none';">
+            {% for val, label in privacy_choices %}
+            <option value="{{ val }}" {% if group.privacy == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <div id="settings-fg-row" style="display:{% if group.privacy == 'friend_group' %}block{% else %}none{% endif %};margin-bottom:1rem;">
+            <select name="visible_to_group" class="comment-input" style="width:100%;padding:0.5rem 0.75rem;">
+                <option value="">Choose a friend group…</option>
+                {% for fg in friend_groups %}
+                <option value="{{ fg.pk }}" {% if group.visible_to_group_id == fg.pk %}selected{% endif %}>{{ fg.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);display:block;margin-bottom:0.4rem;">Who can delete memories?</label>
+        <select name="memory_delete_permission" class="comment-input" style="width:100%;padding:0.5rem 0.75rem;margin-bottom:1rem;">
+            {% for val, label in memory_delete_choices %}
+            <option value="{{ val }}" {% if group.memory_delete_permission == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);display:block;margin-bottom:0.4rem;">Who can delete the board?</label>
+        <select name="board_delete_permission" class="comment-input" style="width:100%;padding:0.5rem 0.75rem;margin-bottom:1rem;">
+            {% for val, label in board_delete_choices %}
+            <option value="{{ val }}" {% if group.board_delete_permission == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-ghost btn-sm">Save settings</button>
+    </form>
     <form method="post" action="{% url 'delete_group' group.pk %}">
         {% csrf_token %}
         <p style="font-size:0.875rem;color:var(--ink-muted);margin-bottom:1rem;">Deleting this board will permanently remove all its memories.</p>
