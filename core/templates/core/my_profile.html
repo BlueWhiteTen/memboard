@@ -1,0 +1,105 @@
+{% extends 'core/base.html' %}
+{% block title %}Memboard – My Profile{% endblock %}
+
+{% block extra_styles %}
+.page-header{padding:2rem 2.5rem 1.25rem;border-bottom:1px solid var(--border);background:var(--warm-white);display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+.page-header h2{font-family:'Big Shoulders Display',sans-serif;font-size:1.6rem;font-weight:800;text-transform:uppercase;color:var(--ink);}
+.page-header p{font-size:0.875rem;color:var(--ink-muted);margin-top:0.2rem;}
+.page-content{padding:2rem 2.5rem;max-width:700px;}
+
+.profile-card{display:flex;align-items:center;gap:1.25rem;background:var(--warm-white);border:2.5px solid var(--border-strong);border-radius:0;padding:1.5rem;margin-bottom:2rem;box-shadow:var(--shadow-ink);}
+.profile-av{width:64px;height:64px;border-radius:0;background:var(--yellow);border:2px solid var(--border-strong);color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:1.3rem;font-weight:700;display:flex;align-items:center;justify-content:center;text-transform:uppercase;flex-shrink:0;}
+.profile-name{font-family:'Big Shoulders Display',sans-serif;font-size:1.4rem;font-weight:800;text-transform:uppercase;color:var(--ink);}
+.profile-sub{font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--ink-muted);margin-top:0.25rem;text-transform:uppercase;letter-spacing:0.03em;}
+
+.section-title{font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:1.05rem;text-transform:uppercase;margin-bottom:1rem;}
+
+/* Stats gauges */
+.gauges{display:flex;gap:0.9rem;margin-bottom:2.25rem;flex-wrap:wrap;}
+.gauge{flex:1;min-width:130px;border:2.5px solid var(--border-strong);background:var(--warm-white);padding:0.75rem 1.1rem;box-shadow:var(--shadow-ink-sm);}
+.gauge:nth-child(2){transform:rotate(0.5deg);}
+.gauge:nth-child(3){transform:rotate(-0.4deg);}
+.gauge b{display:block;font-family:'JetBrains Mono',monospace;font-size:1.7rem;color:var(--coral);font-variant-numeric:tabular-nums;}
+.gauge span{font-size:0.65rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-muted);font-weight:700;}
+
+/* Form */
+.info-card{background:var(--warm-white);border:2.5px solid var(--border-strong);border-radius:0;padding:1.5rem;margin-bottom:2rem;}
+.info-card p.hint{font-size:0.85rem;color:var(--ink-muted);margin-bottom:1.25rem;}
+.form-group{margin-bottom:1.1rem;}
+.form-label{display:block;font-family:'JetBrains Mono',monospace;font-size:0.7rem;font-weight:700;color:var(--ink-light);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.4rem;}
+.form-input{width:100%;height:44px;border:2px solid var(--border-strong);border-radius:0;padding:0 0.9rem;font-family:'Karla',sans-serif;font-size:0.95rem;color:var(--ink);background:var(--cream);outline:none;transition:border-color 0.15s,box-shadow 0.15s;}
+.form-input:focus{border-color:var(--amber);box-shadow:2px 2px 0 var(--amber);}
+.field-error{font-size:0.78rem;color:#B83232;margin-top:0.3rem;font-weight:600;}
+
+.visibility-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.vis-option input[type="radio"]{display:none;}
+.vis-option label{display:flex;flex-direction:column;align-items:center;gap:0.3rem;padding:0.8rem 0.5rem;border:2px solid var(--border-strong);border-radius:0;cursor:pointer;text-align:center;font-size:0.8rem;font-weight:600;color:var(--ink-light);background:var(--cream);transition:all 0.12s;}
+.vis-option input:checked + label{border-color:var(--amber);background:var(--amber-pale);color:var(--ink);box-shadow:2px 2px 0 var(--amber);}
+
+@media(max-width:680px){.page-header,.page-content{padding:1.25rem;}}
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>My Profile</h2>
+        <p>Your info and stats, as friends see them</p>
+    </div>
+</div>
+
+<div class="page-content">
+    <div class="profile-card">
+        <div class="profile-av">{{ user_initials }}</div>
+        <div>
+            <div class="profile-name">{{ user_display }}</div>
+            <div class="profile-sub">{{ user.email }}</div>
+        </div>
+    </div>
+
+    <div class="section-title">Your stats</div>
+    <div class="gauges">
+        <div class="gauge"><b>{{ stats.memories_created }}</b><span>Memories created</span></div>
+        <div class="gauge"><b>{{ stats.boards_owned }}</b><span>Boards owned</span></div>
+        <div class="gauge"><b>{{ stats.boards_joined }}</b><span>Boards joined</span></div>
+    </div>
+
+    <div class="section-title">Personal info</div>
+    <div class="info-card">
+        <p class="hint">Shown on your profile when a friend looks you up — or keep it to yourself.</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label" for="id_bio">About you <span style="font-weight:400;opacity:0.6;text-transform:none;">(optional)</span></label>
+                <input type="text" name="bio" id="id_bio" class="form-input" maxlength="200"
+                       placeholder="A short line about you…" value="{{ form.bio.value|default:'' }}">
+                {% if form.bio.errors %}<div class="field-error">{{ form.bio.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="id_location">Location <span style="font-weight:400;opacity:0.6;text-transform:none;">(optional)</span></label>
+                <input type="text" name="location" id="id_location" class="form-input"
+                       placeholder="e.g. Oxford, UK" value="{{ form.location.value|default:'' }}">
+                {% if form.location.errors %}<div class="field-error">{{ form.location.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="id_birthday">Birthday <span style="font-weight:400;opacity:0.6;text-transform:none;">(optional)</span></label>
+                <input type="date" name="birthday" id="id_birthday" class="form-input"
+                       value="{{ form.birthday.value|default:'' }}">
+                {% if form.birthday.errors %}<div class="field-error">{{ form.birthday.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label class="form-label">Who can see this info?</label>
+                <div class="visibility-grid">
+                    {% for value, label in form.info_visibility.field.choices %}
+                    <div class="vis-option">
+                        <input type="radio" name="info_visibility" id="id_vis_{{ value }}" value="{{ value }}"
+                               {% if form.info_visibility.value == value %}checked{% endif %}>
+                        <label for="id_vis_{{ value }}">{{ label }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Save changes</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -20,7 +20,7 @@ from .models import (
 from .forms import (
     RegisterForm, EmailAuthenticationForm, GroupForm, GroupCoverForm,
     MemoryForm, EditMemoryForm, InviteMemberForm, FriendRequestForm,
-    GroupSettingsForm, FriendGroupForm,
+    GroupSettingsForm, FriendGroupForm, ProfileForm,
 )
 from .email_utils import send_invite_email
 from .on_this_day import get_on_this_day_memories
@@ -48,6 +48,14 @@ def annotate_users(users):
         u.initials     = get_initials(u)
         u.display_name = get_display_name(u)
     return users
+
+
+def get_user_stats(user):
+    return {
+        'memories_created': Memory.objects.filter(creator=user, is_deleted=False).count(),
+        'boards_owned':     Group.objects.filter(owner=user).count(),
+        'boards_joined':    Group.objects.filter(members=user).count(),
+    }
 
 
 def create_notification(recipient, actor, notif_type, text, memory=None, group=None):
@@ -673,7 +681,7 @@ def delete_friend_group_view(request, pk):
         Group.objects.filter(visible_to_group=fg).update(privacy='members', visible_to_group=None)
         fg.delete()
         messages.success(request, f'"{name}" deleted.')
-    return redirect('friend_groups')
+    return redirect('friends')
 
 
 # ── Memories ──────────────────────────────────────────────────────────────────
@@ -992,10 +1000,11 @@ def on_this_day_view(request):
 
 @login_required
 def friends_view(request):
-    user        = request.user
-    friends     = list(Friendship.get_friends(user))
-    pending_in  = FriendRequest.objects.filter(to_user=user, accepted=False).select_related('from_user')
-    pending_out = FriendRequest.objects.filter(from_user=user, accepted=False).select_related('to_user')
+    user          = request.user
+    friends       = list(Friendship.get_friends(user))
+    pending_in    = FriendRequest.objects.filter(to_user=user, accepted=False).select_related('from_user')
+    pending_out   = FriendRequest.objects.filter(from_user=user, accepted=False).select_related('to_user')
+    friend_groups = FriendGroup.objects.filter(owner=user).annotate(member_count=Count('members'))
     annotate_users(friends)
     for f in friends:
         f.shared_boards = Group.objects.filter(members=user).filter(members=f).count()
@@ -1009,6 +1018,7 @@ def friends_view(request):
         'friends':       friends,
         'pending_in':    pending_in,
         'pending_out':   pending_out,
+        'friend_groups': friend_groups,
         'user_initials': get_initials(user),
         'user_display':  get_display_name(user),
     })
@@ -1080,6 +1090,9 @@ def friend_profile_view(request, user_id):
     friendship   = Friendship.objects.filter(user1=u1, user2=u2).first()
     friends_since = friendship.created_at if friendship else None
 
+    friend_profile  = friend.profile
+    show_info       = friend_profile.info_visibility == 'friends' and friend_profile.has_info
+
     return render(request, 'core/friend_profile.html', {
         'friend':          friend,
         'friend_initials': get_initials(friend),
@@ -1087,8 +1100,33 @@ def friend_profile_view(request, user_id):
         'shared_boards':   shared_boards,
         'mutual_friends':  mutual_friends,
         'friends_since':   friends_since,
+        'friend_profile':  friend_profile,
+        'show_info':       show_info,
+        'friend_stats':    get_user_stats(friend),
         'user_initials':   get_initials(user),
         'user_display':    get_display_name(user),
+    })
+
+
+@login_required
+def my_profile_view(request):
+    user    = request.user
+    profile = user.profile
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile updated.")
+            return redirect('my_profile')
+    else:
+        form = ProfileForm(instance=profile)
+
+    return render(request, 'core/my_profile.html', {
+        'form':          form,
+        'profile':       profile,
+        'stats':         get_user_stats(user),
+        'user_initials': get_initials(user),
+        'user_display':  get_display_name(user),
     })
 
 

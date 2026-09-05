@@ -25,7 +25,7 @@
 .pending-sub{font-size:0.78rem;color:var(--ink-muted);}
 .pending-actions{display:flex;gap:0.5rem;flex-shrink:0;}
 .btn-accept{height:34px;padding:0 0.9rem;background:var(--ink);color:var(--warm-white);border:none;border-radius:0;font-family:'Karla',sans-serif;font-size:0.8rem;font-weight:500;cursor:pointer;transition:background 0.12s;}
-.btn-accept:hover{background:#3d3323;}
+.btn-accept:hover{background:var(--ink-light);}
 .btn-decline{height:34px;padding:0 0.9rem;background:transparent;color:var(--ink-light);border:1px solid var(--border-strong);border-radius:0;font-family:'Karla',sans-serif;font-size:0.8rem;cursor:pointer;transition:background 0.12s;}
 .btn-decline:hover{background:var(--cream);}
 
@@ -43,6 +43,19 @@
 .btn-unfriend{font-size:0.75rem;color:var(--ink-muted);background:transparent;border:1px solid var(--border);border-radius:0;padding:3px 10px;cursor:pointer;font-family:'Karla',sans-serif;transition:all 0.12s;}
 .btn-unfriend:hover{border-color:#D48A8A;color:#A33030;background:#FCEAEA;}
 .empty-msg{text-align:center;padding:2.5rem;color:var(--ink-muted);font-size:0.875rem;}
+
+/* Friend groups */
+.fg-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+.fg-section-header .section-title{margin-bottom:0;}
+.fg-new-link{font-family:'JetBrains Mono',monospace;font-size:0.7rem;font-weight:700;text-transform:uppercase;color:var(--amber);text-decoration:none;}
+.fg-new-link:hover{text-decoration:underline;}
+.fg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.75rem;margin-bottom:2.25rem;}
+.fg-card{background:var(--warm-white);border:2px solid var(--border-strong);border-radius:0;padding:0.85rem 1rem;text-decoration:none;display:block;box-shadow:var(--shadow-ink-sm);transition:transform 0.1s;}
+.fg-card:hover{transform:translateY(-2px);}
+.fg-name{font-family:'Big Shoulders Display',sans-serif;font-size:1rem;font-weight:700;text-transform:uppercase;color:var(--ink);margin-bottom:0.2rem;}
+.fg-count{font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--ink-muted);}
+.fg-empty{font-size:0.85rem;color:var(--ink-muted);margin-bottom:2.25rem;}
+.fg-empty a{color:var(--amber);}
 
 @media(max-width:680px){.page-header,.page-content{padding:1.25rem;}.friends-grid{grid-template-columns:1fr 1fr;}}
 {% endblock %}
@@ -113,6 +126,24 @@
         </div>
         {% endfor %}
     </div>
+    {% endif %}
+
+    <!-- Friend groups -->
+    <div class="fg-section-header" style="margin-top:1.5rem;">
+        <div class="section-title" style="margin-bottom:0;">Groups ({{ friend_groups.count }})</div>
+        <a href="{% url 'create_friend_group' %}" class="fg-new-link">+ New group</a>
+    </div>
+    {% if friend_groups %}
+    <div class="fg-grid">
+        {% for fg in friend_groups %}
+        <a href="{% url 'friend_group_detail' fg.pk %}" class="fg-card">
+            <div class="fg-name">{{ fg.name }}</div>
+            <div class="fg-count">{{ fg.member_count }} friend{{ fg.member_count|pluralize }}</div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="fg-empty">No groups yet — <a href="{% url 'create_friend_group' %}">create one</a> to cluster friends and control who sees a board.</div>
     {% endif %}
 
     <!-- Friends list -->

@@ -25,6 +25,18 @@
 .mutual-chip{display:flex;align-items:center;gap:0.4rem;padding:0.3rem 0.7rem 0.3rem 0.35rem;background:var(--warm-white);border:1px solid var(--border);border-radius:0;font-size:0.8rem;color:var(--ink);}
 .mutual-av{width:22px;height:22px;border-radius:50%;background:var(--amber-pale);color:var(--amber);font-size:0.6rem;font-weight:500;display:flex;align-items:center;justify-content:center;text-transform:uppercase;}
 .empty-msg{font-size:0.85rem;color:var(--ink-muted);}
+
+/* Stats + info */
+.gauges{display:flex;gap:0.9rem;margin-bottom:2.25rem;flex-wrap:wrap;}
+.gauge{flex:1;min-width:130px;border:2.5px solid var(--border-strong);background:var(--warm-white);padding:0.75rem 1.1rem;box-shadow:var(--shadow-ink-sm);}
+.gauge:nth-child(2){transform:rotate(0.5deg);}
+.gauge:nth-child(3){transform:rotate(-0.4deg);}
+.gauge b{display:block;font-family:'JetBrains Mono',monospace;font-size:1.7rem;color:var(--coral);font-variant-numeric:tabular-nums;}
+.gauge span{font-size:0.65rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-muted);font-weight:700;}
+.info-card{background:var(--warm-white);border:2.5px solid var(--border-strong);border-radius:0;padding:1.1rem 1.25rem;margin-bottom:2.25rem;}
+.info-row{display:flex;gap:0.5rem;font-size:0.88rem;color:var(--ink);margin-bottom:0.4rem;}
+.info-row:last-child{margin-bottom:0;}
+.info-row .k{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.05em;min-width:80px;padding-top:0.15rem;}
 {% endblock %}
 
 {% block content %}
@@ -43,6 +55,22 @@
             {% if friends_since %}<div class="profile-sub">Friends since {{ friends_since|date:"j M Y" }}</div>{% endif %}
         </div>
     </div>
+
+    <div class="section-title">Stats</div>
+    <div class="gauges">
+        <div class="gauge"><b>{{ friend_stats.memories_created }}</b><span>Memories created</span></div>
+        <div class="gauge"><b>{{ friend_stats.boards_owned }}</b><span>Boards owned</span></div>
+        <div class="gauge"><b>{{ friend_stats.boards_joined }}</b><span>Boards joined</span></div>
+    </div>
+
+    {% if show_info %}
+    <div class="section-title">About</div>
+    <div class="info-card">
+        {% if friend_profile.bio %}<div class="info-row"><span class="k">Bio</span><span>{{ friend_profile.bio }}</span></div>{% endif %}
+        {% if friend_profile.location %}<div class="info-row"><span class="k">Location</span><span>{{ friend_profile.location }}</span></div>{% endif %}
+        {% if friend_profile.birthday %}<div class="info-row"><span class="k">Birthday</span><span>{{ friend_profile.birthday|date:"j F" }}</span></div>{% endif %}
+    </div>
+    {% endif %}
 
     <div class="section-title">Boards you share ({{ shared_boards.count }})</div>
     {% if shared_boards %}
