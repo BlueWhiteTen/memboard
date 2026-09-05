@@ -52,7 +52,9 @@
         <h2>Create your account</h2>
         <p class="sub">Start saving memories with people that matter.</p>
 
-        {% if invite_token %}
+        {% if rate_limited %}
+        <div class="field-error" style="background:#FCEAEA;border:1px solid #D48A8A;border-radius:8px;padding:0.6rem 0.9rem;margin-bottom:1rem;color:#6B1A1A;font-size:0.875rem;">Too many signup attempts from your network. Please wait a bit and try again.</div>
+        {% elif invite_token %}
         <div class="invite-banner">🎉 You were invited to join a board. Sign up to accept!</div>
         {% endif %}
 

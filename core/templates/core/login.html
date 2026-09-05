@@ -47,7 +47,9 @@
     </div>
     <div class="card">
         <h2>Welcome back</h2>
-        {% if form.non_field_errors %}
+        {% if rate_limited %}
+        <div class="error-msg">Too many login attempts from your network. Please wait a few minutes and try again.</div>
+        {% elif form.non_field_errors %}
         <div class="error-msg">{{ form.non_field_errors.0 }}</div>
         {% endif %}
         <form method="post">

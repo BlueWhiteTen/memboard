@@ -21,11 +21,13 @@ urlpatterns = [
     path('groups/<int:pk>/invite-email/', views.invite_by_email_view, name='invite_by_email'),
     path('groups/<int:pk>/delete/',       views.delete_group_view,    name='delete_group'),
     path('groups/<int:pk>/cover/',        views.update_cover_view,    name='update_cover'),
+    path('groups/<int:pk>/leave/',        views.leave_board_view,     name='leave_board'),
 
     # Memories
     path('groups/<int:pk>/memory/add/', views.add_memory_view,    name='add_memory'),
     path('memory/<int:pk>/edit/',       views.edit_memory_view,   name='edit_memory'),
     path('memory/<int:pk>/delete/',     views.delete_memory_view, name='delete_memory'),
+    path('memory/<int:pk>/restore/',    views.restore_memory_view, name='restore_memory'),
     path('memory/<int:pk>/pin/',        views.pin_memory_view,    name='pin_memory'),
 
     # Reactions & Comments

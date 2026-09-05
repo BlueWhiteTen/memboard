@@ -112,7 +112,42 @@
 .add-memory-fab:hover { background: #3d3425; transform: scale(1.08); }
 
 /* Map */
-#board-map { height: 400px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); }
+#board-map { height: min(72vh, 720px); min-height: 480px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); }
+
+/* Add memory — big CTA below the header */
+.add-memory-cta {
+    display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+    width: 100%; padding: 1rem 1.25rem; margin-bottom: 1.5rem;
+    background: var(--ink); color: white; border: none; border-radius: var(--radius);
+    font-family: inherit; font-size: 1rem; font-weight: 500; cursor: pointer;
+    transition: background 0.12s, transform 0.12s;
+}
+.add-memory-cta:hover { background: #3d3425; transform: translateY(-1px); }
+.add-memory-cta .plus-icon { font-size: 1.3rem; line-height: 1; }
+
+/* Lightbox */
+.lightbox-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(20,16,10,0.92);
+    z-index: 2000; align-items: center; justify-content: center; padding: 2rem;
+    cursor: zoom-out;
+}
+.lightbox-overlay.open { display: flex; }
+.lightbox-overlay img { max-width: 100%; max-height: 100%; border-radius: 6px; box-shadow: 0 8px 40px rgba(0,0,0,0.5); cursor: default; }
+.lightbox-close {
+    position: absolute; top: 1.25rem; right: 1.5rem;
+    width: 40px; height: 40px; border-radius: 50%; border: none;
+    background: rgba(255,255,255,0.12); color: white; font-size: 1.3rem;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.lightbox-close:hover { background: rgba(255,255,255,0.22); }
+.memory-photo { cursor: zoom-in; }
+
+/* Trash / recycle bin */
+.trash-item { display:flex; gap:0.75rem; align-items:center; padding:0.75rem; background:var(--warm-white); border:1px solid var(--border); border-radius:10px; margin-bottom:0.6rem; }
+.trash-thumb { width:48px; height:48px; border-radius:6px; object-fit:cover; flex-shrink:0; background:var(--cream); }
+.trash-content { flex:1; min-width:0; }
+.trash-title { font-size:0.85rem; font-weight:500; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.trash-meta { font-size:0.72rem; color:var(--ink-muted); margin-top:0.15rem; }
 
 /* Activity log */
 .activity-log { display: flex; flex-direction: column; gap: 0.5rem; }
@@ -182,12 +217,18 @@
         <button class="tab-btn" onclick="switchTab('map')">🗺 Map</button>
         <button class="tab-btn" onclick="switchTab('members')">👥 Members</button>
         <button class="tab-btn" onclick="switchTab('activity')">📜 Activity</button>
+        <button class="tab-btn" onclick="switchTab('trash')">🗑 Trash{% if trashed_memories %} ({{ trashed_memories|length }}){% endif %}</button>
     </div>
 </div>
 
 <!-- Tab: Memories -->
 <div id="tab-memories" class="tab-panel active">
     <div class="board-content">
+
+        <!-- Big add-memory button -->
+        <button class="add-memory-cta" onclick="document.getElementById('add-memory-modal').classList.add('open')">
+            <span class="plus-icon">+</span> Add a memory
+        </button>
 
         <!-- Font picker -->
         <div class="font-picker">
@@ -205,7 +246,7 @@
                  id="memory-{{ memory.pk }}">
                 {% if memory.is_pinned %}<span class="pin-badge" title="Pinned">📌</span>{% endif %}
                 {% if memory.photo %}
-                <img src="{{ memory.photo.url }}" alt="" class="memory-photo">
+                <img src="{{ memory.photo.url }}" alt="" class="memory-photo" onclick="openLightbox('{{ memory.photo.url }}')">
                 {% endif %}
                 <div class="memory-inner">
                     {% if memory.title %}<div class="memory-title">{{ memory.title }}</div>{% endif %}
@@ -318,6 +359,13 @@
         <div style="margin-top:1.5rem;">
             <button class="btn btn-ghost btn-sm" onclick="document.getElementById('invite-modal').classList.add('open')">+ Add member</button>
         </div>
+        {% else %}
+        <div style="margin-top:1.5rem;">
+            <form method="post" action="{% url 'leave_board' group.pk %}" onsubmit="return confirm('Leave \'{{ group.name }}\'? You can be added back later by the board owner.');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-ghost btn-sm" style="color:#c0392b;border-color:rgba(192,57,43,0.3);">🚪 Leave board</button>
+            </form>
+        </div>
         {% endif %}
     </div>
 </div>
@@ -339,6 +387,33 @@
         </div>
         {% else %}
         <p style="color:var(--ink-muted);font-size:0.875rem;">No activity yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Tab: Trash -->
+<div id="tab-trash" class="tab-panel">
+    <div class="board-content">
+        <p style="font-size:0.875rem;color:var(--ink-muted);margin-bottom:1rem;">Memories you deleted are kept here for 30 days before being permanently removed. Only you can see and restore your own deleted memories.</p>
+        {% if trashed_memories %}
+        {% for memory in trashed_memories %}
+        <div class="trash-item">
+            {% if memory.photo %}<img src="{{ memory.photo.url }}" class="trash-thumb" alt="">{% else %}<div class="trash-thumb"></div>{% endif %}
+            <div class="trash-content">
+                <div class="trash-title">{{ memory.title|default:memory.content|truncatechars:60 }}</div>
+                <div class="trash-meta">Deleted {{ memory.deleted_at|timesince }} ago · {{ memory.days_left_in_trash }} day{{ memory.days_left_in_trash|pluralize }} left</div>
+            </div>
+            <form method="post" action="{% url 'restore_memory' memory.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-ghost btn-sm">↩ Restore</button>
+            </form>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div style="text-align:center;padding:4rem 2rem;color:var(--ink-muted);">
+            <div style="font-size:3rem;margin-bottom:1rem;">🗑</div>
+            <p style="font-size:1rem;font-weight:500;">Recycle bin is empty</p>
+        </div>
         {% endif %}
     </div>
 </div>
@@ -419,6 +494,12 @@
 </div>
 </div>
 {% endif %}
+
+<!-- Lightbox -->
+<div class="lightbox-overlay" id="lightbox-overlay" onclick="closeLightbox()">
+    <button class="lightbox-close" onclick="event.stopPropagation(); closeLightbox()">✕</button>
+    <img id="lightbox-img" src="" alt="Full size photo">
+</div>
 
 <!-- ── Scripts ── -->
 <script>
@@ -584,6 +665,17 @@ function sendEmailInvite() {
         if (d.ok) document.getElementById('invite-email').value = '';
     });
 }
+
+// Lightbox
+function openLightbox(url) {
+    document.getElementById('lightbox-img').src = url;
+    document.getElementById('lightbox-overlay').classList.add('open');
+}
+function closeLightbox() {
+    document.getElementById('lightbox-overlay').classList.remove('open');
+    document.getElementById('lightbox-img').src = '';
+}
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
 
 // Map init (Leaflet)
 let mapInitialized = false;

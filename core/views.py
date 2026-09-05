@@ -7,6 +7,7 @@ from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+from django_ratelimit.decorators import ratelimit
 import json
 
 from .models import (
@@ -63,10 +64,15 @@ def log_activity(group, actor, action_type, description, memory=None):
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
 
+@ratelimit(key='ip', rate='10/h', method='POST', block=False)
 def register_view(request):
     if request.user.is_authenticated:
         return redirect('home')
     invite_token = request.GET.get('invite') or request.POST.get('invite_token')
+    if request.method == 'POST' and getattr(request, 'limited', False):
+        return render(request, 'core/register.html', {
+            'form': RegisterForm(), 'invite_token': invite_token, 'rate_limited': True,
+        })
     form = RegisterForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         user = form.save()
@@ -92,9 +98,12 @@ def register_view(request):
     return render(request, 'core/register.html', {'form': form, 'invite_token': invite_token})
 
 
+@ratelimit(key='ip', rate='15/5m', method='POST', block=False)
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('home')
+    if request.method == 'POST' and getattr(request, 'limited', False):
+        return render(request, 'core/login.html', {'form': EmailAuthenticationForm(), 'rate_limited': True})
     form = EmailAuthenticationForm(request, data=request.POST or None)
     if request.method == 'POST' and form.is_valid():
         login(request, form.get_user())
@@ -114,11 +123,11 @@ def logout_view(request):
 def home_view(request):
     user = request.user
     user_groups    = (Group.objects.filter(members=user)
-                      .annotate(memory_count=Count('memories'))
+                      .annotate(memory_count=Count('memories', filter=Q(memories__is_deleted=False)))
                       .order_by('-created_at'))
     friends        = Friendship.get_friends(user)
     pending_in     = FriendRequest.objects.filter(to_user=user, accepted=False)
-    total_memories = Memory.objects.filter(group__members=user).count()
+    total_memories = Memory.objects.filter(group__members=user, is_deleted=False).count()
     unread_notifs  = Notification.objects.filter(recipient=user, is_read=False).count()
     annotate_users(friends)
     return render(request, 'core/home.html', {
@@ -141,7 +150,7 @@ def search_view(request):
     memories = []
     if query:
         memories = Memory.objects.filter(
-            group__members=user
+            group__members=user, is_deleted=False
         ).filter(
             Q(title__icontains=query) | Q(content__icontains=query) |
             Q(location_name__icontains=query)
@@ -223,6 +232,7 @@ def group_detail_view(request, pk):
 
     user     = request.user
     memories = (group.memories
+                .filter(is_deleted=False)
                 .select_related('creator')
                 .prefetch_related('tagged', 'reactions', 'comments'))
 
@@ -257,20 +267,29 @@ def group_detail_view(request, pk):
 
     profile, _ = UserProfile.objects.get_or_create(user=user)
 
+    # Recycle bin — memories the current user deleted, still within the 30-day window
+    trashed_memories = (group.memories
+                        .filter(is_deleted=True, creator=user)
+                        .select_related('creator'))
+    for m in trashed_memories:
+        m.creator_display = get_display_name(m.creator)
+
     return render(request, 'core/group_detail.html', {
-        'group':           group,
-        'memories':        memories,
-        'other_members':   other_members,
-        'all_members':     all_members,
-        'note_font':       profile.note_font_css,
-        'font_choices':    FONT_CHOICES,
-        'current_font':    profile.note_font,
-        'user_initials':   get_initials(user),
-        'user_display':    get_display_name(user),
-        'map_memories':    json.dumps(map_memories),
-        'activity_log':    activity_log,
+        'group':            group,
+        'memories':         memories,
+        'trashed_memories': trashed_memories,
+        'other_members':    other_members,
+        'all_members':      all_members,
+        'note_font':        profile.note_font_css,
+        'font_choices':     FONT_CHOICES,
+        'current_font':     profile.note_font,
+        'user_initials':    get_initials(user),
+        'user_display':     get_display_name(user),
+        'map_memories':     json.dumps(map_memories),
+        'activity_log':     activity_log,
         'reaction_choices': REACTION_CHOICES,
         'colour_choices':   COLOUR_CHOICES,
+        'is_owner':         group.owner == user,
     })
 
 
@@ -420,7 +439,7 @@ def add_memory_view(request, pk):
 
 @login_required
 def edit_memory_view(request, pk):
-    memory = get_object_or_404(Memory, pk=pk)
+    memory = get_object_or_404(Memory, pk=pk, is_deleted=False)
     if not memory.can_edit(request.user):
         messages.error(request, "You don't have permission to edit that memory.")
         return redirect('group_detail', pk=memory.group.pk)
@@ -441,20 +460,53 @@ def edit_memory_view(request, pk):
 
 @login_required
 def delete_memory_view(request, pk):
-    memory   = get_object_or_404(Memory, pk=pk, creator=request.user)
+    memory   = get_object_or_404(Memory, pk=pk, creator=request.user, is_deleted=False)
     group_pk = memory.group.pk
     if request.method == 'POST':
         log_activity(memory.group, request.user, 'memory_delete',
                      f'{get_display_name(request.user)} deleted a memory: {memory.title or memory.content[:40]}')
-        memory.delete()
-        messages.success(request, "Memory removed.")
+        memory.is_deleted = True
+        memory.deleted_at = timezone.now()
+        memory.save(update_fields=['is_deleted', 'deleted_at'])
+        messages.success(request, "Memory moved to the recycle bin — it'll be kept for 30 days.")
     return redirect('group_detail', pk=group_pk)
+
+
+@login_required
+def restore_memory_view(request, pk):
+    memory   = get_object_or_404(Memory, pk=pk, creator=request.user, is_deleted=True)
+    group_pk = memory.group.pk
+    if request.method == 'POST':
+        memory.is_deleted = False
+        memory.deleted_at = None
+        memory.save(update_fields=['is_deleted', 'deleted_at'])
+        log_activity(memory.group, request.user, 'memory_add',
+                     f'{get_display_name(request.user)} restored a memory from the recycle bin')
+        messages.success(request, "Memory restored!")
+    return redirect('group_detail', pk=group_pk)
+
+
+@login_required
+def leave_board_view(request, pk):
+    group = get_object_or_404(Group, pk=pk)
+    if request.method == 'POST':
+        if group.owner == request.user:
+            messages.error(request, "Board owners can't leave — delete the board instead, or transfer ownership first.")
+        elif request.user not in group.members.all():
+            messages.error(request, "You're not a member of that board.")
+        else:
+            group.members.remove(request.user)
+            log_activity(group, request.user, 'member_leave',
+                         f'{get_display_name(request.user)} left the board')
+            messages.success(request, f'You left "{group.name}".')
+            return redirect('home')
+    return redirect('group_detail', pk=pk)
 
 
 @login_required
 @require_POST
 def pin_memory_view(request, pk):
-    memory = get_object_or_404(Memory, pk=pk)
+    memory = get_object_or_404(Memory, pk=pk, is_deleted=False)
     if request.user not in memory.group.members.all():
         return JsonResponse({'ok': False}, status=403)
     memory.is_pinned = not memory.is_pinned
@@ -474,7 +526,7 @@ def pin_memory_view(request, pk):
 @login_required
 @require_POST
 def react_memory_view(request, pk):
-    memory = get_object_or_404(Memory, pk=pk)
+    memory = get_object_or_404(Memory, pk=pk, is_deleted=False)
     if request.user not in memory.group.members.all():
         return JsonResponse({'ok': False}, status=403)
     data  = json.loads(request.body)
@@ -506,7 +558,7 @@ def react_memory_view(request, pk):
 
 @login_required
 def comments_view(request, pk):
-    memory = get_object_or_404(Memory, pk=pk)
+    memory = get_object_or_404(Memory, pk=pk, is_deleted=False)
     if request.user not in memory.group.members.all():
         return JsonResponse({'ok': False}, status=403)
 
@@ -573,6 +625,7 @@ def annual_recap_view(request, year=None):
     memories = Memory.objects.filter(
         group__members=user,
         created_at__year=year,
+        is_deleted=False,
     ).select_related('group', 'creator').prefetch_related('reactions')
 
     # Stats
