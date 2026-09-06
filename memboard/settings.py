@@ -122,14 +122,14 @@ LOGOUT_REDIRECT_URL = '/login/'
 if DATABASE_URL:
     RATELIMIT_IP_META_KEY = 'HTTP_X_REAL_IP'
 
-# Email
-EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST          = 'smtp.gmail.com'
-EMAIL_PORT          = 587
-EMAIL_USE_TLS       = True
-EMAIL_HOST_USER     = os.environ.get('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL  = os.environ.get('EMAIL_HOST_USER', '')
+# Email — sent via the Resend HTTP API rather than SMTP, since our host
+# blocks outbound SMTP ports (see core/email_backends.py for why).
+EMAIL_BACKEND      = 'core.email_backends.ResendEmailBackend'
+RESEND_API_KEY     = os.environ.get('RESEND_API_KEY', '')
+RESEND_FROM_EMAIL  = os.environ.get('RESEND_FROM_EMAIL', 'onboarding@resend.dev')
+DEFAULT_FROM_EMAIL = RESEND_FROM_EMAIL
+# Kept only for VAPID_ADMIN_EMAIL below (unused elsewhere) — harmless if unset.
+EMAIL_HOST_USER    = os.environ.get('EMAIL_HOST_USER', '')
 
 # Password reset
 PASSWORD_RESET_TIMEOUT = 86400

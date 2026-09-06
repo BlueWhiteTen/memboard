@@ -106,9 +106,10 @@ DEBUG=True
 # Database (leave blank for SQLite)
 DATABASE_URL=
 
-# Email (Gmail)
-EMAIL_HOST_USER=your@gmail.com
-EMAIL_HOST_PASSWORD=your-app-password
+# Email — sent via the Resend API (https://resend.com), not SMTP, since
+# many hosts block outbound SMTP ports. Sign up free, grab an API key.
+RESEND_API_KEY=re_your_api_key
+RESEND_FROM_EMAIL=onboarding@resend.dev   # or an address on your own verified domain
 
 # App base URL (for emails and links)
 APP_URL=https://your-app.com
