@@ -18,6 +18,7 @@ urlpatterns = [
     path('groups/new/',                   views.create_group_view,    name='create_group'),
     path('groups/<int:pk>/',              views.group_detail_view,    name='group_detail'),
     path('groups/<int:pk>/invite-email/', views.invite_by_email_view, name='invite_by_email'),
+    path('groups/<int:pk>/invite-friend-group/<int:fg_pk>/', views.invite_friend_group_view, name='invite_friend_group'),
     path('groups/<int:pk>/invites/<int:invite_pk>/resend/', views.resend_invite_view, name='resend_invite'),
     path('groups/<int:pk>/invites/<int:invite_pk>/cancel/', views.cancel_invite_view, name='cancel_invite'),
     path('board-invites/<int:invite_pk>/accept/', views.accept_board_invite_view, name='accept_board_invite'),

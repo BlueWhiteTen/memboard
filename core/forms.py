@@ -6,6 +6,25 @@ from .models import Group, Memory, FriendGroup, UserProfile, EDIT_PERMISSION_CHO
 from .image_utils import compress_image
 
 
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+
+class MultipleFileField(forms.FileField):
+    """Django's FileField only accepts one upload; this is the standard
+    workaround for a real multi-file <input multiple> field. clean() runs
+    the normal FileField validation on every file in the list."""
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('widget', MultipleFileInput())
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        single_file_clean = super().clean
+        if isinstance(data, (list, tuple)):
+            return [single_file_clean(d, initial) for d in data if d]
+        return [single_file_clean(data, initial)] if data else []
+
+
 class RegisterForm(UserCreationForm):
     first_name = forms.CharField(max_length=50, required=True,
         widget=forms.TextInput(attrs={'placeholder': 'Alex'}))
@@ -139,6 +158,9 @@ class MemoryForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'placeholder': 'Add a place…', 'id': 'location-name-input'}))
     location_lat  = forms.FloatField(required=False, widget=forms.HiddenInput())
     location_lng  = forms.FloatField(required=False, widget=forms.HiddenInput())
+    # Not a Memory model field — extra photos live on MemoryPhoto and are
+    # saved separately in the view after this form saves the memory itself.
+    extra_photos  = MultipleFileField(required=False)
 
     class Meta:
         model  = Memory
@@ -161,6 +183,10 @@ class MemoryForm(forms.ModelForm):
         if photo and not isinstance(photo, str):
             photo = compress_image(photo)
         return photo
+
+    def clean_extra_photos(self):
+        photos = self.cleaned_data.get('extra_photos') or []
+        return [compress_image(p) for p in photos]
 
 
 class EditMemoryForm(forms.ModelForm):
@@ -172,6 +198,7 @@ class EditMemoryForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'placeholder': 'Add a place…', 'id': 'location-name-input'}))
     location_lat  = forms.FloatField(required=False, widget=forms.HiddenInput())
     location_lng  = forms.FloatField(required=False, widget=forms.HiddenInput())
+    extra_photos  = MultipleFileField(required=False)
 
     class Meta:
         model  = Memory
@@ -194,6 +221,10 @@ class EditMemoryForm(forms.ModelForm):
         if photo and not isinstance(photo, str):
             photo = compress_image(photo)
         return photo
+
+    def clean_extra_photos(self):
+        photos = self.cleaned_data.get('extra_photos') or []
+        return [compress_image(p) for p in photos]
 
 
 class FriendRequestForm(forms.Form):

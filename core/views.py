@@ -12,7 +12,7 @@ from django import forms as django_forms
 import json
 
 from .models import (
-    Group, Memory, Friendship, FriendRequest, UserProfile,
+    Group, Memory, MemoryPhoto, Friendship, FriendRequest, UserProfile,
     GroupInvite, FriendInvite, Reaction, Comment, Notification, ActivityLog,
     FriendGroup, BoardJoinRequest,
     FONT_CHOICES, REACTION_CHOICES, COLOUR_CHOICES, THEME_CHOICES, PRIVACY_CHOICES,
@@ -323,11 +323,21 @@ def group_detail_view(request, pk):
         messages.error(request, "You're not a member of that board.")
         return redirect('home')
 
-    user     = request.user
+    user = request.user
+    sort = request.GET.get('sort', 'newest')
+    if sort not in ('newest', 'oldest', 'alphabetical'):
+        sort = 'newest'
+
     memories = (group.memories
                 .filter(is_deleted=False)
                 .select_related('creator')
-                .prefetch_related('tagged', 'reactions', 'comments'))
+                .prefetch_related('tagged', 'reactions', 'comments', 'extra_photos'))
+    # Pinned memories always lead; the chosen sort applies within/after that.
+    if sort == 'oldest':
+        memories = memories.order_by('-is_pinned', 'created_at')
+    elif sort == 'alphabetical':
+        memories = memories.order_by('-is_pinned', 'title', 'content')
+    # 'newest' uses the model's default ordering (-is_pinned, -created_at).
 
     for memory in memories:
         memory.user_can_edit    = memory.can_edit(user)
@@ -362,7 +372,8 @@ def group_detail_view(request, pk):
     profile, _ = UserProfile.objects.get_or_create(user=user)
 
     is_owner = group.owner == user
-    friend_groups = FriendGroup.objects.filter(owner=user) if is_owner else FriendGroup.objects.none()
+    friend_groups = (FriendGroup.objects.filter(owner=user).annotate(member_count=Count('members'))
+                      if is_owner else FriendGroup.objects.none())
     join_requests = (group.join_requests.select_related('requester') if is_owner
                       else BoardJoinRequest.objects.none())
     pending_invites = (group.pending_invites.filter(accepted=False).order_by('-created_at') if is_owner
@@ -370,6 +381,15 @@ def group_detail_view(request, pk):
     for jr in join_requests:
         jr.requester.initials     = get_initials(jr.requester)
         jr.requester.display_name = get_display_name(jr.requester)
+
+    # For the "Add member" modal's quick-pick lists — friends not already
+    # on this board, so the owner can invite with one click.
+    owner_friends = []
+    if is_owner:
+        member_ids = set(group.members.values_list('pk', flat=True))
+        owner_friends = annotate_users([
+            f for f in Friendship.get_friends(user) if f.pk not in member_ids
+        ])
 
     # Recycle bin. With the default (creator-only) delete policy this is your
     # own deletions; if the board allows any member to delete, the bin is
@@ -384,6 +404,7 @@ def group_detail_view(request, pk):
     return render(request, 'core/group_detail.html', {
         'group':            group,
         'memories':         memories,
+        'current_sort':     sort,
         'trashed_memories': trashed_memories,
         'other_members':    other_members,
         'all_members':      all_members,
@@ -400,6 +421,7 @@ def group_detail_view(request, pk):
         'board_delete_choices':  BOARD_DELETE_PERMISSION_CHOICES,
         'privacy_choices':  PRIVACY_CHOICES,
         'friend_groups':    friend_groups,
+        'owner_friends':    owner_friends,
         'join_requests':    join_requests,
         'pending_invites':  pending_invites,
     })
@@ -485,6 +507,16 @@ def invite_by_email_view(request, pk):
         Q(email__iexact=query) | Q(username__iexact=query)
     ).exclude(pk=request.user.pk).first()
 
+    if not existing:
+        # Not a literal username/email match — try matching on the name
+        # shown in the UI (what people actually type), same as lookup_user_view.
+        parts = query.split()
+        if len(parts) >= 2:
+            existing = User.objects.filter(
+                first_name__iexact=parts[0],
+                last_name__iexact=' '.join(parts[1:]),
+            ).exclude(pk=request.user.pk).first()
+
     if existing:
         email = existing.email
         if group.members.filter(pk=existing.pk).exists():
@@ -500,6 +532,20 @@ def invite_by_email_view(request, pk):
             f'{get_display_name(request.user)} invited you to join "{group.name}"',
             group=group,
         )
+        # Also offer to become friends, so they don't just end up in a
+        # shared board as a stranger. Skip if already friends or a request
+        # is already pending either way.
+        already_related = (
+            Friendship.are_friends(request.user, existing)
+            or FriendRequest.objects.filter(from_user=request.user, to_user=existing).exists()
+            or FriendRequest.objects.filter(from_user=existing, to_user=request.user).exists()
+        )
+        if not already_related:
+            FriendRequest.objects.create(from_user=request.user, to_user=existing)
+            create_notification(
+                existing, request.user, 'friend_req',
+                f'{get_display_name(request.user)} sent you a friend request',
+            )
         return JsonResponse({'ok': True, 'invite_pk': invite.pk, 'email': email, 'message': f'Invite sent to {get_display_name(existing)} — they\'ll need to accept it.'})
 
     email = query.lower()
@@ -514,12 +560,56 @@ def invite_by_email_view(request, pk):
         return JsonResponse({'ok': False, 'error': 'An invite was already sent to that address.'}, status=400)
 
     invite = GroupInvite.objects.create(group=group, invited_by=request.user, email=email)
+    # They don't have an account yet — also record a friend invite so that,
+    # like the standalone "invite a friend by email" flow, they're
+    # auto-friended with the inviter the moment they register.
+    friend_invite, friend_invite_created = FriendInvite.objects.get_or_create(
+        from_user=request.user, email=email)
     sent, err = send_invite_email(request.user, email, group, invite.token)
     if sent:
         return JsonResponse({'ok': True, 'invite_pk': invite.pk, 'email': email, 'message': f'Invitation sent to {email}!'})
     else:
         invite.delete()
+        if friend_invite_created:
+            friend_invite.delete()
         return JsonResponse({'ok': False, 'error': f'Failed to send email: {err}'}, status=500)
+
+
+@login_required
+@require_POST
+def invite_friend_group_view(request, pk, fg_pk):
+    """Quick-pick from the Add Member modal: invite every member of one of
+    the owner's friend groups in one click. Friend group members are
+    always existing accounts (they're drawn from the owner's friends), so
+    this always goes through the pending-invite/accept flow, same as a
+    single-person match in invite_by_email_view — never an instant add."""
+    group  = get_object_or_404(Group, pk=pk, owner=request.user)
+    fgroup = get_object_or_404(FriendGroup, pk=fg_pk, owner=request.user)
+
+    invited = []
+    already = 0
+    for member in fgroup.members.all():
+        if group.members.filter(pk=member.pk).exists():
+            already += 1
+            continue
+        if GroupInvite.objects.filter(group=group, invited_user=member, accepted=False).exists():
+            already += 1
+            continue
+        invite = GroupInvite.objects.create(
+            group=group, invited_by=request.user, email=member.email, invited_user=member)
+        create_notification(
+            member, request.user, 'board_invite_pending',
+            f'{get_display_name(request.user)} invited you to join "{group.name}"',
+            group=group,
+        )
+        invited.append({'pk': invite.pk, 'email': member.email})
+
+    if invited:
+        extra = f' ({already} already in/invited)' if already else ''
+        message = f'Invited {len(invited)} member{"s" if len(invited) != 1 else ""} from "{fgroup.name}"{extra}.'
+    else:
+        message = f'Everyone in "{fgroup.name}" is already a board member or already invited.'
+    return JsonResponse({'ok': True, 'invited': invited, 'message': message})
 
 
 @login_required
@@ -768,6 +858,8 @@ def add_memory_view(request, pk):
             memory.creator = request.user
             memory.save()
             form.save_m2m()
+            for photo in form.cleaned_data.get('extra_photos', []):
+                MemoryPhoto.objects.create(memory=memory, photo=photo)
             # Notify tagged users
             for tagged_user in memory.tagged.all():
                 create_notification(
@@ -799,8 +891,9 @@ def edit_memory_view(request, pk):
         return render(request, 'core/_edit_memory_fragment.html', {
             'memory':      memory,
             'group':       memory.group,
-            'all_members': memory.group.members.all(),
+            'all_members': annotate_users(list(memory.group.members.all())),
             'tagged_ids':  tagged_ids,
+            'extra_photos': memory.extra_photos.all(),
         })
 
     if not memory.can_edit(request.user):
@@ -810,6 +903,11 @@ def edit_memory_view(request, pk):
     form = EditMemoryForm(request.POST, request.FILES, instance=memory, group=memory.group)
     if form.is_valid():
         form.save()
+        remove_ids = request.POST.getlist('remove_photo')
+        if remove_ids:
+            memory.extra_photos.filter(pk__in=remove_ids).delete()
+        for photo in form.cleaned_data.get('extra_photos', []):
+            MemoryPhoto.objects.create(memory=memory, photo=photo)
         log_activity(memory.group, request.user, 'memory_edit',
                      f'{get_display_name(request.user)} edited a memory: {memory.title or memory.content[:40]}',
                      memory=memory)

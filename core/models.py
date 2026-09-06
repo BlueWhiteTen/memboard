@@ -377,6 +377,31 @@ class Memory(models.Model):
         return {r['emoji']: r['count'] for r in
                 self.reactions.values('emoji').annotate(count=Count('id'))}
 
+    def all_photo_urls(self):
+        """The primary `photo` (if set) followed by any extra photos, in
+        upload order — used by the gallery view of a memory."""
+        urls = []
+        if self.photo:
+            urls.append(self.photo.url)
+        urls += [p.photo.url for p in self.extra_photos.all()]
+        return urls
+
+
+class MemoryPhoto(models.Model):
+    """Additional photos beyond a memory's single primary `photo` field —
+    e.g. several shots from the same trip. Kept as a separate model rather
+    than reworking Memory.photo, so existing memories/migrations are
+    untouched."""
+    memory     = models.ForeignKey(Memory, related_name='extra_photos', on_delete=models.CASCADE)
+    photo      = models.ImageField(upload_to='memories/')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Photo for {self.memory}"
+
 
 # ── Reaction ──────────────────────────────────────────────────────────────────
 

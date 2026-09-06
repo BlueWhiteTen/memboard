@@ -30,6 +30,10 @@ textarea.form-input { resize:vertical; min-height:80px; }
 .perm-radio { display:none; }
 .perm-label { display:inline-block; padding:0.25rem 0.75rem; border-radius:0; border:1px solid var(--border); font-size:0.78rem; cursor:pointer; }
 .perm-radio:checked + .perm-label { background:var(--ink); color:var(--warm-white); border-color:var(--ink); }
+.extra-photos-current { display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem; }
+.extra-photo-thumb { display:flex; flex-direction:column; align-items:center; gap:0.25rem; cursor:pointer; }
+.extra-photo-thumb img { width:64px; height:64px; object-fit:cover; border:1px solid var(--border); }
+.extra-photo-remove { font-size:0.68rem; color:#B83232; display:flex; align-items:center; gap:0.2rem; }
 </style>
 
 <input type="hidden" name="colour" id="{{ prefix }}-colour-field" value="{{ memory.colour|default:'yellow' }}">
@@ -66,6 +70,21 @@ textarea.form-input { resize:vertical; min-height:80px; }
     <div style="margin-bottom:0.4rem;font-size:0.78rem;color:var(--ink-muted);">Current: <a href="{{ memory.photo.url }}" target="_blank" rel="noopener">view photo</a> — choose a new file to replace it.</div>
     {% endif %}
     <input type="file" name="photo" class="form-input" accept="image/*" style="padding:0.35rem;">
+</div>
+
+<div class="form-group">
+    <label class="form-label">🖼🖼 Additional photos <span style="font-weight:400;color:var(--ink-muted);">(optional — e.g. more shots from a trip)</span></label>
+    {% if extra_photos %}
+    <div class="extra-photos-current">
+        {% for p in extra_photos %}
+        <label class="extra-photo-thumb">
+            <img src="{{ p.photo.url }}" alt="">
+            <span class="extra-photo-remove"><input type="checkbox" name="remove_photo" value="{{ p.pk }}"> Remove</span>
+        </label>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <input type="file" name="extra_photos" class="form-input" accept="image/*" multiple style="padding:0.35rem;">
 </div>
 
 <div class="form-group">

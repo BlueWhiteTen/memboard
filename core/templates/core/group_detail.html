@@ -68,6 +68,11 @@
 .memory-meta { font-size:0.72rem; color:rgba(23,23,26,0.72); margin-top:0.65rem; display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; }
 .creator-av { width:22px; height:22px; border-radius:50%; background:rgba(255,255,255,0.55); color:var(--ink); border:1.5px solid rgba(23,23,26,0.35); display:inline-flex; align-items:center; justify-content:center; font-size:0.6rem; font-weight:700; flex-shrink:0; box-sizing:border-box; }
 .creator-name { font-weight:600; }
+.quickpick-list { margin-top:0.5rem; max-height:160px; overflow-y:auto; display:flex; flex-direction:column; gap:0.3rem; }
+.quickpick-row { display:flex; align-items:center; gap:0.5rem; width:100%; text-align:left; padding:0.45rem 0.6rem; background:var(--cream); border:1px solid var(--border); font-family:inherit; font-size:0.82rem; color:var(--ink); cursor:pointer; transition:background 0.12s; }
+.quickpick-row:hover { background:var(--amber-pale); }
+.quickpick-row:disabled { opacity:0.6; cursor:default; }
+.quickpick-count { margin-left:auto; font-size:0.7rem; color:var(--ink-muted); flex-shrink:0; }
 .memory-date-badge { font-size:0.7rem; color:rgba(23,23,26,0.72); }
 .memory-loc { font-size:0.7rem; color:rgba(23,23,26,0.72); display:flex; align-items:center; gap:0.2rem; }
 .tagged-list { display:flex; gap:0.3rem; flex-wrap:wrap; margin-top:0.5rem; }
@@ -140,6 +145,8 @@
 }
 .add-memory-cta:hover { background: var(--ink-light); transform: translateY(-1px); }
 .add-memory-cta .plus-icon { font-size: 1.05rem; line-height: 1; }
+.sort-label { display:inline-flex; align-items:center; gap:0.4rem; font-size:0.8rem; color:var(--ink-muted); font-weight:500; margin-bottom:1.25rem; }
+.sort-select { padding:0.4rem 0.6rem; border:1px solid var(--border); border-radius:0; background:var(--warm-white); font-family:inherit; font-size:0.82rem; color:var(--ink); cursor:pointer; }
 
 /* Lightbox */
 .lightbox-overlay {
@@ -157,6 +164,8 @@
 }
 .lightbox-close:hover { background: rgba(255,255,255,0.22); }
 .memory-photo { cursor: zoom-in; }
+.memory-photo-wrap { position: relative; }
+.photo-count-badge { position:absolute; bottom:8px; right:8px; background:rgba(23,23,26,0.72); color:#fff; font-size:0.68rem; font-weight:700; padding:1px 7px; border-radius:10px; pointer-events:none; }
 
 /* Trash / recycle bin */
 .trash-item { display:flex; gap:0.75rem; align-items:center; padding:0.75rem; background:var(--warm-white); border:1px solid var(--border); border-radius:0; margin-bottom:0.6rem; }
@@ -184,12 +193,14 @@
 .memory-view-modal-box { max-width: 900px; width: 92%; padding: 0; overflow: hidden; position: relative; }
 .memory-view-body { display: flex; max-height: 88vh; }
 .memory-view-body.no-photo { flex-direction: column; }
-.memory-view-photo-col { flex: 1 1 50%; background: #17171a; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-.memory-view-photo-col img { width: 100%; height: 100%; max-height: 88vh; object-fit: contain; }
+.memory-view-photo-col { flex: 1 1 50%; background: #17171a; display: flex; flex-direction: column; align-items: center; overflow-y: auto; max-height: 88vh; }
+.memory-view-photo-col img { width: 100%; max-height: 88vh; object-fit: contain; cursor: zoom-in; flex-shrink: 0; }
+.memory-view-photo-col img:not(:first-child) { border-top: 2px solid #17171a; }
 .memory-view-info-col { flex: 1 1 50%; padding: 2rem 1.75rem 1.75rem; overflow-y: auto; max-height: 88vh; }
 .memory-view-body.no-photo .memory-view-info-col { flex: 1 1 100%; }
 .memory-view-info-col .memory-title { font-size: 1.35rem; margin-bottom: 0.6rem; }
 .memory-view-info-col .memory-content { font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem; white-space: pre-wrap; }
+.memory-view-created { font-size: 0.72rem; color: rgba(23,23,26,0.55); margin-bottom: 0.75rem; }
 .memory-view-comments { border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 0.5rem; }
 .memory-view-comments-list { max-height: 240px; overflow-y: auto; margin-bottom: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; }
 
@@ -252,10 +263,22 @@
 <div id="tab-memories" class="tab-panel active">
     <div class="board-content">
 
-        <!-- Big add-memory button -->
-        <button class="add-memory-cta" onclick="document.getElementById('add-memory-modal').classList.add('open')">
-            <span class="plus-icon">+</span> Add a memory
-        </button>
+        <!-- Big add-memory button + sort control -->
+        <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">
+            <button class="add-memory-cta" onclick="document.getElementById('add-memory-modal').classList.add('open')">
+                <span class="plus-icon">+</span> Add a memory
+            </button>
+            {% if memories %}
+            <label class="sort-label">
+                Sort:
+                <select class="sort-select" onchange="changeSort(this.value)">
+                    <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest first</option>
+                    <option value="oldest" {% if current_sort == 'oldest' %}selected{% endif %}>Oldest first</option>
+                    <option value="alphabetical" {% if current_sort == 'alphabetical' %}selected{% endif %}>Alphabetical (A–Z)</option>
+                </select>
+            </label>
+            {% endif %}
+        </div>
 
         {% if memories %}
         <div class="memories-grid" id="memories-container" style="font-family:{{ note_font }};">
@@ -264,11 +287,18 @@
             <div class="memory-card {% if memory.is_pinned %}pinned{% endif %}"
                  style="background: var(--note-{{ memory.colour }});"
                  id="memory-{{ memory.pk }}"
+                 data-created-at="{{ memory.created_at|date:'M j, Y, g:i A' }}"
                  onclick="openMemoryView({{ memory.pk }}, event)">
                 {% if memory.is_pinned %}<span class="pin-badge" title="Pinned">📌</span>{% endif %}
                 {% if memory.photo %}
-                <img src="{{ memory.photo.url }}" alt="" class="memory-photo" onclick="openLightbox('{{ memory.photo.url }}')">
+                <div class="memory-photo-wrap">
+                    <img src="{{ memory.photo.url }}" alt="" class="memory-photo" onclick="openLightbox('{{ memory.photo.url }}')">
+                    {% if memory.extra_photos.all %}<span class="photo-count-badge">+{{ memory.extra_photos.all|length }}</span>{% endif %}
+                </div>
                 {% endif %}
+                {% for ep in memory.extra_photos.all %}
+                <img src="{{ ep.photo.url }}" class="extra-photo-src" hidden>
+                {% endfor %}
                 <div class="memory-inner">
                     {% if memory.title %}<div class="memory-title">{{ memory.title }}</div>{% endif %}
                     <div class="memory-content">{{ memory.content }}</div>
@@ -310,7 +340,7 @@
                     <!-- Actions row -->
                     <div class="memory-actions">
                         <button class="comment-toggle-btn" onclick="toggleComments({{ memory.pk }}, this)">
-                            💬 <span class="comment-count">{{ memory.comment_count }}</span>
+                            💬 Comment <span class="comment-count">{{ memory.comment_count }}</span>
                         </button>
                         <button class="mem-action-btn {% if memory.is_pinned %}pin-active{% endif %}" onclick="pinMemory({{ memory.pk }}, this)" title="{% if memory.is_pinned %}Unpin{% else %}Pin{% endif %}">
                             📌 {% if memory.is_pinned %}Pinned{% else %}Pin{% endif %}
@@ -530,6 +560,32 @@
         <div id="invite-msg" style="font-size:0.78rem;margin-top:0.5rem;"></div>
         <p style="font-size:0.72rem;color:var(--ink-muted);margin-top:0.4rem;">If they already have a Memboard account, they'll get a request to accept. Otherwise we'll email them an invite.</p>
     </div>
+    {% if friend_groups %}
+    <div style="border-top:1px solid var(--border);padding-top:1rem;margin-top:1rem;">
+        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);">Group</label>
+        <div class="quickpick-list">
+            {% for fg in friend_groups %}
+            <button type="button" class="quickpick-row" onclick="inviteFriendGroup({{ fg.pk }}, this)">
+                <span>{{ fg.name }}</span>
+                <span class="quickpick-count">{{ fg.member_count }} member{{ fg.member_count|pluralize }}</span>
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% if owner_friends %}
+    <div style="border-top:1px solid var(--border);padding-top:1rem;margin-top:1rem;">
+        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);">Friends</label>
+        <div class="quickpick-list">
+            {% for friend in owner_friends %}
+            <button type="button" class="quickpick-row" onclick="inviteFriendQuick('{{ friend.email|escapejs }}', this)">
+                <span class="creator-av" style="width:20px;height:20px;font-size:0.55rem;">{{ friend.initials }}</span>
+                <span>{{ friend.display_name }}</span>
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
     <div id="pending-invites-section" style="border-top:1px solid var(--border);padding-top:1rem;margin-top:1rem;" {% if not pending_invites %}hidden{% endif %}>
         <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);">Pending invites (<span id="pending-invites-count">{{ pending_invites|length }}</span>)</label>
         <div id="pending-invites-list" style="margin-top:0.5rem;display:flex;flex-direction:column;gap:0.4rem;">
@@ -604,6 +660,14 @@
 const CSRF = '{{ csrf_token }}';
 const GROUP_PK = {{ group.pk }};
 const MAP_MEMORIES = {{ map_memories|safe }};
+
+// Sort control — reloads the page with ?sort=... while keeping the
+// current tab (stored in the URL hash) so you land back where you were.
+function changeSort(value) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('sort', value);
+    window.location.href = url.toString();
+}
 
 // Tab switching — the active tab is kept in the URL hash so a refresh
 // (or a shared link) lands back on the same tab instead of resetting to
@@ -786,7 +850,11 @@ function openMemoryView(memPk, evt) {
     const contentEl = card.querySelector('.memory-content');
     const metaEl    = card.querySelector('.memory-meta');
     const tagsEl    = card.querySelector('.tagged-list');
-    const hasPhoto  = !!photoEl;
+    // Primary photo first, then any additional photos (e.g. from a trip).
+    const photoUrls = [];
+    if (photoEl) photoUrls.push(photoEl.src);
+    card.querySelectorAll('.extra-photo-src').forEach(img => photoUrls.push(img.src));
+    const hasPhoto  = photoUrls.length > 0;
 
     // The card shows the creator as an initials circle (compact); this
     // bigger view has room to spell out the full name instead.
@@ -803,11 +871,14 @@ function openMemoryView(memPk, evt) {
         metaHtml = metaClone.innerHTML;
     }
 
+    const createdAt = card.dataset.createdAt;
+
     const infoHtml = `
         ${titleEl ? `<div class="memory-title">${titleEl.innerHTML}</div>` : ''}
         ${contentEl ? `<div class="memory-content">${contentEl.innerHTML}</div>` : ''}
         ${metaEl ? `<div class="memory-meta" style="margin-bottom:0.85rem;">${metaHtml}</div>` : ''}
         ${tagsEl ? `<div class="tagged-list" style="margin-bottom:0.85rem;">${tagsEl.innerHTML}</div>` : ''}
+        ${createdAt ? `<div class="memory-view-created">Created on ${createdAt}</div>` : ''}
         <div class="memory-view-comments">
             <div class="memory-view-comments-list" id="modal-comments-list"></div>
             <div class="comment-form">
@@ -817,9 +888,12 @@ function openMemoryView(memPk, evt) {
             </div>
         </div>`;
 
+    const photosHtml = photoUrls.map(url =>
+        `<img src="${url}" alt="" onclick="openLightbox('${url}')">`).join('');
+
     document.getElementById('memory-view-content').innerHTML = `
         <div class="memory-view-body ${hasPhoto ? '' : 'no-photo'}" style="background:${card.style.background || 'var(--warm-white)'};">
-            ${hasPhoto ? `<div class="memory-view-photo-col"><img src="${photoEl.src}" alt=""></div>` : ''}
+            ${hasPhoto ? `<div class="memory-view-photo-col">${photosHtml}</div>` : ''}
             <div class="memory-view-info-col">${infoHtml}</div>
         </div>`;
 
@@ -896,6 +970,45 @@ function sendEmailInvite() {
         if (d.ok) {
             emailInput.value = '';
             if (d.invite_pk) addPendingInviteRow(d.invite_pk, d.email);
+        }
+    });
+}
+
+// Quick-pick: invite one friend directly (reuses the same lookup-by-email
+// endpoint the search box uses, since a friend's email always resolves to
+// their existing account).
+function inviteFriendQuick(email, btn) {
+    const msg = document.getElementById('invite-msg');
+    btn.disabled = true;
+    fetch(`/groups/${GROUP_PK}/invite-email/`, {
+        method:'POST', headers:{'X-CSRFToken':CSRF,'Content-Type':'application/x-www-form-urlencoded'},
+        body:'email='+encodeURIComponent(email)
+    }).then(r=>r.json()).then(d=>{
+        msg.textContent = d.message || d.error;
+        msg.style.color = d.ok ? 'green' : '#c0392b';
+        if (d.ok) {
+            if (d.invite_pk) addPendingInviteRow(d.invite_pk, d.email);
+            btn.remove();
+        } else {
+            btn.disabled = false;
+        }
+    });
+}
+
+// Quick-pick: invite every member of one of the owner's friend groups.
+function inviteFriendGroup(fgPk, btn) {
+    const msg = document.getElementById('invite-msg');
+    btn.disabled = true;
+    fetch(`/groups/${GROUP_PK}/invite-friend-group/${fgPk}/`, {
+        method: 'POST', headers: {'X-CSRFToken': CSRF}
+    }).then(r => r.json()).then(d => {
+        msg.textContent = d.message || d.error;
+        msg.style.color = d.ok ? 'green' : '#c0392b';
+        if (d.ok) {
+            (d.invited || []).forEach(inv => addPendingInviteRow(inv.pk, inv.email));
+            btn.remove();
+        } else {
+            btn.disabled = false;
         }
     });
 }
