@@ -59,6 +59,12 @@ class ResendEmailBackend(BaseEmailBackend):
                     headers={
                         'Authorization': f'Bearer {api_key}',
                         'Content-Type':  'application/json',
+                        'Accept':        'application/json',
+                        # Resend's API sits behind Cloudflare, which blocks
+                        # urllib's default "Python-urllib/x.y" User-Agent as
+                        # bot traffic (Cloudflare error 1010) — a normal
+                        # browser-looking one avoids that.
+                        'User-Agent':    'Mozilla/5.0 (compatible; Memboard/1.0)',
                     },
                 )
                 with urllib.request.urlopen(req, timeout=10) as resp:
