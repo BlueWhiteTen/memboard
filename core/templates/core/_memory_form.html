@@ -56,12 +56,17 @@ textarea.form-input { resize:vertical; min-height:80px; }
 
 <div class="form-group">
     <label class="form-label">📍 Location</label>
-    <input type="text" name="location_name" class="form-input" placeholder="Add a place…"
-           id="{{ prefix }}-location-name-input" value="{{ memory.location_name|default:'' }}"
-           oninput="onMemoryLocationInput('{{ prefix }}')">
+    <div style="display:flex;gap:0.4rem;">
+        <input type="text" name="location_name" class="form-input" placeholder="Add a place…" style="flex:1;"
+               id="{{ prefix }}-location-name-input" value="{{ memory.location_name|default:'' }}"
+               oninput="onMemoryLocationInput('{{ prefix }}')">
+        <button type="button" class="btn btn-ghost btn-sm" style="flex-shrink:0;" onclick="toggleMapPicker('{{ prefix }}')">🗺 Select on map</button>
+    </div>
     <input type="hidden" name="location_lat" id="{{ prefix }}-location-lat" value="{{ memory.location_lat|default:'' }}">
     <input type="hidden" name="location_lng" id="{{ prefix }}-location-lng" value="{{ memory.location_lng|default:'' }}">
     <div id="{{ prefix }}-location-suggestions" style="font-size:0.78rem;color:var(--ink-muted);margin-top:0.25rem;"></div>
+    <div id="{{ prefix }}-map-picker" style="display:none;margin-top:0.5rem;height:220px;border:1px solid var(--border);"></div>
+    <div id="{{ prefix }}-map-picker-hint" style="display:none;font-size:0.72rem;color:var(--ink-muted);margin-top:0.25rem;">Click anywhere on the map to drop a pin.</div>
 </div>
 
 <div class="form-group">
@@ -179,5 +184,62 @@ function selectMemoryLocation(prefix, name, lat, lng) {
     document.getElementById(prefix + '-location-lat').value = lat;
     document.getElementById(prefix + '-location-lng').value = lng;
     document.getElementById(prefix + '-location-suggestions').innerHTML = '';
+}
+
+// "Select on map" — an alternative to typing an address: drop a pin on a
+// small Leaflet map and we reverse-geocode it into the location name.
+// One map instance per form instance (Add vs Edit both include this
+// partial), keyed by prefix, created lazily on first use.
+window._mapPickers = window._mapPickers || {};
+
+function toggleMapPicker(prefix) {
+    const el   = document.getElementById(prefix + '-map-picker');
+    const hint = document.getElementById(prefix + '-map-picker-hint');
+    if (!el) return;
+    const showing = el.style.display !== 'none';
+    if (showing) {
+        el.style.display = 'none';
+        if (hint) hint.style.display = 'none';
+        return;
+    }
+    el.style.display = 'block';
+    if (hint) hint.style.display = 'block';
+
+    if (!window._mapPickers[prefix]) {
+        const latInput = document.getElementById(prefix + '-location-lat');
+        const lngInput = document.getElementById(prefix + '-location-lng');
+        const startLat = parseFloat(latInput.value) || 51.7520;
+        const startLng = parseFloat(lngInput.value) || -1.2577;
+        const map = L.map(el).setView([startLat, startLng], (latInput.value && lngInput.value) ? 13 : 5);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors', maxZoom: 19,
+        }).addTo(map);
+
+        let marker = null;
+        if (latInput.value && lngInput.value) {
+            marker = L.marker([startLat, startLng]).addTo(map);
+        }
+        map.on('click', function (e) {
+            if (marker) { marker.setLatLng(e.latlng); } else { marker = L.marker(e.latlng).addTo(map); }
+            latInput.value = e.latlng.lat.toFixed(6);
+            lngInput.value = e.latlng.lng.toFixed(6);
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.latlng.lat}&lon=${e.latlng.lng}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data && data.display_name) {
+                        document.getElementById(prefix + '-location-name-input').value =
+                            data.display_name.split(',').slice(0, 2).join(',').trim();
+                    }
+                })
+                .catch(() => {});
+        });
+
+        window._mapPickers[prefix] = map;
+        // The map is created while its container is hidden-then-shown in
+        // the same tick — Leaflet needs a resize nudge once it's visible.
+        setTimeout(() => map.invalidateSize(), 60);
+    } else {
+        setTimeout(() => window._mapPickers[prefix].invalidateSize(), 60);
+    }
 }
 </script>

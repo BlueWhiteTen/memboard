@@ -61,6 +61,12 @@
 .pin-badge { position: absolute; top: 8px; right: 8px; font-size: 0.9rem; }
 .media-badge { position: absolute; top: 8px; left: 8px; font-size: 0.85rem; background:rgba(23,23,26,0.55); color:#fff; padding:1px 6px; border-radius:10px; letter-spacing:2px; }
 .memory-photo { width:100%; max-height:150px; object-fit:cover; display:block; }
+/* Photo lives in a column on the left (~25% of the card), text to its
+   right — rather than a photo strip across the top. */
+.memory-card.has-photo { display: flex; align-items: stretch; }
+.memory-card.has-photo .memory-photo-col { flex: 0 0 25%; max-width: 25%; position: relative; overflow: hidden; }
+.memory-card.has-photo .memory-photo-col .memory-photo { width: 100%; height: 100%; max-height: none; }
+.memory-card.has-photo .memory-inner { flex: 1 1 auto; min-width: 0; }
 /* Note paper stays the same bright color in light or dark mode, so its text
    is pinned to a fixed dark ink (not the var(--ink) token, which flips light
    in dark mode) with a soft light shadow to lift it off the paper. */
@@ -151,10 +157,24 @@
 }
 .add-memory-cta:hover { background: var(--ink-light); transform: translateY(-1px); }
 .add-memory-cta .plus-icon { font-size: 1.05rem; line-height: 1; }
-.sort-label { display:inline-flex; align-items:center; gap:0.4rem; font-size:0.8rem; color:var(--ink-muted); font-weight:500; margin-bottom:1.25rem; }
+.sort-label { display:inline-flex; align-items:center; gap:0.4rem; font-size:0.8rem; color:var(--ink-muted); font-weight:500; }
 .sort-select { padding:0.4rem 0.6rem; border:1px solid var(--border); border-radius:0; background:var(--warm-white); font-family:inherit; font-size:0.82rem; color:var(--ink); cursor:pointer; }
+.board-toolbar { display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem; }
+.toolbar-right { display:flex; align-items:center; gap:0.5rem; margin-left:auto; }
+.toolbar-btn {
+    display:inline-flex; align-items:center; gap:0.35rem;
+    padding:0.35rem 0.6rem; font-size:0.78rem; font-weight:700; font-family:inherit;
+    border:2px solid var(--border-strong); border-radius:0; cursor:pointer;
+    background:var(--warm-white); color:var(--ink-light); text-decoration:none;
+    box-shadow:2px 2px 0 var(--ink); transition:transform 0.08s, box-shadow 0.08s, background 0.12s, color 0.12s;
+    line-height:1.2; height:2rem; box-sizing:border-box;
+}
+.toolbar-btn:hover { background:var(--cream); color:var(--ink); }
+.toolbar-btn:active { transform:translate(1px, 1px); box-shadow:1px 1px 0 var(--ink); }
+.toolbar-btn-active { background:var(--amber-pale); color:var(--ink); border-color:var(--amber); }
 .filter-field { display:flex; flex-direction:column; gap:0.2rem; }
 .filter-label { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-muted); }
+.filters-bar { align-items:end; gap:0.6rem; flex-wrap:wrap; margin-bottom:1.25rem; padding:0.65rem 0.75rem; background:var(--warm-white); border:1px solid var(--border); }
 .select-checkbox { position:absolute; bottom:8px; left:8px; z-index:6; width:18px; height:18px; display:none; cursor:pointer; }
 .memories-grid.select-mode .select-checkbox { display:block; }
 .memories-grid.select-mode .memory-card { cursor:default; }
@@ -277,8 +297,8 @@
 <div id="tab-memories" class="tab-panel active">
     <div class="board-content">
 
-        <!-- Big add-memory button + sort/select/export controls -->
-        <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">
+        <!-- Big add-memory button + sort/surprise/filter/select controls -->
+        <div class="board-toolbar">
             <button class="add-memory-cta" onclick="document.getElementById('add-memory-modal').classList.add('open')">
                 <span class="plus-icon">+</span> Add a memory
             </button>
@@ -292,9 +312,13 @@
                 </select>
             </label>
             {% endif %}
-            <button type="button" class="btn btn-ghost btn-sm" onclick="surpriseMe()">🎲 Surprise me</button>
-            <button type="button" class="btn btn-ghost btn-sm" id="select-mode-btn" onclick="toggleSelectMode()">☑️ Select</button>
-            <a class="btn btn-ghost btn-sm" href="{% url 'export_board' group.pk %}">⬇️ Export board</a>
+            <button type="button" class="toolbar-btn" onclick="surpriseMe()">🎲 Surprise me</button>
+            <a class="toolbar-btn" href="{% url 'export_board' group.pk %}" style="display:none;">⬇️ Export board</a>
+
+            <div class="toolbar-right">
+                <button type="button" class="toolbar-btn {% if filters_active %}toolbar-btn-active{% endif %}" onclick="toggleFilterPanel()">🔍 Filters{% if filters_active %} •{% endif %}</button>
+                <button type="button" class="toolbar-btn" id="select-mode-btn" onclick="toggleSelectMode()">☑️ Select</button>
+            </div>
         </div>
 
         <!-- Bulk actions bar (shown while in select mode) -->
@@ -304,8 +328,8 @@
             <button type="button" class="btn btn-ghost btn-sm" onclick="toggleSelectMode()">Cancel</button>
         </div>
 
-        <!-- Filters -->
-        <form method="get" class="filters-bar" style="display:flex;align-items:end;gap:0.6rem;flex-wrap:wrap;margin-bottom:1.25rem;padding:0.65rem 0.75rem;background:var(--warm-white);border:1px solid var(--border);">
+        <!-- Filters (toggled via the 🔍 Filters button above) -->
+        <form method="get" class="filters-bar" id="filters-panel" style="display:{% if filters_active %}flex{% else %}none{% endif %};">
             <input type="hidden" name="sort" value="{{ current_sort }}">
             <label class="filter-field">
                 <span class="filter-label">Person</span>
@@ -343,12 +367,13 @@
         <div class="memories-grid" id="memories-container" style="font-family:{{ note_font }};">
             {% for memory in memories %}
             <div class="memory-wrapper">
-            <div class="memory-card {% if memory.is_pinned %}pinned{% endif %}"
+            <div class="memory-card {% if memory.is_pinned %}pinned{% endif %} {% if memory.card_photo_url %}has-photo{% endif %}"
                  style="background: var(--note-{{ memory.colour }});"
                  id="memory-{{ memory.pk }}"
                  data-created-at="{{ memory.created_at|date:'M j, Y, g:i A' }}"
                  data-video-url="{% if memory.video %}{{ memory.video.url }}{% endif %}"
                  data-voice-url="{% if memory.voice_note %}{{ memory.voice_note.url }}{% endif %}"
+                 data-photo-urls='{{ memory.photo_urls_json }}'
                  onclick="openMemoryView({{ memory.pk }}, event)">
                 <input type="checkbox" class="select-checkbox" onclick="event.stopPropagation(); toggleMemorySelect({{ memory.pk }}, this)" title="Select this memory">
                 {% if memory.video or memory.voice_note %}
@@ -357,15 +382,12 @@
                 </span>
                 {% endif %}
                 {% if memory.is_pinned %}<span class="pin-badge" title="Pinned">📌</span>{% endif %}
-                {% if memory.photo %}
-                <div class="memory-photo-wrap">
-                    <img src="{{ memory.photo.url }}" alt="" class="memory-photo" onclick="openLightbox('{{ memory.photo.url }}')">
-                    {% if memory.extra_photos.all %}<span class="photo-count-badge">+{{ memory.extra_photos.all|length }}</span>{% endif %}
+                {% if memory.card_photo_url %}
+                <div class="memory-photo-col">
+                    <img src="{{ memory.card_photo_url }}" alt="" class="memory-photo">
+                    {% if memory.extra_photo_count > 0 %}<span class="photo-count-badge">+{{ memory.extra_photo_count }}</span>{% endif %}
                 </div>
                 {% endif %}
-                {% for ep in memory.extra_photos.all %}
-                <img src="{{ ep.photo.url }}" class="extra-photo-src" hidden>
-                {% endfor %}
                 <div class="memory-inner">
                     {% if memory.title %}<div class="memory-title">{{ memory.title }}</div>{% endif %}
                     <div class="memory-content">{{ memory.content }}</div>
@@ -790,6 +812,14 @@ function surpriseMe() {
 let selectMode = false;
 const selectedMemories = new Set();
 
+// Filters live in a collapsible panel (toggled by the 🔍 Filters button)
+// instead of always taking up space on the toolbar row.
+function toggleFilterPanel() {
+    const panel = document.getElementById('filters-panel');
+    if (!panel) return;
+    panel.style.display = (panel.style.display === 'none') ? 'flex' : 'none';
+}
+
 function toggleSelectMode() {
     selectMode = !selectMode;
     const grid = document.getElementById('memories-container');
@@ -1038,7 +1068,10 @@ function openEditModal(memPk) {
 // already-interactive part of the card (buttons, inputs, the photo itself,
 // the inline comments panel) so those keep working as before.
 function openMemoryView(memPk, evt) {
-    if (evt && evt.target.closest('button, a, input, .memory-photo, .comments-section, .reaction-picker')) return;
+    // Clicking the card's photo now opens this bigger view first (like the
+    // rest of the card) — the full-size lightbox is a second click, on the
+    // photo shown inside this view.
+    if (evt && evt.target.closest('button, a, input, .comments-section, .reaction-picker')) return;
     const card = document.getElementById('memory-' + memPk);
     if (!card) return;
     if (selectMode) {
@@ -1047,15 +1080,16 @@ function openMemoryView(memPk, evt) {
         return;
     }
 
-    const photoEl   = card.querySelector('.memory-photo');
     const titleEl   = card.querySelector('.memory-title');
     const contentEl = card.querySelector('.memory-content');
     const metaEl    = card.querySelector('.memory-meta');
     const tagsEl    = card.querySelector('.tagged-list');
-    // Primary photo first, then any additional photos (e.g. from a trip).
-    const photoUrls = [];
-    if (photoEl) photoUrls.push(photoEl.src);
-    card.querySelectorAll('.extra-photo-src').forEach(img => photoUrls.push(img.src));
+    // Primary photo first, then any additional photos (e.g. from a trip) —
+    // read from the card's data attribute rather than the DOM, since the
+    // card thumbnail may be showing a fallback (an extra photo) rather than
+    // the primary one.
+    let photoUrls = [];
+    try { photoUrls = JSON.parse(card.dataset.photoUrls || '[]'); } catch (e) { photoUrls = []; }
     const hasPhoto  = photoUrls.length > 0;
 
     // The card shows the creator as an initials circle (compact); this

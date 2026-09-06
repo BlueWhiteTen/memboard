@@ -391,6 +391,25 @@ def group_detail_view(request, pk):
             t.initials     = get_initials(t)
             t.display_name = get_display_name(t)
 
+        # The card thumbnail: the primary photo, falling back to the first
+        # extra photo if there's no primary one (previously a memory added
+        # with only "additional photos" and no primary photo showed no
+        # thumbnail at all on the card, even though it had a photo). The
+        # full gallery (for the enlarged view) is exposed as JSON so the
+        # template doesn't need to duplicate hidden <img> tags for it.
+        extra_list = list(memory.extra_photos.all())
+        all_urls = ([memory.photo.url] if memory.photo else []) + [p.photo.url for p in extra_list]
+        memory.photo_urls_json = json.dumps(all_urls)
+        if memory.photo:
+            memory.card_photo_url   = memory.photo.url
+            memory.extra_photo_count = len(extra_list)
+        elif extra_list:
+            memory.card_photo_url   = extra_list[0].photo.url
+            memory.extra_photo_count = len(extra_list) - 1
+        else:
+            memory.card_photo_url   = None
+            memory.extra_photo_count = 0
+
     other_members = annotate_users(list(group.members.exclude(pk=user.pk)))
     all_members   = annotate_users(list(group.members.all()))
     admin_ids     = set(group.admins.values_list('pk', flat=True))
