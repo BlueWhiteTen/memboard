@@ -67,6 +67,7 @@
 .memory-content { font-size:1rem; line-height:1.45; color:#17171A; white-space:pre-wrap; text-shadow:0 1px 0 rgba(255,255,255,0.35); }
 .memory-meta { font-size:0.72rem; color:rgba(23,23,26,0.72); margin-top:0.65rem; display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; }
 .creator-av { width:22px; height:22px; border-radius:50%; background:rgba(255,255,255,0.55); color:var(--ink); border:1.5px solid rgba(23,23,26,0.35); display:inline-flex; align-items:center; justify-content:center; font-size:0.6rem; font-weight:700; flex-shrink:0; box-sizing:border-box; }
+.creator-name { font-weight:600; }
 .memory-date-badge { font-size:0.7rem; color:rgba(23,23,26,0.72); }
 .memory-loc { font-size:0.7rem; color:rgba(23,23,26,0.72); display:flex; align-items:center; gap:0.2rem; }
 .tagged-list { display:flex; gap:0.3rem; flex-wrap:wrap; margin-top:0.5rem; }
@@ -787,10 +788,25 @@ function openMemoryView(memPk, evt) {
     const tagsEl    = card.querySelector('.tagged-list');
     const hasPhoto  = !!photoEl;
 
+    // The card shows the creator as an initials circle (compact); this
+    // bigger view has room to spell out the full name instead.
+    let metaHtml = '';
+    if (metaEl) {
+        const metaClone = metaEl.cloneNode(true);
+        const avEl = metaClone.querySelector('.creator-av');
+        if (avEl) {
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'creator-name';
+            nameSpan.textContent = avEl.getAttribute('title') || avEl.textContent;
+            avEl.replaceWith(nameSpan);
+        }
+        metaHtml = metaClone.innerHTML;
+    }
+
     const infoHtml = `
         ${titleEl ? `<div class="memory-title">${titleEl.innerHTML}</div>` : ''}
         ${contentEl ? `<div class="memory-content">${contentEl.innerHTML}</div>` : ''}
-        ${metaEl ? `<div class="memory-meta" style="margin-bottom:0.85rem;">${metaEl.innerHTML}</div>` : ''}
+        ${metaEl ? `<div class="memory-meta" style="margin-bottom:0.85rem;">${metaHtml}</div>` : ''}
         ${tagsEl ? `<div class="tagged-list" style="margin-bottom:0.85rem;">${tagsEl.innerHTML}</div>` : ''}
         <div class="memory-view-comments">
             <div class="memory-view-comments-list" id="modal-comments-list"></div>
