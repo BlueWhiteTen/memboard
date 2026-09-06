@@ -12,7 +12,7 @@ import json
 
 from .models import (
     Group, Memory, Friendship, FriendRequest, UserProfile,
-    GroupInvite, Reaction, Comment, Notification, ActivityLog,
+    GroupInvite, FriendInvite, Reaction, Comment, Notification, ActivityLog,
     FriendGroup, BoardJoinRequest,
     FONT_CHOICES, REACTION_CHOICES, COLOUR_CHOICES, THEME_CHOICES, PRIVACY_CHOICES,
     MEMORY_DELETE_PERMISSION_CHOICES, BOARD_DELETE_PERMISSION_CHOICES,
@@ -22,7 +22,7 @@ from .forms import (
     MemoryForm, EditMemoryForm, InviteMemberForm, FriendRequestForm,
     GroupSettingsForm, FriendGroupForm, ProfileForm,
 )
-from .email_utils import send_invite_email
+from .email_utils import send_invite_email, send_friend_invite_email
 from .on_this_day import get_on_this_day_memories
 
 
@@ -147,6 +147,15 @@ def register_view(request):
                 inv.group.members.add(user)
                 inv.accepted = True
                 inv.save()
+            for finv in FriendInvite.objects.filter(email__iexact=user.email, accepted=False):
+                Friendship.make_friends(finv.from_user, user)
+                finv.accepted = True
+                finv.save()
+                notify_boards_visible_after_friendship(finv.from_user, user)
+                create_notification(
+                    finv.from_user, user, 'friend_req',
+                    f'{get_display_name(user)} accepted your friend invite and joined Memboard!',
+                )
         login(request, user)
         messages.success(request, f"Welcome to Memboard, {user.first_name}!")
         return redirect('home')
@@ -256,6 +265,9 @@ def notifications_view(request):
         if n.actor:
             n.actor.initials     = get_initials(n.actor)
             n.actor.display_name = get_display_name(n.actor)
+        if n.notif_type == 'board_invite_pending' and n.group:
+            pending = GroupInvite.objects.filter(group=n.group, invited_user=user, accepted=False).first()
+            n.pending_invite_pk = pending.pk if pending else None
     return render(request, 'core/notifications.html', {
         'notifs':        notifs,
         'user_initials': get_initials(user),
@@ -475,15 +487,24 @@ def invite_by_email_view(request, pk):
         email = request.POST.get('email', '').strip().lower()
         if not email:
             return JsonResponse({'ok': False, 'error': 'No email provided.'}, status=400)
-        existing = User.objects.filter(email__iexact=email).first()
-        if existing:
-            return JsonResponse({
-                'ok': False,
-                'error': f'{get_display_name(existing)} already has an account — use "Add to board".',
-                'username': existing.username,
-            }, status=400)
+        if group.members.filter(email__iexact=email).exists():
+            return JsonResponse({'ok': False, 'error': 'That person is already a member of this board.'}, status=400)
         if GroupInvite.objects.filter(group=group, email__iexact=email, accepted=False).exists():
             return JsonResponse({'ok': False, 'error': 'An invite was already sent to that address.'}, status=400)
+
+        existing = User.objects.filter(email__iexact=email).first()
+        if existing:
+            # They already have an account — invite them in-app rather than
+            # adding them directly; they accept or decline from Notifications.
+            invite = GroupInvite.objects.create(
+                group=group, invited_by=request.user, email=email, invited_user=existing)
+            create_notification(
+                existing, request.user, 'board_invite_pending',
+                f'{get_display_name(request.user)} invited you to join "{group.name}"',
+                group=group,
+            )
+            return JsonResponse({'ok': True, 'message': f'Invite sent to {get_display_name(existing)} — they\'ll need to accept it.'})
+
         invite = GroupInvite.objects.create(group=group, invited_by=request.user, email=email)
         sent, err = send_invite_email(request.user, email, group, invite.token)
         if sent:
@@ -497,12 +518,41 @@ def invite_by_email_view(request, pk):
 @login_required
 @require_POST
 def resend_invite_view(request, pk, invite_pk):
-    group      = get_object_or_404(Group, pk=pk, owner=request.user)
-    invite     = get_object_or_404(GroupInvite, pk=invite_pk, group=group, accepted=False)
-    sent, err  = send_invite_email(request.user, invite.email, group, invite.token)
+    group  = get_object_or_404(Group, pk=pk, owner=request.user)
+    invite = get_object_or_404(GroupInvite, pk=invite_pk, group=group, accepted=False)
+    if invite.invited_user:
+        create_notification(
+            invite.invited_user, request.user, 'board_invite_pending',
+            f'{get_display_name(request.user)} invited you to join "{group.name}"',
+            group=group,
+        )
+        return JsonResponse({'ok': True, 'message': f'Invite re-sent to {get_display_name(invite.invited_user)}.'})
+    sent, err = send_invite_email(request.user, invite.email, group, invite.token)
     if sent:
         return JsonResponse({'ok': True, 'message': f'Invitation re-sent to {invite.email}!'})
     return JsonResponse({'ok': False, 'error': f'Failed to send email: {err}'}, status=500)
+
+
+@login_required
+@require_POST
+def accept_board_invite_view(request, invite_pk):
+    invite = get_object_or_404(GroupInvite, pk=invite_pk, invited_user=request.user, accepted=False)
+    invite.accepted = True
+    invite.save()
+    invite.group.members.add(request.user)
+    log_activity(invite.group, request.user, 'member_join',
+                 f'{get_display_name(request.user)} joined the board')
+    messages.success(request, f'You\'ve joined "{invite.group.name}"!')
+    return redirect('group_detail', pk=invite.group.pk)
+
+
+@login_required
+@require_POST
+def decline_board_invite_view(request, invite_pk):
+    invite = get_object_or_404(GroupInvite, pk=invite_pk, invited_user=request.user, accepted=False)
+    invite.delete()
+    messages.info(request, "Invite declined.")
+    return redirect('notifications')
 
 
 @login_required
@@ -1054,13 +1104,23 @@ def send_friend_request_view(request):
     if request.method == 'POST':
         form = FriendRequestForm(request.POST, from_user=request.user)
         if form.is_valid():
-            FriendRequest.objects.get_or_create(
-                from_user=request.user, to_user=form._resolved_user)
-            create_notification(
-                form._resolved_user, request.user, 'friend_req',
-                f'{get_display_name(request.user)} sent you a friend request',
-            )
-            messages.success(request, f"Friend request sent to {get_display_name(form._resolved_user)}!")
+            if form._resolved_user:
+                FriendRequest.objects.get_or_create(
+                    from_user=request.user, to_user=form._resolved_user)
+                create_notification(
+                    form._resolved_user, request.user, 'friend_req',
+                    f'{get_display_name(request.user)} sent you a friend request',
+                )
+                messages.success(request, f"Friend request sent to {get_display_name(form._resolved_user)}!")
+            else:
+                email  = form.cleaned_data['query'].strip().lower()
+                invite = FriendInvite.objects.create(from_user=request.user, email=email)
+                sent, err = send_friend_invite_email(request.user, email, invite.token)
+                if sent:
+                    messages.success(request, f"{email} isn't on Memboard yet — we've emailed them an invite. You'll be friends automatically once they sign up.")
+                else:
+                    invite.delete()
+                    messages.error(request, f"Failed to send email: {err}")
         else:
             for error in form.errors.values():
                 messages.error(request, error.as_text())

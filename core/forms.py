@@ -225,18 +225,24 @@ class FriendRequestForm(forms.Form):
         super().__init__(*args, **kwargs)
 
     def clean_query(self):
-        from .models import Friendship, FriendRequest as FR
+        from .models import Friendship, FriendRequest as FR, FriendInvite
         q = self.cleaned_data['query'].strip()
         user = User.objects.filter(email__iexact=q).first()
-        if not user:
-            raise forms.ValidationError("No Memboard account found with that email address.")
-        if user == self.from_user:
-            raise forms.ValidationError("That's you!")
-        if Friendship.are_friends(self.from_user, user):
-            raise forms.ValidationError(f"You're already friends with {user.get_full_name()}.")
-        if FR.objects.filter(from_user=self.from_user, to_user=user).exists():
-            raise forms.ValidationError(f"You already sent a request to {user.get_full_name()}.")
-        self._resolved_user = user
+        if user:
+            if user == self.from_user:
+                raise forms.ValidationError("That's you!")
+            if Friendship.are_friends(self.from_user, user):
+                raise forms.ValidationError(f"You're already friends with {user.get_full_name()}.")
+            if FR.objects.filter(from_user=self.from_user, to_user=user).exists():
+                raise forms.ValidationError(f"You already sent a request to {user.get_full_name()}.")
+            self._resolved_user = user
+        else:
+            # No account yet — we'll email them an invite instead (handled
+            # by the view). Just make sure we're not re-inviting the same
+            # address needlessly.
+            if FriendInvite.objects.filter(from_user=self.from_user, email__iexact=q, accepted=False).exists():
+                raise forms.ValidationError("You already invited that address — waiting for them to sign up.")
+            self._resolved_user = None
         return q
 
 

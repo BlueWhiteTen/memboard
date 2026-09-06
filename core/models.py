@@ -148,6 +148,7 @@ NOTIFICATION_TYPES = [
     ('tag',           'Tagged in memory'),
     ('friend_req',    'Friend request'),
     ('board_invite',  'Board invitation'),
+    ('board_invite_pending', 'Board invitation (needs a response)'),
     ('pin',           'Memory pinned'),
     ('board_visible', 'Board shared with you'),
     ('join_request',  'Board join request'),
@@ -208,18 +209,42 @@ def create_user_profile(sender, instance, created, **kwargs):
 # ── Group ─────────────────────────────────────────────────────────────────────
 
 class GroupInvite(models.Model):
-    group       = models.ForeignKey('Group', related_name='pending_invites', on_delete=models.CASCADE)
-    invited_by  = models.ForeignKey(User, related_name='sent_invites', on_delete=models.CASCADE)
-    email       = models.EmailField()
-    token       = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
-    created_at  = models.DateTimeField(auto_now_add=True)
-    accepted    = models.BooleanField(default=False)
+    group        = models.ForeignKey('Group', related_name='pending_invites', on_delete=models.CASCADE)
+    invited_by   = models.ForeignKey(User, related_name='sent_invites', on_delete=models.CASCADE)
+    email        = models.EmailField()
+    # Set only when the invited email already belonged to a Memboard account
+    # at invite time — lets that person accept/decline from their
+    # notifications instead of being added immediately. Left null for
+    # invites to people who don't have an account yet (they join
+    # automatically when they register via the emailed link).
+    invited_user = models.ForeignKey(User, related_name='received_board_invites',
+                                      on_delete=models.CASCADE, null=True, blank=True)
+    token        = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    created_at   = models.DateTimeField(auto_now_add=True)
+    accepted     = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('group', 'email')
 
     def __str__(self):
         return f"Invite to {self.group.name} → {self.email}"
+
+
+class FriendInvite(models.Model):
+    """An email-based friend invite sent to someone who doesn't have a
+    Memboard account yet. They become friends automatically once they
+    register with that email address."""
+    from_user  = models.ForeignKey(User, related_name='sent_friend_invites', on_delete=models.CASCADE)
+    email      = models.EmailField()
+    token      = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    accepted   = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('from_user', 'email')
+
+    def __str__(self):
+        return f"Friend invite from {self.from_user} → {self.email}"
 
 
 class Group(models.Model):

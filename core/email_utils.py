@@ -33,6 +33,33 @@ def send_invite_email(inviter, email, group, token):
         return False, str(e)
 
 
+def send_friend_invite_email(inviter, email, token):
+    """
+    Like send_invite_email, but for a friend invite rather than a board
+    invite — the recipient doesn't have a Memboard account yet, so we email
+    them a registration link. They become friends with `inviter`
+    automatically once they sign up with this email address.
+    Returns (ok, error_message).
+    """
+    invite_url = "{}/register/?invite={}".format(
+        getattr(settings, 'APP_URL', 'http://localhost:8000'), token)
+    subject = "{} wants to add you as a friend on Memboard".format(inviter.first_name)
+    body = (
+        "Hi!\n\n"
+        "{} {} uses Memboard to keep shared memories with friends, and wants "
+        "to add you as a friend there.\n\n"
+        "Click the link below to create your free account — you'll be "
+        "connected as friends automatically as soon as you sign up:\n{}\n\n"
+        "-- The Memboard team"
+    ).format(inviter.first_name, inviter.last_name, invite_url)
+    try:
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [email])
+        return True, None
+    except Exception as e:
+        logger.exception("Failed to send friend invite email to %s from user %s", email, inviter.pk)
+        return False, str(e)
+
+
 def send_notification_email(user, subject, body):
     try:
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email])
