@@ -400,11 +400,11 @@ def group_detail_view(request, pk):
             t.initials     = get_initials(t)
             t.display_name = get_display_name(t)
 
-        # Card content is clamped to a few lines (see .card-content-clamp) so
-        # every card is the same height — this rough character-count
+        # Card content is clamped to 2 lines (see .card-content-clamp) so
+        # every card is the same, shorter height — this rough character-count
         # heuristic decides whether to show a "See more" button under it,
         # without needing JS to measure actual rendered overflow.
-        memory.is_long_content = len(memory.content) > 220
+        memory.is_long_content = len(memory.content) > 90
 
         # The card thumbnail: the primary photo, falling back to the first
         # extra photo if there's no primary one (previously a memory added

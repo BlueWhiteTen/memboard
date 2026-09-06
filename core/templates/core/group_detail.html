@@ -43,7 +43,7 @@
 }
 .memory-wrapper { break-inside: avoid; margin-bottom: 0.75rem; }
 .memory-card {
-    position: relative; border-radius:0; height: 320px;
+    position: relative; border-radius:0; height: 224px;
     box-shadow: 2px 3px 10px rgba(23, 23, 26,0.13), 0 1px 3px rgba(23, 23, 26,0.08);
     /* overflow stays visible (not hidden) so the reaction picker popup and
        the comments popover — both absolutely-positioned children — aren't
@@ -56,7 +56,7 @@
 .memory-card .memory-inner { display: flex; flex-direction: column; height: 100%; }
 .card-content-clamp {
     flex: 1 1 auto; overflow: hidden;
-    display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
 }
 .see-more-btn {
     background: none; border: none; padding: 0; margin-top: 0.2rem; margin-bottom: 0.4rem;
@@ -128,15 +128,23 @@
     box-shadow:var(--shadow-ink-sm); padding:0.65rem 0.75rem;
     max-height:260px; overflow-y:auto; z-index:50;
 }
-.comment-item { margin-bottom:0.5rem; }
+.comment-item { display:flex; align-items:flex-start; justify-content:space-between; gap:0.5rem; margin-bottom:0.5rem; }
+.comment-main { flex:1; min-width:0; }
 .comment-author { font-size:0.72rem; font-weight:500; color:var(--ink-muted); }
-.comment-text { font-size:0.82rem; color:var(--ink); margin-top:0.1rem; }
+.comment-text { font-size:0.82rem; color:var(--ink); margin-top:0.1rem; overflow-wrap:break-word; }
 .comment-form { display:flex; gap:0.4rem; margin-top:0.6rem; }
 .comment-input { flex:1; border:1px solid var(--border); border-radius:0; padding:0.4rem 0.65rem; font-size:0.8rem; font-family:inherit; background:var(--cream); outline:none; }
 .comment-input:focus { border-color:var(--amber); }
 .comment-submit { padding:0.4rem 0.75rem; background:var(--ink); color:var(--warm-white); border:none; border-radius:0; font-size:0.78rem; cursor:pointer; }
-.comment-edit-btn { background:none; border:none; padding:0; margin-top:0.15rem; font-size:0.68rem; color:var(--ink-muted); cursor:pointer; text-decoration:underline; }
-.comment-edit-btn:hover { color:var(--ink); }
+.comment-actions { display:flex; align-items:center; gap:0.3rem; flex-shrink:0; }
+.comment-icon-btn {
+    display:flex; align-items:center; justify-content:center;
+    width:22px; height:22px; padding:0; margin-top:0.1rem;
+    background:var(--warm-white); border:1px solid var(--border); border-radius:0;
+    font-size:0.7rem; line-height:1; cursor:pointer; color:var(--ink-muted);
+}
+.comment-icon-btn:hover { border-color:var(--border-strong); color:var(--ink); }
+.comment-icon-danger:hover { color:#B83232; border-color:#B83232; }
 .comment-edit-input { width:100%; border:1px solid var(--border); border-radius:0; padding:0.3rem 0.5rem; font-size:0.8rem; font-family:inherit; background:var(--cream); outline:none; box-sizing:border-box; }
 .comment-edit-input:focus { border-color:var(--amber); }
 .comment-save-btn, .comment-cancel-btn { padding:0.2rem 0.55rem; font-size:0.7rem; border:1px solid var(--border-strong); border-radius:0; cursor:pointer; background:var(--warm-white); }
@@ -1072,20 +1080,29 @@ function closeComments(section) {
 // enlarged memory-view modal) — includes an Edit affordance when the
 // server says this viewer authored it (c.can_edit).
 function commentItemHtml(c) {
+    const actions = (c.can_edit || c.can_delete) ? `
+        <div class="comment-actions" id="comment-actions-${c.id}">
+            ${c.can_edit ? `<button type="button" class="comment-icon-btn" title="Edit comment" onclick="event.stopPropagation(); startEditComment(${c.id})">✏️</button>` : ''}
+            ${c.can_delete ? `<button type="button" class="comment-icon-btn comment-icon-danger" title="Delete comment" onclick="event.stopPropagation(); deleteComment(${c.id})">✕</button>` : ''}
+        </div>` : '';
     return `<div class="comment-item" id="comment-item-${c.id}" data-content="${encodeURIComponent(c.content)}">
-        <div class="comment-author">${c.author}</div>
-        <div class="comment-body" id="comment-body-${c.id}">
-            <div class="comment-text">${c.content}</div>
-            ${c.can_edit ? `<button type="button" class="comment-edit-btn" onclick="event.stopPropagation(); startEditComment(${c.id})">Edit</button>` : ''}
+        <div class="comment-main">
+            <div class="comment-author">${c.author}</div>
+            <div class="comment-body" id="comment-body-${c.id}">
+                <div class="comment-text">${c.content}</div>
+            </div>
         </div>
+        ${actions}
     </div>`;
 }
 
 function startEditComment(commentId) {
     const body = document.getElementById('comment-body-' + commentId);
     const wrap = document.getElementById('comment-item-' + commentId);
+    const actions = document.getElementById('comment-actions-' + commentId);
     if (!body || !wrap) return;
     const current = decodeURIComponent(wrap.dataset.content);
+    if (actions) actions.style.display = 'none';
     body.innerHTML = `
         <input type="text" class="comment-edit-input" id="comment-edit-input-${commentId}">
         <div style="display:flex;gap:0.4rem;margin-top:0.3rem;">
@@ -1095,15 +1112,18 @@ function startEditComment(commentId) {
     const input = document.getElementById('comment-edit-input-' + commentId);
     input.value = current;
     input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveEditComment(commentId); });
 }
 
 function cancelEditComment(commentId) {
     const body = document.getElementById('comment-body-' + commentId);
     const wrap = document.getElementById('comment-item-' + commentId);
+    const actions = document.getElementById('comment-actions-' + commentId);
     if (!body || !wrap) return;
     const current = decodeURIComponent(wrap.dataset.content);
-    body.innerHTML = `<div class="comment-text">${current}</div><button type="button" class="comment-edit-btn" onclick="event.stopPropagation(); startEditComment(${commentId})">Edit</button>`;
+    body.innerHTML = `<div class="comment-text">${current}</div>`;
+    if (actions) actions.style.display = '';
 }
 
 function saveEditComment(commentId) {
@@ -1119,6 +1139,29 @@ function saveEditComment(commentId) {
         const wrap = document.getElementById('comment-item-' + commentId);
         if (wrap) wrap.dataset.content = encodeURIComponent(data.comment.content);
         cancelEditComment(commentId);
+    });
+}
+
+function deleteComment(commentId) {
+    if (!confirm('Delete this comment?')) return;
+    fetch(`/comment/${commentId}/delete/`, {
+        method: 'POST', headers: {'X-CSRFToken': CSRF}
+    }).then(r => r.json()).then(data => {
+        if (!data.ok) { alert('Could not delete the comment.'); return; }
+        const wrap = document.getElementById('comment-item-' + commentId);
+        if (!wrap) return;
+        // Keep the card's comment-count badge in sync — the inline panel's
+        // wrapper id is "comments-<memPk>"; the modal doesn't carry that in
+        // the DOM, so it stashes the open memory's pk on itself when opened.
+        const inlineSection = wrap.closest('[id^="comments-"]');
+        const modal = document.getElementById('memory-view-modal');
+        const memPk = inlineSection ? inlineSection.id.replace('comments-', '') :
+                      (modal && modal.classList.contains('open') ? modal.dataset.memPk : null);
+        wrap.remove();
+        if (memPk) {
+            const countEl = document.querySelector(`#memory-${memPk} .comment-count`);
+            if (countEl) countEl.textContent = Math.max(0, (parseInt(countEl.textContent, 10) || 0) - 1);
+        }
     });
 }
 
@@ -1275,7 +1318,9 @@ function openMemoryView(memPk, evt) {
             <div class="memory-view-info-col">${infoHtml}</div>
         </div>`;
 
-    document.getElementById('memory-view-modal').classList.add('open');
+    const viewModal = document.getElementById('memory-view-modal');
+    viewModal.classList.add('open');
+    viewModal.dataset.memPk = memPk;
     loadModalComments(memPk);
 }
 

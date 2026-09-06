@@ -2,7 +2,16 @@
 {% block title %}Memboard – My Boards{% endblock %}
 
 {% block extra_styles %}
-.page-content { padding: 2.2rem 2.6rem 4rem; max-width: 1180px; }
+.page-content { padding: 2.2rem 2.6rem 4rem; max-width: 1600px; }
+
+/* Two-column layout: boards on the left, "On this day" as a right-hand
+   rail — keeps wide screens from leaving a big empty gap on the right. */
+.home-layout { display: grid; grid-template-columns: 1fr 320px; gap: 2rem; align-items: start; }
+.home-main { min-width: 0; }
+.home-side { min-width: 0; }
+@media (max-width: 920px) {
+    .home-layout { grid-template-columns: 1fr; }
+}
 
 .pending-banner { background: var(--yellow); border-bottom: 3px solid var(--border-strong); padding: 0.7rem 2.6rem; display: flex; align-items: center; gap: 0.75rem; font-size: 0.875rem; font-weight: 600; }
 .pending-banner a { color: var(--ink); text-decoration: underline; }
@@ -29,9 +38,9 @@
 }
 .section-title .see { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--amber); font-weight: 600; text-transform: none; text-decoration: none; }
 
-/* On this day strip */
-.otd-strip { display: flex; gap: 0.9rem; overflow-x: auto; padding-bottom: 0.4rem; margin-bottom: 2.4rem; }
-.otd-card { flex: 0 0 220px; border: 2.5px solid var(--border-strong); background: var(--warm-white); padding: 0.85rem 1rem; position: relative; box-shadow: var(--shadow-ink-sm); }
+/* On this day — vertical stack in the home-side rail */
+.otd-stack { display: flex; flex-direction: column; gap: 0.9rem; margin-bottom: 2.4rem; }
+.otd-card { border: 2.5px solid var(--border-strong); background: var(--warm-white); padding: 0.85rem 1rem; position: relative; box-shadow: var(--shadow-ink-sm); }
 .otd-card:nth-child(odd) { transform: rotate(-0.5deg); }
 .otd-card:nth-child(even) { transform: rotate(0.4deg); }
 .otd-year { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; color: var(--coral); text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 0.4rem; font-weight: 700; }
@@ -60,8 +69,6 @@
 .flyer .row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
 .flyer .m { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--ink-muted); }
 .badge { display: inline-flex; align-items: center; gap: 0.25rem; border: 2px solid var(--border-strong); background: var(--yellow); font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.6rem; text-transform: uppercase; padding: 0.1rem 0.5rem; box-shadow: var(--shadow-ink-sm); flex-shrink: 0; white-space: nowrap; }
-.flyer .bar { height: 6px; border: 1.5px solid var(--border-strong); margin-top: 0.6rem; background: var(--warm-white); overflow: hidden; }
-.flyer .bar i { display: block; height: 100%; background: var(--amber); }
 
 .empty-state { text-align: center; padding: 3.5rem 2rem; background: var(--warm-white); border: 2.5px dashed var(--border-strong); margin-bottom: 2.5rem; }
 .empty-state h3 { font-family: 'Big Shoulders Display', sans-serif; font-size: 1.3rem; text-transform: uppercase; color: var(--ink); margin-bottom: 0.4rem; }
@@ -111,22 +118,6 @@
         <a href="{% url 'notifications' %}" class="gauge"><b>{{ unread_notifs }}</b><span>Notifications</span></a>
     </div>
 
-    {% if on_this_day %}
-    <div class="section-title">
-        <span>On this day</span>
-        <a href="{% url 'on_this_day' %}" class="see">See more →</a>
-    </div>
-    <div class="otd-strip">
-        {% for m in on_this_day %}
-        <div class="otd-card">
-            <div class="otd-year">{{ m.on_this_day_year }}</div>
-            <div class="otd-text">{{ m.title|default:m.content }}</div>
-            <div class="otd-board">{{ m.group.name }}</div>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
     {% if shared_with_me %}
     <div class="section-title"><span>Shared with me</span></div>
     <div class="shared-list">
@@ -144,43 +135,64 @@
     </div>
     {% endif %}
 
-    <div class="section-title">
-        <span>Boards</span>
-        <a href="{% url 'annual_recap' %}" class="see">View {{ "now"|date:"Y" }} recap →</a>
-    </div>
-
-    {% if user_groups %}
-    <div class="boards">
-        {% for group in user_groups %}
-        <a href="{% url 'group_detail' group.pk %}" class="flyer">
-            <div class="tape"></div>
-            {% if group.cover_photo %}
-            <div class="flyer-photo" style="background-image:url('{{ group.cover_photo.url }}');"></div>
-            {% else %}
-            <div class="flyer-photo no-photo"></div>
-            {% endif %}
-            <div class="flyer-body">
-                <div class="flyer-top">
-                    <h3>{{ group.name }}</h3>
-                    <span class="badge">{{ group.get_privacy_display }}</span>
-                </div>
-                <div class="desc">{{ group.description|default:"No description yet." }}</div>
-                <div class="row">
-                    <span class="m">{{ group.members.count }} member{{ group.members.count|pluralize }}</span>
-                    <span class="m">{{ group.memory_count }} memor{{ group.memory_count|pluralize:"y,ies" }}</span>
-                </div>
-                <div class="bar"><i style="width:{% widthratio group.memory_count 50 100 %}%;"></i></div>
+    <div class="home-layout">
+        <div class="home-main">
+            <div class="section-title">
+                <span>Boards</span>
+                <a href="{% url 'annual_recap' %}" class="see">View {{ "now"|date:"Y" }} recap →</a>
             </div>
-        </a>
-        {% endfor %}
+
+            {% if user_groups %}
+            <div class="boards">
+                {% for group in user_groups %}
+                <a href="{% url 'group_detail' group.pk %}" class="flyer">
+                    <div class="tape"></div>
+                    {% if group.cover_photo %}
+                    <div class="flyer-photo" style="background-image:url('{{ group.cover_photo.url }}');"></div>
+                    {% else %}
+                    <div class="flyer-photo no-photo"></div>
+                    {% endif %}
+                    <div class="flyer-body">
+                        <div class="flyer-top">
+                            <h3>{{ group.name }}</h3>
+                            <span class="badge">{{ group.get_privacy_display }}</span>
+                        </div>
+                        <div class="desc">{{ group.description|default:"No description yet." }}</div>
+                        <div class="row">
+                            <span class="m">{{ group.members.count }} member{{ group.members.count|pluralize }}</span>
+                            <span class="m">{{ group.memory_count }} memor{{ group.memory_count|pluralize:"y,ies" }}</span>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <h3>No boards yet</h3>
+                <p>Create your first group board and start collecting memories together.</p>
+                <a href="{% url 'create_group' %}" class="btn btn-primary">Create first board</a>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if on_this_day %}
+        <div class="home-side">
+            <div class="section-title">
+                <span>On this day</span>
+                <a href="{% url 'on_this_day' %}" class="see">See more →</a>
+            </div>
+            <div class="otd-stack">
+                {% for m in on_this_day %}
+                <div class="otd-card">
+                    <div class="otd-year">{{ m.on_this_day_year }}</div>
+                    <div class="otd-text">{{ m.title|default:m.content }}</div>
+                    <div class="otd-board">{{ m.group.name }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     </div>
-    {% else %}
-    <div class="empty-state">
-        <h3>No boards yet</h3>
-        <p>Create your first group board and start collecting memories together.</p>
-        <a href="{% url 'create_group' %}" class="btn btn-primary">Create first board</a>
-    </div>
-    {% endif %}
 
     {% if not friends %}
     <div class="onboard-card">
