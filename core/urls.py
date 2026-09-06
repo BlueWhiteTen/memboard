@@ -30,6 +30,11 @@ urlpatterns = [
     path('groups/<int:pk>/request-join/', views.request_join_board_view, name='request_join_board'),
     path('groups/<int:pk>/join-requests/<int:req_id>/approve/', views.approve_join_request_view, name='approve_join_request'),
     path('groups/<int:pk>/join-requests/<int:req_id>/decline/', views.decline_join_request_view, name='decline_join_request'),
+    path('groups/<int:pk>/admins/<int:user_id>/add/',    views.make_admin_view,   name='make_admin'),
+    path('groups/<int:pk>/admins/<int:user_id>/remove/', views.remove_admin_view, name='remove_admin'),
+    path('groups/<int:pk>/surprise/', views.surprise_memory_view, name='surprise_memory'),
+    path('groups/<int:pk>/export/',   views.export_board_view,    name='export_board'),
+    path('groups/<int:pk>/memory/bulk-delete/', views.bulk_delete_memories_view, name='bulk_delete_memories'),
 
     # Friend Groups
     path('friend-groups/new/',        views.create_friend_group_view,  name='create_friend_group'),

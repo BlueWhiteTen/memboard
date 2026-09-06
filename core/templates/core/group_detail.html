@@ -59,6 +59,7 @@
 .memory-card.pinned:hover { box-shadow: 0 0 0 2px var(--amber), 6px 8px 24px rgba(23, 23, 26,0.28); }
 .memory-inner { padding: 0.75rem 0.65rem 0.55rem; }
 .pin-badge { position: absolute; top: 8px; right: 8px; font-size: 0.9rem; }
+.media-badge { position: absolute; top: 8px; left: 8px; font-size: 0.85rem; background:rgba(23,23,26,0.55); color:#fff; padding:1px 6px; border-radius:10px; letter-spacing:2px; }
 .memory-photo { width:100%; max-height:150px; object-fit:cover; display:block; }
 /* Note paper stays the same bright color in light or dark mode, so its text
    is pinned to a fixed dark ink (not the var(--ink) token, which flips light
@@ -152,6 +153,11 @@
 .add-memory-cta .plus-icon { font-size: 1.05rem; line-height: 1; }
 .sort-label { display:inline-flex; align-items:center; gap:0.4rem; font-size:0.8rem; color:var(--ink-muted); font-weight:500; margin-bottom:1.25rem; }
 .sort-select { padding:0.4rem 0.6rem; border:1px solid var(--border); border-radius:0; background:var(--warm-white); font-family:inherit; font-size:0.82rem; color:var(--ink); cursor:pointer; }
+.filter-field { display:flex; flex-direction:column; gap:0.2rem; }
+.filter-label { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-muted); }
+.select-checkbox { position:absolute; bottom:8px; left:8px; z-index:6; width:18px; height:18px; display:none; cursor:pointer; }
+.memories-grid.select-mode .select-checkbox { display:block; }
+.memories-grid.select-mode .memory-card { cursor:default; }
 
 /* Lightbox */
 .lightbox-overlay {
@@ -206,6 +212,9 @@
 .memory-view-info-col .memory-title { font-size: 1.35rem; margin-bottom: 0.6rem; }
 .memory-view-info-col .memory-content { font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem; white-space: pre-wrap; }
 .memory-view-created { font-size: 0.72rem; color: rgba(23,23,26,0.55); margin-bottom: 0.75rem; }
+.memory-view-media { margin-bottom: 0.85rem; display:flex; flex-direction:column; gap:0.5rem; }
+.memory-view-video { width:100%; max-height:320px; background:#000; }
+.memory-view-audio { width:100%; }
 .memory-view-comments { border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 0.5rem; }
 .memory-view-comments-list { max-height: 240px; overflow-y: auto; margin-bottom: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; }
 
@@ -268,12 +277,12 @@
 <div id="tab-memories" class="tab-panel active">
     <div class="board-content">
 
-        <!-- Big add-memory button + sort control -->
+        <!-- Big add-memory button + sort/select/export controls -->
         <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">
             <button class="add-memory-cta" onclick="document.getElementById('add-memory-modal').classList.add('open')">
                 <span class="plus-icon">+</span> Add a memory
             </button>
-            {% if memories %}
+            {% if memories or filters_active %}
             <label class="sort-label">
                 Sort:
                 <select class="sort-select" onchange="changeSort(this.value)">
@@ -283,7 +292,52 @@
                 </select>
             </label>
             {% endif %}
+            <button type="button" class="btn btn-ghost btn-sm" onclick="surpriseMe()">🎲 Surprise me</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="select-mode-btn" onclick="toggleSelectMode()">☑️ Select</button>
+            <a class="btn btn-ghost btn-sm" href="{% url 'export_board' group.pk %}">⬇️ Export board</a>
         </div>
+
+        <!-- Bulk actions bar (shown while in select mode) -->
+        <div id="bulk-actions-bar" style="display:none;align-items:center;gap:0.6rem;margin-bottom:1rem;padding:0.5rem 0.75rem;background:var(--amber-pale);border:1px solid var(--amber);">
+            <span id="bulk-selected-count" style="font-size:0.82rem;">0 selected</span>
+            <button type="button" class="btn btn-ghost btn-sm" style="color:#c0392b;border-color:rgba(192,57,43,0.3);" onclick="bulkDeleteSelected()">🗑 Delete selected</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="toggleSelectMode()">Cancel</button>
+        </div>
+
+        <!-- Filters -->
+        <form method="get" class="filters-bar" style="display:flex;align-items:end;gap:0.6rem;flex-wrap:wrap;margin-bottom:1.25rem;padding:0.65rem 0.75rem;background:var(--warm-white);border:1px solid var(--border);">
+            <input type="hidden" name="sort" value="{{ current_sort }}">
+            <label class="filter-field">
+                <span class="filter-label">Person</span>
+                <select name="person" class="form-input" style="padding:0.35rem 0.5rem;font-size:0.82rem;">
+                    <option value="">Anyone</option>
+                    {% for member in all_members %}
+                    <option value="{{ member.pk }}" {% if filter_person == member.pk|stringformat:"s" %}selected{% endif %}>{{ member.display_name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="filter-field">
+                <span class="filter-label">Colour</span>
+                <select name="colour" class="form-input" style="padding:0.35rem 0.5rem;font-size:0.82rem;">
+                    <option value="">Any colour</option>
+                    {% for value, label in colour_choices %}
+                    <option value="{{ value }}" {% if filter_colour == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="filter-field">
+                <span class="filter-label">From</span>
+                <input type="date" name="date_from" class="form-input" style="padding:0.35rem 0.5rem;font-size:0.82rem;" value="{{ filter_from }}">
+            </label>
+            <label class="filter-field">
+                <span class="filter-label">To</span>
+                <input type="date" name="date_to" class="form-input" style="padding:0.35rem 0.5rem;font-size:0.82rem;" value="{{ filter_to }}">
+            </label>
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            {% if filters_active %}
+            <a href="?sort={{ current_sort }}" class="btn btn-ghost btn-sm">Clear filters</a>
+            {% endif %}
+        </form>
 
         {% if memories %}
         <div class="memories-grid" id="memories-container" style="font-family:{{ note_font }};">
@@ -293,7 +347,15 @@
                  style="background: var(--note-{{ memory.colour }});"
                  id="memory-{{ memory.pk }}"
                  data-created-at="{{ memory.created_at|date:'M j, Y, g:i A' }}"
+                 data-video-url="{% if memory.video %}{{ memory.video.url }}{% endif %}"
+                 data-voice-url="{% if memory.voice_note %}{{ memory.voice_note.url }}{% endif %}"
                  onclick="openMemoryView({{ memory.pk }}, event)">
+                <input type="checkbox" class="select-checkbox" onclick="event.stopPropagation(); toggleMemorySelect({{ memory.pk }}, this)" title="Select this memory">
+                {% if memory.video or memory.voice_note %}
+                <span class="media-badge" title="{% if memory.video %}Has a video clip{% endif %}{% if memory.video and memory.voice_note %} & {% endif %}{% if memory.voice_note %}Has a voice note{% endif %}">
+                    {% if memory.video %}🎬{% endif %}{% if memory.voice_note %}🎙{% endif %}
+                </span>
+                {% endif %}
                 {% if memory.is_pinned %}<span class="pin-badge" title="Pinned">📌</span>{% endif %}
                 {% if memory.photo %}
                 <div class="memory-photo-wrap">
@@ -378,8 +440,13 @@
         {% else %}
         <div style="text-align:center;padding:4rem 2rem;color:var(--ink-muted);">
             <div style="font-size:3rem;margin-bottom:1rem;">📋</div>
+            {% if filters_active %}
+            <p style="font-size:1rem;font-weight:500;">No memories match those filters</p>
+            <p style="font-size:0.875rem;margin-top:0.35rem;">Try a different person, colour, or date range.</p>
+            {% else %}
             <p style="font-size:1rem;font-weight:500;">No memories yet</p>
             <p style="font-size:0.875rem;margin-top:0.35rem;">Click + to add the first one!</p>
+            {% endif %}
         </div>
         {% endif %}
     </div>
@@ -403,15 +470,24 @@
         <div class="members-grid">
             {% for member in all_members %}
             <div class="member-card">
-                <div class="member-av-lg">{{ member.initials }}</div>
-                <div>
-                    <div class="member-name">{{ member.display_name }}</div>
-                    <div class="member-role">{% if member == group.owner %}Owner{% else %}Member{% endif %}</div>
-                </div>
+                <a href="{% if member == request.user %}{% url 'my_profile' %}{% else %}{% url 'friend_profile' member.pk %}{% endif %}"
+                   style="display:flex;align-items:center;gap:0.6rem;text-decoration:none;color:inherit;flex:1;">
+                    <div class="member-av-lg">{{ member.initials }}</div>
+                    <div>
+                        <div class="member-name">{{ member.display_name }}</div>
+                        <div class="member-role">{% if member == group.owner %}Owner{% elif member.is_board_admin %}Admin{% else %}Member{% endif %}</div>
+                    </div>
+                </a>
+                {% if is_owner and member != group.owner %}
+                <button type="button" class="btn btn-ghost btn-sm" style="font-size:0.68rem;padding:0.2rem 0.5rem;"
+                        onclick="{% if member.is_board_admin %}removeAdmin({{ member.pk }}, this){% else %}makeAdmin({{ member.pk }}, this){% endif %}">
+                    {% if member.is_board_admin %}Remove admin{% else %}Make admin{% endif %}
+                </button>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
-        {% if group.owner == request.user %}
+        {% if can_manage %}
         {% if join_requests %}
         <div style="margin-top:1.5rem;margin-bottom:1rem;">
             <p class="section-label" style="font-size:0.72rem;font-weight:500;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.75rem;">Pending join requests</p>
@@ -436,7 +512,8 @@
         <div style="margin-top:1rem;">
             <button class="btn btn-ghost btn-sm" onclick="document.getElementById('invite-modal').classList.add('open')">+ Add member</button>
         </div>
-        {% else %}
+        {% endif %}
+        {% if group.owner != request.user %}
         <div style="margin-top:1.5rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
             <form method="post" action="{% url 'leave_board' group.pk %}" onsubmit="return confirm('Leave \'{{ group.name }}\'? You can be added back later by the board owner.');">
                 {% csrf_token %}
@@ -674,6 +751,100 @@ function changeSort(value) {
     window.location.href = url.toString();
 }
 
+// "Surprise me" — jump to a random memory, ignoring the current filters.
+function surpriseMe() {
+    fetch(`/groups/${GROUP_PK}/surprise/`)
+    .then(r => r.json()).then(data => {
+        if (!data.ok) { alert(data.error || "No memories on this board yet."); return; }
+        const card = document.getElementById('memory-' + data.pk);
+        if (card) {
+            card.scrollIntoView({behavior: 'smooth', block: 'center'});
+            setTimeout(() => openMemoryView(data.pk, null), 350);
+        } else {
+            // Not part of the current filtered/sorted list — reload without
+            // filters and highlight it once the page comes back.
+            window.location.href = `${window.location.pathname}?highlight=${data.pk}#memories`;
+        }
+    });
+}
+
+// If we just landed here via surpriseMe()'s cross-filter redirect, scroll to
+// and open the highlighted memory once the page has rendered.
+(function openHighlightedMemory() {
+    const params = new URLSearchParams(window.location.search);
+    const highlightPk = params.get('highlight');
+    if (!highlightPk) return;
+    const card = document.getElementById('memory-' + highlightPk);
+    if (card) {
+        setTimeout(() => {
+            card.scrollIntoView({behavior: 'smooth', block: 'center'});
+            openMemoryView(parseInt(highlightPk, 10), null);
+        }, 200);
+    }
+    params.delete('highlight');
+    const cleanUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '') + window.location.hash;
+    history.replaceState(null, '', cleanUrl);
+})();
+
+// Bulk select / delete (housekeeping)
+let selectMode = false;
+const selectedMemories = new Set();
+
+function toggleSelectMode() {
+    selectMode = !selectMode;
+    const grid = document.getElementById('memories-container');
+    if (grid) grid.classList.toggle('select-mode', selectMode);
+    document.getElementById('bulk-actions-bar').style.display = selectMode ? 'flex' : 'none';
+    document.getElementById('select-mode-btn').textContent = selectMode ? '✕ Cancel select' : '☑️ Select';
+    if (!selectMode) {
+        selectedMemories.clear();
+        document.querySelectorAll('.select-checkbox').forEach(cb => cb.checked = false);
+        updateBulkCount();
+    }
+}
+
+function toggleMemorySelect(memPk, checkbox) {
+    if (checkbox.checked) selectedMemories.add(memPk); else selectedMemories.delete(memPk);
+    updateBulkCount();
+}
+
+function updateBulkCount() {
+    const el = document.getElementById('bulk-selected-count');
+    if (el) el.textContent = selectedMemories.size + ' selected';
+}
+
+// Board admins (owner only)
+function makeAdmin(userId, btn) {
+    fetch(`/groups/${GROUP_PK}/admins/${userId}/add/`, {method: 'POST', headers: {'X-CSRFToken': CSRF}})
+    .then(r => r.json()).then(data => {
+        if (data.ok) { window.location.reload(); } else { alert(data.error || 'Could not make admin.'); }
+    });
+}
+
+function removeAdmin(userId, btn) {
+    fetch(`/groups/${GROUP_PK}/admins/${userId}/remove/`, {method: 'POST', headers: {'X-CSRFToken': CSRF}})
+    .then(r => r.json()).then(data => {
+        if (data.ok) { window.location.reload(); } else { alert(data.error || 'Could not remove admin.'); }
+    });
+}
+
+function bulkDeleteSelected() {
+    if (selectedMemories.size === 0) return;
+    if (!confirm(`Delete ${selectedMemories.size} selected memor${selectedMemories.size === 1 ? 'y' : 'ies'}? They'll go to the recycle bin.`)) return;
+    const fd = new FormData();
+    selectedMemories.forEach(id => fd.append('memory_ids', id));
+    fetch(`/groups/${GROUP_PK}/memory/bulk-delete/`, {
+        method: 'POST', headers: {'X-CSRFToken': CSRF}, body: fd
+    }).then(r => r.json()).then(data => {
+        if (data.ok) {
+            window.location.hash = 'memories';
+            window.location.reload();
+        } else {
+            alert(data.error || 'Something went wrong.');
+        }
+    });
+}
+
 // Tab switching — the active tab is kept in the URL hash so a refresh
 // (or a shared link) lands back on the same tab instead of resetting to
 // Memories.
@@ -870,6 +1041,11 @@ function openMemoryView(memPk, evt) {
     if (evt && evt.target.closest('button, a, input, .memory-photo, .comments-section, .reaction-picker')) return;
     const card = document.getElementById('memory-' + memPk);
     if (!card) return;
+    if (selectMode) {
+        const cb = card.querySelector('.select-checkbox');
+        if (cb) { cb.checked = !cb.checked; toggleMemorySelect(memPk, cb); }
+        return;
+    }
 
     const photoEl   = card.querySelector('.memory-photo');
     const titleEl   = card.querySelector('.memory-title');
@@ -898,10 +1074,16 @@ function openMemoryView(memPk, evt) {
     }
 
     const createdAt = card.dataset.createdAt;
+    const videoUrl  = card.dataset.videoUrl;
+    const voiceUrl  = card.dataset.voiceUrl;
+    const mediaHtml = `
+        ${videoUrl ? `<video class="memory-view-video" src="${videoUrl}" controls></video>` : ''}
+        ${voiceUrl ? `<audio class="memory-view-audio" src="${voiceUrl}" controls></audio>` : ''}`;
 
     const infoHtml = `
         ${titleEl ? `<div class="memory-title">${titleEl.innerHTML}</div>` : ''}
         ${contentEl ? `<div class="memory-content">${contentEl.innerHTML}</div>` : ''}
+        ${(videoUrl || voiceUrl) ? `<div class="memory-view-media">${mediaHtml}</div>` : ''}
         ${metaEl ? `<div class="memory-meta" style="margin-bottom:0.85rem;">${metaHtml}</div>` : ''}
         ${tagsEl ? `<div class="tagged-list" style="margin-bottom:0.85rem;">${tagsEl.innerHTML}</div>` : ''}
         ${createdAt ? `<div class="memory-view-created">Created on ${createdAt}</div>` : ''}

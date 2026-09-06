@@ -88,6 +88,22 @@ textarea.form-input { resize:vertical; min-height:80px; }
 </div>
 
 <div class="form-group">
+    <label class="form-label">🎬 Video clip <span style="font-weight:400;color:var(--ink-muted);">(optional, up to 50MB)</span></label>
+    {% if memory.video %}
+    <div style="margin-bottom:0.4rem;font-size:0.78rem;color:var(--ink-muted);">Current: <a href="{{ memory.video.url }}" target="_blank" rel="noopener">view clip</a> — choose a new file to replace it.</div>
+    {% endif %}
+    <input type="file" name="video" class="form-input" accept="video/*" style="padding:0.35rem;">
+</div>
+
+<div class="form-group">
+    <label class="form-label">🎙 Voice note <span style="font-weight:400;color:var(--ink-muted);">(optional, up to 15MB)</span></label>
+    {% if memory.voice_note %}
+    <div style="margin-bottom:0.4rem;font-size:0.78rem;color:var(--ink-muted);">Current: <a href="{{ memory.voice_note.url }}" target="_blank" rel="noopener">listen</a> — choose a new file to replace it.</div>
+    {% endif %}
+    <input type="file" name="voice_note" class="form-input" accept="audio/*" style="padding:0.35rem;">
+</div>
+
+<div class="form-group">
     <label class="form-label">🎨 Colour</label>
     <div class="colour-picker">
         <span class="colour-swatch c-yellow {% if memory.colour|default:'yellow' == 'yellow' %}selected{% endif %}" onclick="setMemoryColour('{{ prefix }}','yellow',this)" title="Yellow"></span>

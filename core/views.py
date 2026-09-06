@@ -4,12 +4,17 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db.models import Count, Q
-from django.http import JsonResponse, HttpResponseForbidden
+from django.http import JsonResponse, HttpResponseForbidden, Http404, HttpResponse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
 from django import forms as django_forms
+import io
 import json
+import os
+import random
+import zipfile
+from django.conf import settings
 
 from .models import (
     Group, Memory, MemoryPhoto, Friendship, FriendRequest, UserProfile,
@@ -73,6 +78,17 @@ def log_activity(group, actor, action_type, description, memory=None):
         group=group, actor=actor, action_type=action_type,
         description=description, memory=memory,
     )
+
+
+def get_board_for_manager(pk, user):
+    """Fetch a board the given user is allowed to manage (owner or
+    admin) — used by the invite/join-request endpoints so admins get the
+    same management powers as the owner, short of appointing other admins
+    or deleting the board itself."""
+    group = get_object_or_404(Group, pk=pk)
+    if not group.can_manage(user):
+        raise Http404("Not authorized to manage this board.")
+    return group
 
 
 def _visible_user_ids_for(group, privacy, visible_to_group_id):
@@ -328,10 +344,34 @@ def group_detail_view(request, pk):
     if sort not in ('newest', 'oldest', 'alphabetical'):
         sort = 'newest'
 
+    # Filters — person tagged/created, colour, and a memory-date range.
+    # Invalid/unparseable values are just dropped rather than erroring, so a
+    # stale or hand-edited query string never breaks the board.
+    filter_person = request.GET.get('person', '').strip()
+    filter_colour = request.GET.get('colour', '').strip()
+    filter_from   = request.GET.get('date_from', '').strip()
+    filter_to     = request.GET.get('date_to', '').strip()
+    valid_colours = {c[0] for c in COLOUR_CHOICES}
+    if filter_colour not in valid_colours:
+        filter_colour = ''
+
     memories = (group.memories
                 .filter(is_deleted=False)
                 .select_related('creator')
                 .prefetch_related('tagged', 'reactions', 'comments', 'extra_photos'))
+
+    if filter_person.isdigit():
+        pid = int(filter_person)
+        memories = memories.filter(Q(tagged__pk=pid) | Q(creator__pk=pid)).distinct()
+    else:
+        filter_person = ''
+    if filter_colour:
+        memories = memories.filter(colour=filter_colour)
+    if filter_from:
+        memories = memories.filter(memory_date__gte=filter_from)
+    if filter_to:
+        memories = memories.filter(memory_date__lte=filter_to)
+
     # Pinned memories always lead; the chosen sort applies within/after that.
     if sort == 'oldest':
         memories = memories.order_by('-is_pinned', 'created_at')
@@ -353,6 +393,9 @@ def group_detail_view(request, pk):
 
     other_members = annotate_users(list(group.members.exclude(pk=user.pk)))
     all_members   = annotate_users(list(group.members.all()))
+    admin_ids     = set(group.admins.values_list('pk', flat=True))
+    for m in all_members:
+        m.is_board_admin = m.pk in admin_ids
 
     # Map memories (those with lat/lng)
     map_memories = [
@@ -371,21 +414,23 @@ def group_detail_view(request, pk):
 
     profile, _ = UserProfile.objects.get_or_create(user=user)
 
-    is_owner = group.owner == user
+    is_owner   = group.owner == user
+    is_admin   = group.is_admin(user)
+    can_manage = is_owner or is_admin
     friend_groups = (FriendGroup.objects.filter(owner=user).annotate(member_count=Count('members'))
-                      if is_owner else FriendGroup.objects.none())
-    join_requests = (group.join_requests.select_related('requester') if is_owner
+                      if can_manage else FriendGroup.objects.none())
+    join_requests = (group.join_requests.select_related('requester') if can_manage
                       else BoardJoinRequest.objects.none())
-    pending_invites = (group.pending_invites.filter(accepted=False).order_by('-created_at') if is_owner
+    pending_invites = (group.pending_invites.filter(accepted=False).order_by('-created_at') if can_manage
                         else GroupInvite.objects.none())
     for jr in join_requests:
         jr.requester.initials     = get_initials(jr.requester)
         jr.requester.display_name = get_display_name(jr.requester)
 
     # For the "Add member" modal's quick-pick lists — friends not already
-    # on this board, so the owner can invite with one click.
+    # on this board, so a manager can invite with one click.
     owner_friends = []
-    if is_owner:
+    if can_manage:
         member_ids = set(group.members.values_list('pk', flat=True))
         owner_friends = annotate_users([
             f for f in Friendship.get_friends(user) if f.pk not in member_ids
@@ -405,6 +450,11 @@ def group_detail_view(request, pk):
         'group':            group,
         'memories':         memories,
         'current_sort':     sort,
+        'filter_person':    filter_person,
+        'filter_colour':    filter_colour,
+        'filter_from':      filter_from,
+        'filter_to':        filter_to,
+        'filters_active':   bool(filter_person or filter_colour or filter_from or filter_to),
         'trashed_memories': trashed_memories,
         'other_members':    other_members,
         'all_members':      all_members,
@@ -416,6 +466,8 @@ def group_detail_view(request, pk):
         'reaction_choices': REACTION_CHOICES,
         'colour_choices':   COLOUR_CHOICES,
         'is_owner':         is_owner,
+        'is_admin':         is_admin,
+        'can_manage':       can_manage,
         'can_delete_board': group.user_can_delete_board(user),
         'memory_delete_choices': MEMORY_DELETE_PERMISSION_CHOICES,
         'board_delete_choices':  BOARD_DELETE_PERMISSION_CHOICES,
@@ -498,7 +550,7 @@ def invite_by_email_view(request, pk):
     friends — narrowing username search to friends-only is a requested
     follow-up, not implemented yet.
     """
-    group = get_object_or_404(Group, pk=pk, owner=request.user)
+    group = get_board_for_manager(pk, request.user)
     query = request.POST.get('email', '').strip()
     if not query:
         return JsonResponse({'ok': False, 'error': 'Enter a username or email address.'}, status=400)
@@ -583,7 +635,7 @@ def invite_friend_group_view(request, pk, fg_pk):
     always existing accounts (they're drawn from the owner's friends), so
     this always goes through the pending-invite/accept flow, same as a
     single-person match in invite_by_email_view — never an instant add."""
-    group  = get_object_or_404(Group, pk=pk, owner=request.user)
+    group  = get_board_for_manager(pk, request.user)
     fgroup = get_object_or_404(FriendGroup, pk=fg_pk, owner=request.user)
 
     invited = []
@@ -615,7 +667,7 @@ def invite_friend_group_view(request, pk, fg_pk):
 @login_required
 @require_POST
 def resend_invite_view(request, pk, invite_pk):
-    group  = get_object_or_404(Group, pk=pk, owner=request.user)
+    group  = get_board_for_manager(pk, request.user)
     invite = get_object_or_404(GroupInvite, pk=invite_pk, group=group, accepted=False)
     if invite.invited_user:
         create_notification(
@@ -655,7 +707,7 @@ def decline_board_invite_view(request, invite_pk):
 @login_required
 @require_POST
 def cancel_invite_view(request, pk, invite_pk):
-    group  = get_object_or_404(Group, pk=pk, owner=request.user)
+    group  = get_board_for_manager(pk, request.user)
     invite = get_object_or_404(GroupInvite, pk=invite_pk, group=group, accepted=False)
     email  = invite.email
     invite.delete()
@@ -727,7 +779,7 @@ def request_join_board_view(request, pk):
 
 @login_required
 def approve_join_request_view(request, pk, req_id):
-    group    = get_object_or_404(Group, pk=pk, owner=request.user)
+    group    = get_board_for_manager(pk, request.user)
     join_req = get_object_or_404(BoardJoinRequest, pk=req_id, board=group)
     if request.method == 'POST':
         requester = join_req.requester
@@ -745,12 +797,41 @@ def approve_join_request_view(request, pk, req_id):
 
 @login_required
 def decline_join_request_view(request, pk, req_id):
-    group    = get_object_or_404(Group, pk=pk, owner=request.user)
+    group    = get_board_for_manager(pk, request.user)
     join_req = get_object_or_404(BoardJoinRequest, pk=req_id, board=group)
     if request.method == 'POST':
         join_req.delete()
         messages.info(request, "Join request declined.")
     return redirect('group_detail', pk=pk)
+
+
+@login_required
+@require_POST
+def make_admin_view(request, pk, user_id):
+    """Only the board owner can appoint admins — admins themselves can't
+    promote other members, to keep 'who granted this' unambiguous."""
+    group  = get_object_or_404(Group, pk=pk, owner=request.user)
+    target = get_object_or_404(User, pk=user_id)
+    if not group.members.filter(pk=target.pk).exists():
+        return JsonResponse({'ok': False, 'error': 'That person is not a member of this board.'}, status=400)
+    if target == group.owner:
+        return JsonResponse({'ok': False, 'error': "The owner doesn't need admin — they already manage everything."}, status=400)
+    group.admins.add(target)
+    create_notification(
+        target, request.user, 'board_invite',
+        f'{get_display_name(request.user)} made you an admin of "{group.name}"',
+        group=group,
+    )
+    return JsonResponse({'ok': True, 'message': f'{get_display_name(target)} is now an admin.'})
+
+
+@login_required
+@require_POST
+def remove_admin_view(request, pk, user_id):
+    group  = get_object_or_404(Group, pk=pk, owner=request.user)
+    target = get_object_or_404(User, pk=user_id)
+    group.admins.remove(target)
+    return JsonResponse({'ok': True, 'message': f'{get_display_name(target)} is no longer an admin.'})
 
 
 # ── Friend Groups ─────────────────────────────────────────────────────────────
@@ -955,6 +1036,100 @@ def restore_memory_view(request, pk):
                      f'{get_display_name(request.user)} restored a memory from the recycle bin')
         messages.success(request, "Memory restored!")
     return redirect('group_detail', pk=group_pk)
+
+
+@login_required
+@require_POST
+def bulk_delete_memories_view(request, pk):
+    """Housekeeping: soft-delete several memories at once from the
+    multi-select bar. Each one is still checked against can_delete()
+    individually — selecting a memory you're not allowed to delete just
+    skips it rather than failing the whole batch."""
+    group = get_object_or_404(Group, pk=pk)
+    if request.user not in group.members.all():
+        return JsonResponse({'ok': False, 'error': 'Not a member of this board.'}, status=403)
+    ids = request.POST.getlist('memory_ids')
+    memories = group.memories.filter(pk__in=ids, is_deleted=False)
+    deleted = 0
+    for memory in memories:
+        if memory.can_delete(request.user):
+            memory.is_deleted = True
+            memory.deleted_at = timezone.now()
+            memory.save(update_fields=['is_deleted', 'deleted_at'])
+            deleted += 1
+    if deleted:
+        log_activity(group, request.user, 'memory_delete',
+                     f'{get_display_name(request.user)} deleted {deleted} memor{"y" if deleted == 1 else "ies"} at once')
+    skipped = len(ids) - deleted
+    message = f'Moved {deleted} memor{"y" if deleted == 1 else "ies"} to the recycle bin.'
+    if skipped:
+        message += f' ({skipped} skipped — no permission.)'
+    return JsonResponse({'ok': True, 'deleted': deleted, 'message': message})
+
+
+@login_required
+def surprise_memory_view(request, pk):
+    """'Surprise me' — jump to a random past memory on this board,
+    ignoring whatever filters/sort are currently applied."""
+    group = get_object_or_404(Group, pk=pk)
+    if request.user not in group.members.all():
+        return JsonResponse({'ok': False, 'error': 'Not a member of this board.'}, status=403)
+    ids = list(group.memories.filter(is_deleted=False).values_list('pk', flat=True))
+    if not ids:
+        return JsonResponse({'ok': False, 'error': 'No memories on this board yet.'})
+    return JsonResponse({'ok': True, 'pk': random.choice(ids)})
+
+
+@login_required
+def export_board_view(request, pk):
+    """Housekeeping: download the whole board as a zip — a text summary of
+    every memory (title, date, location, creator, tags, content) plus all
+    of its photos, so people have an offline copy."""
+    group = get_object_or_404(Group, pk=pk)
+    if request.user not in group.members.all():
+        messages.error(request, "You're not a member of that board.")
+        return redirect('group_detail', pk=pk)
+
+    memories = (group.memories.filter(is_deleted=False)
+                .select_related('creator').prefetch_related('tagged', 'extra_photos')
+                .order_by('created_at'))
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zf:
+        lines = [f'{group.name}', f'{"=" * len(group.name)}', '']
+        for i, memory in enumerate(memories, start=1):
+            lines.append(f'--- Memory {i} ---')
+            if memory.title:
+                lines.append(f'Title: {memory.title}')
+            lines.append(f'By: {get_display_name(memory.creator)}')
+            if memory.memory_date:
+                lines.append(f'Date: {memory.memory_date}')
+            if memory.location_name:
+                lines.append(f'Location: {memory.location_name}')
+            tagged = ', '.join(get_display_name(t) for t in memory.tagged.all())
+            if tagged:
+                lines.append(f'Tagged: {tagged}')
+            lines.append('')
+            lines.append(memory.content)
+            lines.append('')
+            for j, url in enumerate(memory.all_photo_urls(), start=1):
+                path = url.split('?')[0]
+                fs_path = path.replace(settings.MEDIA_URL, '', 1) if path.startswith(settings.MEDIA_URL) else None
+                if fs_path:
+                    abs_path = os.path.join(settings.MEDIA_ROOT, fs_path)
+                    if os.path.exists(abs_path):
+                        ext = os.path.splitext(abs_path)[1] or '.jpg'
+                        arcname = f'memory-{i}-photo-{j}{ext}'
+                        zf.write(abs_path, arcname)
+                        lines.append(f'[photo: {arcname}]')
+            lines.append('')
+        zf.writestr('memories.txt', '\n'.join(lines))
+
+    buf.seek(0)
+    safe_name = ''.join(c for c in group.name if c.isalnum() or c in ' -_').strip() or 'board'
+    response = HttpResponse(buf.read(), content_type='application/zip')
+    response['Content-Disposition'] = f'attachment; filename="{safe_name}.zip"'
+    return response
 
 
 @login_required
@@ -1266,12 +1441,14 @@ def remove_friend_view(request, user_id):
 def friend_profile_view(request, user_id):
     friend = get_object_or_404(User, pk=user_id)
     user   = request.user
-    if not Friendship.are_friends(user, friend):
-        messages.error(request, "You're not friends with that person.")
-        return redirect('friends')
-
     shared_boards = (Group.objects.filter(members=user).filter(members=friend)
                       .annotate(memory_count=Count('memories', filter=Q(memories__is_deleted=False))))
+    # Reachable either as an actual friend, or as a fellow board member —
+    # this is also the view opened by clicking a name in a board's Members
+    # list, where the two people may not be friends yet.
+    if not Friendship.are_friends(user, friend) and not shared_boards.exists():
+        messages.error(request, "You don't share a board or friendship with that person.")
+        return redirect('friends')
     mutual_ids     = set(Friendship.get_friends(user).values_list('pk', flat=True)) & \
                      set(Friendship.get_friends(friend).values_list('pk', flat=True))
     mutual_friends = annotate_users(list(User.objects.filter(pk__in=mutual_ids)))

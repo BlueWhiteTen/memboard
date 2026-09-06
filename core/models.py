@@ -253,6 +253,8 @@ class Group(models.Model):
     privacy     = models.CharField(max_length=12, choices=PRIVACY_CHOICES, default='members')
     owner       = models.ForeignKey(User, related_name='owned_groups', on_delete=models.CASCADE)
     members     = models.ManyToManyField(User, related_name='member_groups', blank=True)
+    admins      = models.ManyToManyField(User, related_name='admin_boards', blank=True,
+                    help_text='Members promoted by the owner to help manage this board.')
     cover_photo = models.ImageField(upload_to='covers/', blank=True, null=True)
     created_at  = models.DateTimeField(auto_now_add=True)
 
@@ -283,6 +285,14 @@ class Group(models.Model):
 
     def is_member(self, user):
         return self.members.filter(pk=user.pk).exists()
+
+    def is_admin(self, user):
+        return self.admins.filter(pk=user.pk).exists()
+
+    def can_manage(self, user):
+        """Owner or admin — allowed to manage invites, join requests, and
+        (once the owner has appointed them) other members' admin status."""
+        return user == self.owner or self.is_admin(user)
 
     def is_visible_to(self, user):
         """Whether `user` can see this board at all — as a member, or as a
@@ -321,6 +331,8 @@ class Memory(models.Model):
     content         = models.TextField()
     colour          = models.CharField(max_length=10, choices=COLOUR_CHOICES, default='yellow')
     photo           = models.ImageField(upload_to='memories/', blank=True, null=True)
+    video           = models.FileField(upload_to='memory_videos/', blank=True, null=True)
+    voice_note      = models.FileField(upload_to='memory_voice/', blank=True, null=True)
     rotation        = models.FloatField(default=0)
     edit_permission = models.CharField(max_length=15, choices=EDIT_PERMISSION_CHOICES, default='only_me')
     memory_date     = models.DateField(blank=True, null=True, help_text='When did this happen?')

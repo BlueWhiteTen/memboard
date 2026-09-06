@@ -5,6 +5,21 @@ from django.contrib.auth import authenticate
 from .models import Group, Memory, FriendGroup, UserProfile, EDIT_PERMISSION_CHOICES
 from .image_utils import compress_image
 
+# Generous but bounded — this is a personal memory board, not a media host.
+VIDEO_MAX_BYTES = 50 * 1024 * 1024   # 50MB
+VOICE_MAX_BYTES = 15 * 1024 * 1024   # 15MB
+
+
+def validate_media_upload(f, max_bytes, label):
+    """Shared size check for the video/voice-note fields on a memory. Type
+    is left to the browser's accept= filter — trusting it is fine here since
+    a mis-typed file just fails to play back, nothing security-sensitive."""
+    if f and not isinstance(f, str) and f.size > max_bytes:
+        raise forms.ValidationError(
+            f"That {label} is too large ({f.size // (1024*1024)}MB) — "
+            f"the limit is {max_bytes // (1024*1024)}MB.")
+    return f
+
 
 class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
@@ -164,8 +179,8 @@ class MemoryForm(forms.ModelForm):
 
     class Meta:
         model  = Memory
-        fields = ('title', 'content', 'colour', 'photo', 'tagged', 'edit_permission',
-                  'memory_date', 'location_name', 'location_lat', 'location_lng')
+        fields = ('title', 'content', 'colour', 'photo', 'video', 'voice_note', 'tagged',
+                  'edit_permission', 'memory_date', 'location_name', 'location_lat', 'location_lng')
         widgets = {
             'title':           forms.TextInput(attrs={'placeholder': 'Give this memory a name… (optional)'}),
             'content':         forms.Textarea(attrs={'placeholder': 'Write your memory here…', 'rows': 5}),
@@ -187,6 +202,12 @@ class MemoryForm(forms.ModelForm):
     def clean_extra_photos(self):
         photos = self.cleaned_data.get('extra_photos') or []
         return [compress_image(p) for p in photos]
+
+    def clean_video(self):
+        return validate_media_upload(self.cleaned_data.get('video'), VIDEO_MAX_BYTES, 'video')
+
+    def clean_voice_note(self):
+        return validate_media_upload(self.cleaned_data.get('voice_note'), VOICE_MAX_BYTES, 'voice note')
 
 
 class EditMemoryForm(forms.ModelForm):
@@ -202,8 +223,8 @@ class EditMemoryForm(forms.ModelForm):
 
     class Meta:
         model  = Memory
-        fields = ('title', 'content', 'colour', 'photo', 'tagged', 'edit_permission',
-                  'memory_date', 'location_name', 'location_lat', 'location_lng')
+        fields = ('title', 'content', 'colour', 'photo', 'video', 'voice_note', 'tagged',
+                  'edit_permission', 'memory_date', 'location_name', 'location_lat', 'location_lng')
         widgets = {
             'title':           forms.TextInput(attrs={'placeholder': 'Give this memory a name… (optional)'}),
             'content':         forms.Textarea(attrs={'placeholder': 'Write your memory here…', 'rows': 5}),
@@ -225,6 +246,12 @@ class EditMemoryForm(forms.ModelForm):
     def clean_extra_photos(self):
         photos = self.cleaned_data.get('extra_photos') or []
         return [compress_image(p) for p in photos]
+
+    def clean_video(self):
+        return validate_media_upload(self.cleaned_data.get('video'), VIDEO_MAX_BYTES, 'video')
+
+    def clean_voice_note(self):
+        return validate_media_upload(self.cleaned_data.get('voice_note'), VOICE_MAX_BYTES, 'voice note')
 
 
 class FriendRequestForm(forms.Form):
