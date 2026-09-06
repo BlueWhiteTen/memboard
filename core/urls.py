@@ -35,6 +35,8 @@ urlpatterns = [
     path('groups/<int:pk>/surprise/', views.surprise_memory_view, name='surprise_memory'),
     path('groups/<int:pk>/export/',   views.export_board_view,    name='export_board'),
     path('groups/<int:pk>/memory/bulk-delete/', views.bulk_delete_memories_view, name='bulk_delete_memories'),
+    path('groups/<int:pk>/share/', views.toggle_board_share_view, name='toggle_board_share'),
+    path('shared/board/<uuid:token>/', views.public_board_view, name='public_board'),
 
     # Friend Groups
     path('friend-groups/new/',        views.create_friend_group_view,  name='create_friend_group'),
@@ -47,11 +49,14 @@ urlpatterns = [
     path('memory/<int:pk>/delete/',     views.delete_memory_view, name='delete_memory'),
     path('memory/<int:pk>/restore/',    views.restore_memory_view, name='restore_memory'),
     path('memory/<int:pk>/pin/',        views.pin_memory_view,    name='pin_memory'),
+    path('memory/<int:pk>/share/',      views.toggle_memory_share_view, name='toggle_memory_share'),
+    path('shared/memory/<uuid:token>/', views.public_memory_view, name='public_memory'),
 
     # Reactions & Comments
     path('memory/<int:pk>/react/',          views.react_memory_view,  name='react_memory'),
     path('memory/<int:pk>/comments/',       views.comments_view,      name='memory_comments'),
     path('comment/<int:pk>/delete/',        views.delete_comment_view, name='delete_comment'),
+    path('comment/<int:pk>/edit/',          views.edit_comment_view,   name='edit_comment'),
 
     # Annual Recap
     path('recap/',             views.annual_recap_view, name='annual_recap'),

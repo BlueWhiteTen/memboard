@@ -43,11 +43,25 @@
 }
 .memory-wrapper { break-inside: avoid; margin-bottom: 0.75rem; }
 .memory-card {
-    position: relative; border-radius:0;
+    position: relative; border-radius:0; height: 320px;
     box-shadow: 2px 3px 10px rgba(23, 23, 26,0.13), 0 1px 3px rgba(23, 23, 26,0.08);
-    /* overflow stays visible (not hidden) so the reaction picker popup —
-       an absolutely-positioned child — isn't clipped by the card's edge. */
+    /* overflow stays visible (not hidden) so the reaction picker popup and
+       the comments popover — both absolutely-positioned children — aren't
+       clipped by the card's edge. This means a card with an unusual amount
+       of tags/reactions can still spill slightly past the fixed height
+       below rather than being clipped; the common case (long memory text)
+       is handled by clamping .card-content-clamp instead. */
     overflow: visible; transition: transform 0.15s, box-shadow 0.15s;
+}
+.memory-card .memory-inner { display: flex; flex-direction: column; height: 100%; }
+.card-content-clamp {
+    flex: 1 1 auto; overflow: hidden;
+    display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical;
+}
+.see-more-btn {
+    background: none; border: none; padding: 0; margin-top: 0.2rem; margin-bottom: 0.4rem;
+    color: var(--amber); font-family: inherit; font-size: 0.78rem; font-weight: 700;
+    cursor: pointer; text-align: left; text-decoration: underline;
 }
 .memory-photo { border-radius:0; }
 .memory-card:hover {
@@ -121,6 +135,12 @@
 .comment-input { flex:1; border:1px solid var(--border); border-radius:0; padding:0.4rem 0.65rem; font-size:0.8rem; font-family:inherit; background:var(--cream); outline:none; }
 .comment-input:focus { border-color:var(--amber); }
 .comment-submit { padding:0.4rem 0.75rem; background:var(--ink); color:var(--warm-white); border:none; border-radius:0; font-size:0.78rem; cursor:pointer; }
+.comment-edit-btn { background:none; border:none; padding:0; margin-top:0.15rem; font-size:0.68rem; color:var(--ink-muted); cursor:pointer; text-decoration:underline; }
+.comment-edit-btn:hover { color:var(--ink); }
+.comment-edit-input { width:100%; border:1px solid var(--border); border-radius:0; padding:0.3rem 0.5rem; font-size:0.8rem; font-family:inherit; background:var(--cream); outline:none; box-sizing:border-box; }
+.comment-edit-input:focus { border-color:var(--amber); }
+.comment-save-btn, .comment-cancel-btn { padding:0.2rem 0.55rem; font-size:0.7rem; border:1px solid var(--border-strong); border-radius:0; cursor:pointer; background:var(--warm-white); }
+.comment-save-btn { background:var(--ink); color:var(--warm-white); border-color:var(--ink); }
 
 /* Memory actions */
 .memory-actions { display:flex; gap:0.4rem; margin-top:0.5rem; flex-wrap:wrap; align-items:center; }
@@ -149,11 +169,12 @@
 /* Add memory — big CTA below the header */
 .add-memory-cta {
     display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
-    padding: 0.55rem 1.1rem; margin-bottom: 1.25rem;
+    padding: 0.55rem 1.1rem;
     background: var(--ink); color: var(--warm-white); border: 2px solid var(--border-strong); border-radius:0;
     font-family: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer;
     box-shadow: var(--shadow-ink-sm);
     transition: background 0.12s, transform 0.12s;
+    box-sizing: border-box;
 }
 .add-memory-cta:hover { background: var(--ink-light); transform: translateY(-1px); }
 .add-memory-cta .plus-icon { font-size: 1.05rem; line-height: 1; }
@@ -161,6 +182,8 @@
 .sort-select { padding:0.4rem 0.6rem; border:1px solid var(--border); border-radius:0; background:var(--warm-white); font-family:inherit; font-size:0.82rem; color:var(--ink); cursor:pointer; }
 .board-toolbar { display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem; }
 .toolbar-right { display:flex; align-items:center; gap:0.5rem; margin-left:auto; }
+.board-search-input { padding:0.4rem 0.6rem; font-size:0.82rem; width:180px; border-radius:0; }
+.memory-share-row { margin-bottom:0.85rem; padding:0.6rem 0.7rem; border:1px solid var(--border); background:var(--warm-white); }
 .toolbar-btn {
     display:inline-flex; align-items:center; gap:0.35rem;
     padding:0.35rem 0.6rem; font-size:0.78rem; font-weight:700; font-family:inherit;
@@ -316,6 +339,14 @@
             <a class="toolbar-btn" href="{% url 'export_board' group.pk %}" style="display:none;">⬇️ Export board</a>
 
             <div class="toolbar-right">
+                <form method="get" class="board-search-form" style="display:flex;align-items:center;">
+                    <input type="hidden" name="sort" value="{{ current_sort }}">
+                    {% if filter_person %}<input type="hidden" name="person" value="{{ filter_person }}">{% endif %}
+                    {% if filter_colour %}<input type="hidden" name="colour" value="{{ filter_colour }}">{% endif %}
+                    {% if filter_from %}<input type="hidden" name="date_from" value="{{ filter_from }}">{% endif %}
+                    {% if filter_to %}<input type="hidden" name="date_to" value="{{ filter_to }}">{% endif %}
+                    <input type="search" name="q" value="{{ search_query }}" placeholder="🔎 Search this board…" class="form-input board-search-input">
+                </form>
                 <button type="button" class="toolbar-btn {% if filters_active %}toolbar-btn-active{% endif %}" onclick="toggleFilterPanel()">🔍 Filters{% if filters_active %} •{% endif %}</button>
                 <button type="button" class="toolbar-btn" id="select-mode-btn" onclick="toggleSelectMode()">☑️ Select</button>
             </div>
@@ -331,6 +362,7 @@
         <!-- Filters (toggled via the 🔍 Filters button above) -->
         <form method="get" class="filters-bar" id="filters-panel" style="display:{% if filters_active %}flex{% else %}none{% endif %};">
             <input type="hidden" name="sort" value="{{ current_sort }}">
+            {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
             <label class="filter-field">
                 <span class="filter-label">Person</span>
                 <select name="person" class="form-input" style="padding:0.35rem 0.5rem;font-size:0.82rem;">
@@ -374,6 +406,8 @@
                  data-video-url="{% if memory.video %}{{ memory.video.url }}{% endif %}"
                  data-voice-url="{% if memory.voice_note %}{{ memory.voice_note.url }}{% endif %}"
                  data-photo-urls='{{ memory.photo_urls_json }}'
+                 data-can-share="{% if memory.user_can_share %}1{% else %}0{% endif %}"
+                 data-share-url="{{ memory.share_url }}"
                  onclick="openMemoryView({{ memory.pk }}, event)">
                 <input type="checkbox" class="select-checkbox" onclick="event.stopPropagation(); toggleMemorySelect({{ memory.pk }}, this)" title="Select this memory">
                 {% if memory.video or memory.voice_note %}
@@ -390,7 +424,10 @@
                 {% endif %}
                 <div class="memory-inner">
                     {% if memory.title %}<div class="memory-title">{{ memory.title }}</div>{% endif %}
-                    <div class="memory-content">{{ memory.content }}</div>
+                    <div class="memory-content card-content-clamp">{{ memory.content }}</div>
+                    {% if memory.is_long_content %}
+                    <button type="button" class="see-more-btn" onclick="event.stopPropagation(); openMemoryView({{ memory.pk }}, null)">See more</button>
+                    {% endif %}
 
                     <div class="memory-meta">
                         <span class="creator-av" title="{{ memory.creator_display }}">{{ memory.creator_initials }}</span>
@@ -463,8 +500,8 @@
         <div style="text-align:center;padding:4rem 2rem;color:var(--ink-muted);">
             <div style="font-size:3rem;margin-bottom:1rem;">📋</div>
             {% if filters_active %}
-            <p style="font-size:1rem;font-weight:500;">No memories match those filters</p>
-            <p style="font-size:0.875rem;margin-top:0.35rem;">Try a different person, colour, or date range.</p>
+            <p style="font-size:1rem;font-weight:500;">No memories match{% if search_query %} "{{ search_query }}"{% else %} those filters{% endif %}</p>
+            <p style="font-size:0.875rem;margin-top:0.35rem;">Try a different search term, person, colour, or date range.</p>
             {% else %}
             <p style="font-size:1rem;font-weight:500;">No memories yet</p>
             <p style="font-size:0.875rem;margin-top:0.35rem;">Click + to add the first one!</p>
@@ -510,6 +547,20 @@
             {% endfor %}
         </div>
         {% if can_manage %}
+        <div style="margin-top:1.5rem;margin-bottom:1rem;padding:0.75rem 0.9rem;border:1px solid var(--border);background:var(--warm-white);">
+            <p class="section-label" style="font-size:0.72rem;font-weight:500;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem;">🔗 Public share link</p>
+            <p style="font-size:0.8rem;color:var(--ink-muted);margin-bottom:0.6rem;">Anyone with this link can view (but not edit) this board's memories — no account needed.</p>
+            <div id="board-share-off" style="display:{% if group.share_token %}none{% else %}block{% endif %};">
+                <button type="button" class="btn btn-ghost btn-sm" onclick="toggleBoardShare(true)">Turn on share link</button>
+            </div>
+            <div id="board-share-on" style="display:{% if group.share_token %}flex{% else %}none{% endif %};align-items:center;gap:0.5rem;flex-wrap:wrap;">
+                <input type="text" id="board-share-url" class="form-input" readonly
+                       style="flex:1;min-width:220px;font-size:0.78rem;padding:0.35rem 0.5rem;"
+                       value="{% if group.share_token %}{{ request.scheme }}://{{ request.get_host }}{% url 'public_board' group.share_token %}{% endif %}">
+                <button type="button" class="btn btn-ghost btn-sm" onclick="copyBoardShareUrl()">Copy</button>
+                <button type="button" class="btn btn-ghost btn-sm" style="color:#c0392b;border-color:rgba(192,57,43,0.3);" onclick="toggleBoardShare(false)">Turn off</button>
+            </div>
+        </div>
         {% if join_requests %}
         <div style="margin-top:1.5rem;margin-bottom:1rem;">
             <p class="section-label" style="font-size:0.72rem;font-weight:500;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.75rem;">Pending join requests</p>
@@ -858,6 +909,25 @@ function removeAdmin(userId, btn) {
     });
 }
 
+function toggleBoardShare(enable) {
+    const fd = new URLSearchParams({enable: enable ? '1' : '0'});
+    fetch(`/groups/${GROUP_PK}/share/`, {
+        method: 'POST', headers: {'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded'}, body: fd
+    })
+    .then(r => r.json()).then(data => {
+        if (!data.ok) { alert(data.error || 'Could not update the share link.'); return; }
+        document.getElementById('board-share-off').style.display = data.enabled ? 'none' : 'block';
+        document.getElementById('board-share-on').style.display  = data.enabled ? 'flex' : 'none';
+        if (data.enabled) document.getElementById('board-share-url').value = data.share_url;
+    });
+}
+
+function copyBoardShareUrl() {
+    const input = document.getElementById('board-share-url');
+    input.select();
+    navigator.clipboard ? navigator.clipboard.writeText(input.value) : document.execCommand('copy');
+}
+
 function bulkDeleteSelected() {
     if (selectedMemories.size === 0) return;
     if (!confirm(`Delete ${selectedMemories.size} selected memor${selectedMemories.size === 1 ? 'y' : 'ies'}? They'll go to the recycle bin.`)) return;
@@ -998,17 +1068,67 @@ function closeComments(section) {
     }
 }
 
+// Shared comment-item markup (used by the card's inline panel and the
+// enlarged memory-view modal) — includes an Edit affordance when the
+// server says this viewer authored it (c.can_edit).
+function commentItemHtml(c) {
+    return `<div class="comment-item" id="comment-item-${c.id}" data-content="${encodeURIComponent(c.content)}">
+        <div class="comment-author">${c.author}</div>
+        <div class="comment-body" id="comment-body-${c.id}">
+            <div class="comment-text">${c.content}</div>
+            ${c.can_edit ? `<button type="button" class="comment-edit-btn" onclick="event.stopPropagation(); startEditComment(${c.id})">Edit</button>` : ''}
+        </div>
+    </div>`;
+}
+
+function startEditComment(commentId) {
+    const body = document.getElementById('comment-body-' + commentId);
+    const wrap = document.getElementById('comment-item-' + commentId);
+    if (!body || !wrap) return;
+    const current = decodeURIComponent(wrap.dataset.content);
+    body.innerHTML = `
+        <input type="text" class="comment-edit-input" id="comment-edit-input-${commentId}">
+        <div style="display:flex;gap:0.4rem;margin-top:0.3rem;">
+            <button type="button" class="comment-save-btn" onclick="event.stopPropagation(); saveEditComment(${commentId})">Save</button>
+            <button type="button" class="comment-cancel-btn" onclick="event.stopPropagation(); cancelEditComment(${commentId})">Cancel</button>
+        </div>`;
+    const input = document.getElementById('comment-edit-input-' + commentId);
+    input.value = current;
+    input.focus();
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveEditComment(commentId); });
+}
+
+function cancelEditComment(commentId) {
+    const body = document.getElementById('comment-body-' + commentId);
+    const wrap = document.getElementById('comment-item-' + commentId);
+    if (!body || !wrap) return;
+    const current = decodeURIComponent(wrap.dataset.content);
+    body.innerHTML = `<div class="comment-text">${current}</div><button type="button" class="comment-edit-btn" onclick="event.stopPropagation(); startEditComment(${commentId})">Edit</button>`;
+}
+
+function saveEditComment(commentId) {
+    const input = document.getElementById('comment-edit-input-' + commentId);
+    if (!input) return;
+    const content = input.value.trim();
+    if (!content) return;
+    fetch(`/comment/${commentId}/edit/`, {
+        method: 'POST', headers: {'X-CSRFToken': CSRF, 'Content-Type': 'application/json'},
+        body: JSON.stringify({content})
+    }).then(r => r.json()).then(data => {
+        if (!data.ok) { alert(data.error || 'Could not save the comment.'); return; }
+        const wrap = document.getElementById('comment-item-' + commentId);
+        if (wrap) wrap.dataset.content = encodeURIComponent(data.comment.content);
+        cancelEditComment(commentId);
+    });
+}
+
 function loadComments(memPk) {
     fetch(`/memory/${memPk}/comments/`)
     .then(r => r.json()).then(data => {
         if (!data.ok) return;
         const list = document.getElementById('comments-list-' + memPk);
-        list.innerHTML = data.comments.map(c => `
-            <div class="comment-item">
-                <div class="comment-author">${c.author}</div>
-                <div class="comment-text">${c.content}</div>
-            </div>
-        `).join('') || '<p style="font-size:0.78rem;color:var(--ink-muted);">No comments yet.</p>';
+        list.innerHTML = data.comments.map(commentItemHtml).join('') ||
+            '<p style="font-size:0.78rem;color:var(--ink-muted);">No comments yet.</p>';
     });
 }
 
@@ -1025,9 +1145,10 @@ function submitComment(memPk) {
             input.value = '';
             const c = data.comment;
             const list = document.getElementById('comments-list-' + memPk);
-            const item = document.createElement('div'); item.className = 'comment-item';
-            item.innerHTML = `<div class="comment-author">${c.author}</div><div class="comment-text">${c.content}</div>`;
-            list.appendChild(item);
+            if (list.querySelector('p')) list.innerHTML = '';
+            const item = document.createElement('div');
+            item.innerHTML = commentItemHtml(c);
+            list.appendChild(item.firstElementChild);
             // Update count
             const memCard = document.getElementById('memory-' + memPk);
             const countEl = memCard.querySelector('.comment-count');
@@ -1110,6 +1231,20 @@ function openMemoryView(memPk, evt) {
     const createdAt = card.dataset.createdAt;
     const videoUrl  = card.dataset.videoUrl;
     const voiceUrl  = card.dataset.voiceUrl;
+    const canShare  = card.dataset.canShare === '1';
+    const shareUrl  = card.dataset.shareUrl || '';
+    const shareHtml = canShare ? `
+        <div class="memory-share-row" id="memory-share-row-${memPk}">
+            <div id="memory-share-off-${memPk}" style="display:${shareUrl ? 'none' : 'block'};">
+                <button type="button" class="btn btn-ghost btn-sm" onclick="toggleMemoryShare(${memPk}, true)">🔗 Share this memory</button>
+            </div>
+            <div id="memory-share-on-${memPk}" style="display:${shareUrl ? 'flex' : 'none'};align-items:center;gap:0.5rem;flex-wrap:wrap;">
+                <input type="text" id="memory-share-url-${memPk}" class="form-input" readonly
+                       style="flex:1;min-width:200px;font-size:0.76rem;padding:0.3rem 0.5rem;" value="${shareUrl}">
+                <button type="button" class="btn btn-ghost btn-sm" onclick="copyMemoryShareUrl(${memPk})">Copy</button>
+                <button type="button" class="btn btn-ghost btn-sm" style="color:#c0392b;border-color:rgba(192,57,43,0.3);" onclick="toggleMemoryShare(${memPk}, false)">Turn off</button>
+            </div>
+        </div>` : '';
     const mediaHtml = `
         ${videoUrl ? `<video class="memory-view-video" src="${videoUrl}" controls></video>` : ''}
         ${voiceUrl ? `<audio class="memory-view-audio" src="${voiceUrl}" controls></audio>` : ''}`;
@@ -1121,6 +1256,7 @@ function openMemoryView(memPk, evt) {
         ${metaEl ? `<div class="memory-meta" style="margin-bottom:0.85rem;">${metaHtml}</div>` : ''}
         ${tagsEl ? `<div class="tagged-list" style="margin-bottom:0.85rem;">${tagsEl.innerHTML}</div>` : ''}
         ${createdAt ? `<div class="memory-view-created">Created on ${createdAt}</div>` : ''}
+        ${shareHtml}
         <div class="memory-view-comments">
             <div class="memory-view-comments-list" id="modal-comments-list"></div>
             <div class="comment-form">
@@ -1143,6 +1279,29 @@ function openMemoryView(memPk, evt) {
     loadModalComments(memPk);
 }
 
+function toggleMemoryShare(memPk, enable) {
+    const fd = new URLSearchParams({enable: enable ? '1' : '0'});
+    fetch(`/memory/${memPk}/share/`, {
+        method: 'POST', headers: {'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded'}, body: fd
+    })
+    .then(r => r.json()).then(data => {
+        if (!data.ok) { alert(data.error || 'Could not update the share link.'); return; }
+        document.getElementById(`memory-share-off-${memPk}`).style.display = data.enabled ? 'none' : 'block';
+        document.getElementById(`memory-share-on-${memPk}`).style.display  = data.enabled ? 'flex' : 'none';
+        if (data.enabled) document.getElementById(`memory-share-url-${memPk}`).value = data.share_url;
+        // Keep the card's data attribute in sync so reopening the modal
+        // shows the right state without a full page reload.
+        const card = document.getElementById('memory-' + memPk);
+        if (card) card.dataset.shareUrl = data.enabled ? data.share_url : '';
+    });
+}
+
+function copyMemoryShareUrl(memPk) {
+    const input = document.getElementById(`memory-share-url-${memPk}`);
+    input.select();
+    navigator.clipboard ? navigator.clipboard.writeText(input.value) : document.execCommand('copy');
+}
+
 function closeMemoryView() {
     document.getElementById('memory-view-modal').classList.remove('open');
 }
@@ -1153,12 +1312,8 @@ function loadModalComments(memPk) {
         if (!data.ok) return;
         const list = document.getElementById('modal-comments-list');
         if (!list) return;
-        list.innerHTML = data.comments.map(c => `
-            <div class="comment-item">
-                <div class="comment-author">${c.author}</div>
-                <div class="comment-text">${c.content}</div>
-            </div>
-        `).join('') || '<p style="font-size:0.78rem;color:var(--ink-muted);">No comments yet.</p>';
+        list.innerHTML = data.comments.map(commentItemHtml).join('') ||
+            '<p style="font-size:0.78rem;color:var(--ink-muted);">No comments yet.</p>';
     });
 }
 
@@ -1177,9 +1332,9 @@ function submitModalComment(memPk) {
         const list = document.getElementById('modal-comments-list');
         if (list) {
             if (list.querySelector('p')) list.innerHTML = '';
-            const item = document.createElement('div'); item.className = 'comment-item';
-            item.innerHTML = `<div class="comment-author">${c.author}</div><div class="comment-text">${c.content}</div>`;
-            list.appendChild(item);
+            const item = document.createElement('div');
+            item.innerHTML = commentItemHtml(c);
+            list.appendChild(item.firstElementChild);
         }
         // Keep the card's own comment count — and its inline comments panel,
         // if it happens to be open — in sync with what was just posted here.
@@ -1189,9 +1344,9 @@ function submitModalComment(memPk) {
             if (countEl) countEl.textContent = parseInt(countEl.textContent) + 1;
             const cardList = document.getElementById('comments-list-' + memPk);
             if (cardList && !cardList.querySelector('p')) {
-                const item2 = document.createElement('div'); item2.className = 'comment-item';
-                item2.innerHTML = `<div class="comment-author">${c.author}</div><div class="comment-text">${c.content}</div>`;
-                cardList.appendChild(item2);
+                const item2 = document.createElement('div');
+                item2.innerHTML = commentItemHtml(c);
+                cardList.appendChild(item2.firstElementChild);
             }
         }
     });

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>{{ group.name }} — Memboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+    --cream: #EDEAE1;
+    --warm-white: #FFFFFF;
+    --ink: #17171A;
+    --ink-light: #3A3A3D;
+    --ink-muted: #75746C;
+    --amber: #2A4B9B;
+    --amber-pale: #DCEBFF;
+    --border: rgba(23, 23, 26, 0.16);
+    --border-strong: #17171A;
+    --note-yellow: #FFC93C;
+    --note-green: #5FB85B;
+    --note-blue: #3FA7D6;
+    --note-pink: #F0553F;
+    --note-lavender: #8C7BC4;
+    --note-peach: #E8A33D;
+    --shadow-ink-sm: 2px 2px 0 var(--ink);
+}
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --cream: #201F1B; --warm-white: #292823; --ink: #EDEAE1; --ink-light: #C6C2B6;
+        --ink-muted: #8C897E; --amber: #7C97E8; --amber-pale: rgba(124,151,232,0.16);
+        --border: rgba(237, 234, 225, 0.16); --border-strong: #EDEAE1;
+    }
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0; background: var(--cream); color: var(--ink);
+    font-family: 'Karla', sans-serif; padding: 1.5rem 1rem 4rem;
+}
+.wrap { max-width: 900px; margin: 0 auto; }
+.banner {
+    background: var(--amber-pale); border: 1px solid var(--amber); padding: 0.6rem 0.9rem;
+    font-size: 0.8rem; color: var(--ink); margin-bottom: 1.5rem;
+}
+.board-title {
+    font-family: 'Big Shoulders Display', sans-serif; font-weight: 800; text-transform: uppercase;
+    font-size: 2rem; letter-spacing: 0.01em; margin: 0 0 0.3rem;
+}
+.board-sub { color: var(--ink-muted); font-size: 0.85rem; margin-bottom: 2rem; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+.card {
+    background: var(--warm-white); border: 2px solid var(--border-strong); box-shadow: var(--shadow-ink-sm);
+    padding: 0.9rem; display: flex; flex-direction: column; gap: 0.5rem;
+}
+.card img { width: 100%; max-height: 220px; object-fit: cover; display: block; border: 1px solid var(--border); }
+.card-title { font-weight: 700; font-size: 0.95rem; }
+.card-content { font-size: 0.85rem; line-height: 1.45; white-space: pre-wrap; }
+.card-meta { font-size: 0.72rem; color: var(--ink-muted); display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.empty { text-align: center; color: var(--ink-muted); padding: 4rem 1rem; }
+.footer-note { text-align: center; margin-top: 3rem; font-size: 0.75rem; color: var(--ink-muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <div class="banner">👀 You're viewing a public, read-only share link — no account needed. Editing, comments and reactions aren't available here.</div>
+    <h1 class="board-title">{{ group.name }}</h1>
+    {% if group.description %}<p class="board-sub">{{ group.description }}</p>{% endif %}
+
+    {% if memories %}
+    <div class="grid">
+        {% for memory in memories %}
+        <div class="card" style="background: var(--note-{{ memory.colour }});">
+            {% if memory.gallery_urls %}<img src="{{ memory.gallery_urls.0 }}" alt="">{% endif %}
+            {% if memory.title %}<div class="card-title">{{ memory.title }}</div>{% endif %}
+            <div class="card-content">{{ memory.content }}</div>
+            <div class="card-meta">
+                <span>{{ memory.creator_display }}</span>
+                {% if memory.memory_date %}<span>📅 {{ memory.memory_date|date:"M j, Y" }}</span>{% endif %}
+                {% if memory.location_name %}<span>📍 {{ memory.location_name }}</span>{% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">No memories to show yet.</div>
+    {% endif %}
+
+    <div class="footer-note">Shared from Memboard</div>
+</div>
+</body>
+</html>

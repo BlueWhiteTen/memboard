@@ -360,6 +360,9 @@
         {% empty %}
         <p style="font-size:0.78rem;color:var(--ink-muted);padding:0.25rem 0.5rem;">No boards yet</p>
         {% endfor %}
+        {% if sidebar_groups_count > 10 %}
+        <a href="{% url 'home' %}" class="nav-link" style="color:var(--ink-muted);font-size:0.78rem;">See all boards ({{ sidebar_groups_count }})</a>
+        {% endif %}
 
         <a href="{% url 'create_group' %}" class="nav-link" style="margin-top:0.5rem;color:var(--amber);">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>

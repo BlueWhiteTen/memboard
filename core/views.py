@@ -13,6 +13,7 @@ import io
 import json
 import os
 import random
+import uuid
 import zipfile
 from django.conf import settings
 
@@ -351,6 +352,7 @@ def group_detail_view(request, pk):
     filter_colour = request.GET.get('colour', '').strip()
     filter_from   = request.GET.get('date_from', '').strip()
     filter_to     = request.GET.get('date_to', '').strip()
+    search_query  = request.GET.get('q', '').strip()
     valid_colours = {c[0] for c in COLOUR_CHOICES}
     if filter_colour not in valid_colours:
         filter_colour = ''
@@ -371,6 +373,10 @@ def group_detail_view(request, pk):
         memories = memories.filter(memory_date__gte=filter_from)
     if filter_to:
         memories = memories.filter(memory_date__lte=filter_to)
+    if search_query:
+        memories = memories.filter(Q(title__icontains=search_query) |
+                                    Q(content__icontains=search_query) |
+                                    Q(location_name__icontains=search_query))
 
     # Pinned memories always lead; the chosen sort applies within/after that.
     if sort == 'oldest':
@@ -382,6 +388,9 @@ def group_detail_view(request, pk):
     for memory in memories:
         memory.user_can_edit    = memory.can_edit(user)
         memory.user_can_delete  = memory.can_delete(user)
+        memory.user_can_share   = memory.can_share(user)
+        memory.share_url = (request.build_absolute_uri(f'/shared/memory/{memory.share_token}/')
+                             if memory.share_token else '')
         memory.creator_initials = get_initials(memory.creator)
         memory.creator_display  = get_display_name(memory.creator)
         memory.reaction_counts  = memory.reaction_summary()
@@ -390,6 +399,12 @@ def group_detail_view(request, pk):
         for t in memory.tagged.all():
             t.initials     = get_initials(t)
             t.display_name = get_display_name(t)
+
+        # Card content is clamped to a few lines (see .card-content-clamp) so
+        # every card is the same height — this rough character-count
+        # heuristic decides whether to show a "See more" button under it,
+        # without needing JS to measure actual rendered overflow.
+        memory.is_long_content = len(memory.content) > 220
 
         # The card thumbnail: the primary photo, falling back to the first
         # extra photo if there's no primary one (previously a memory added
@@ -473,7 +488,8 @@ def group_detail_view(request, pk):
         'filter_colour':    filter_colour,
         'filter_from':      filter_from,
         'filter_to':        filter_to,
-        'filters_active':   bool(filter_person or filter_colour or filter_from or filter_to),
+        'search_query':     search_query,
+        'filters_active':   bool(filter_person or filter_colour or filter_from or filter_to or search_query),
         'trashed_memories': trashed_memories,
         'other_members':    other_members,
         'all_members':      all_members,
@@ -552,6 +568,40 @@ def update_board_settings_view(request, pk):
             for error in form.errors.values():
                 messages.error(request, error.as_text())
     return redirect('group_detail', pk=pk)
+
+
+@login_required
+@require_POST
+def toggle_board_share_view(request, pk):
+    """Turn the board's public, no-login read-only share link on or off.
+    Toggling on when already on is a no-op (keeps the same link rather
+    than rotating it, so a link someone already has doesn't silently
+    break)."""
+    group = get_board_for_manager(pk, request.user)
+    enable = request.POST.get('enable', '1') == '1'
+    if enable:
+        if not group.share_token:
+            group.share_token = uuid.uuid4()
+            group.save(update_fields=['share_token'])
+    else:
+        group.share_token = None
+        group.save(update_fields=['share_token'])
+    share_url = request.build_absolute_uri(f'/shared/board/{group.share_token}/') if group.share_token else None
+    return JsonResponse({'ok': True, 'enabled': bool(group.share_token), 'share_url': share_url})
+
+
+def public_board_view(request, token):
+    """Public, no-login read-only view of a board — reachable only with the
+    share link (a valid share_token). No editing, commenting or reacting;
+    just the memories, laid out simply."""
+    group = get_object_or_404(Group, share_token=token)
+    memories = (group.memories.filter(is_deleted=False)
+                .select_related('creator').prefetch_related('tagged', 'extra_photos')
+                .order_by('-is_pinned', '-created_at'))
+    for m in memories:
+        m.creator_display = get_display_name(m.creator)
+        m.gallery_urls = m.all_photo_urls()
+    return render(request, 'core/public_board.html', {'group': group, 'memories': memories})
 
 
 @login_required
@@ -1186,6 +1236,40 @@ def pin_memory_view(request, pk):
     return JsonResponse({'ok': True, 'pinned': memory.is_pinned})
 
 
+@login_required
+@require_POST
+def toggle_memory_share_view(request, pk):
+    memory = get_object_or_404(Memory, pk=pk, is_deleted=False)
+    if not memory.can_share(request.user):
+        return JsonResponse({'ok': False, 'error': "You don't have permission to share this memory."}, status=403)
+    enable = request.POST.get('enable', '1') == '1'
+    if enable:
+        if not memory.share_token:
+            memory.share_token = uuid.uuid4()
+            memory.save(update_fields=['share_token'])
+    else:
+        memory.share_token = None
+        memory.save(update_fields=['share_token'])
+    share_url = request.build_absolute_uri(f'/shared/memory/{memory.share_token}/') if memory.share_token else None
+    return JsonResponse({'ok': True, 'enabled': bool(memory.share_token), 'share_url': share_url})
+
+
+def public_memory_view(request, token):
+    """Public, no-login read-only view of a single memory."""
+    memory = get_object_or_404(Memory, share_token=token, is_deleted=False)
+    gallery_urls = memory.all_photo_urls()
+    tagged = list(memory.tagged.all())
+    for t in tagged:
+        t.display_name = get_display_name(t)
+    return render(request, 'core/public_memory.html', {
+        'memory': memory,
+        'group': memory.group,
+        'creator_display': get_display_name(memory.creator),
+        'gallery_urls': gallery_urls,
+        'tagged': tagged,
+    })
+
+
 # ── Reactions ─────────────────────────────────────────────────────────────────
 
 @login_required
@@ -1250,6 +1334,7 @@ def comments_view(request, pk):
                 'initials':     get_initials(request.user),
                 'created_at':   comment.created_at.strftime('%b %d, %Y'),
                 'can_delete':   True,
+                'can_edit':     True,
             }
         })
 
@@ -1263,6 +1348,7 @@ def comments_view(request, pk):
             'initials':   get_initials(c.author),
             'created_at': c.created_at.strftime('%b %d, %Y'),
             'can_delete': c.author == request.user,
+            'can_edit':   c.author == request.user,
         }
         for c in comments
     ]
@@ -1275,6 +1361,19 @@ def delete_comment_view(request, pk):
     comment = get_object_or_404(Comment, pk=pk, author=request.user)
     comment.delete()
     return JsonResponse({'ok': True})
+
+
+@login_required
+@require_POST
+def edit_comment_view(request, pk):
+    comment = get_object_or_404(Comment, pk=pk, author=request.user)
+    data    = json.loads(request.body)
+    content = data.get('content', '').strip()
+    if not content:
+        return JsonResponse({'ok': False, 'error': 'Comment cannot be empty.'}, status=400)
+    comment.content = content
+    comment.save(update_fields=['content', 'updated_at'])
+    return JsonResponse({'ok': True, 'comment': {'id': comment.pk, 'content': comment.content}})
 
 
 # ── Annual Recap ──────────────────────────────────────────────────────────────

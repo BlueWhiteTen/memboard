@@ -269,6 +269,10 @@ class Group(models.Model):
     board_delete_permission = models.CharField(
         max_length=15, choices=BOARD_DELETE_PERMISSION_CHOICES, default='owner_only')
 
+    # Set when a manager turns on the public, no-login read-only share link
+    # for this board; cleared to turn sharing back off.
+    share_token = models.UUIDField(null=True, blank=True, unique=True)
+
     def __str__(self):
         return self.name
 
@@ -334,6 +338,9 @@ class Memory(models.Model):
     video           = models.FileField(upload_to='memory_videos/', blank=True, null=True)
     voice_note      = models.FileField(upload_to='memory_voice/', blank=True, null=True)
     rotation        = models.FloatField(default=0)
+    # Set when the creator (or board owner) turns on a public, no-login
+    # read-only share link for this single memory.
+    share_token     = models.UUIDField(null=True, blank=True, unique=True)
     edit_permission = models.CharField(max_length=15, choices=EDIT_PERMISSION_CHOICES, default='only_me')
     memory_date     = models.DateField(blank=True, null=True, help_text='When did this happen?')
     location_name   = models.CharField(max_length=255, blank=True, help_text='Place name')
@@ -382,6 +389,10 @@ class Memory(models.Model):
         if self.group.memory_delete_permission == 'all_members':
             return self.group.members.filter(pk=user.pk).exists()
         return False
+
+    def can_share(self, user):
+        """Who may turn this memory's public read-only link on/off."""
+        return user == self.creator or self.group.can_manage(user)
 
     def reaction_summary(self):
         """Returns dict of emoji → count."""
