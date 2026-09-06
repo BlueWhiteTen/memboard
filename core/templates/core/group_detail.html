@@ -66,6 +66,7 @@
 .memory-title { font-weight:700; font-size:1.08rem; margin-bottom:0.35rem; color:#17171A; text-shadow:0 1px 0 rgba(255,255,255,0.4); }
 .memory-content { font-size:1rem; line-height:1.45; color:#17171A; white-space:pre-wrap; text-shadow:0 1px 0 rgba(255,255,255,0.35); }
 .memory-meta { font-size:0.72rem; color:rgba(23,23,26,0.72); margin-top:0.65rem; display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; }
+.creator-av { width:22px; height:22px; border-radius:50%; background:rgba(255,255,255,0.55); color:var(--ink); border:1.5px solid rgba(23,23,26,0.35); display:inline-flex; align-items:center; justify-content:center; font-size:0.6rem; font-weight:700; flex-shrink:0; box-sizing:border-box; }
 .memory-date-badge { font-size:0.7rem; color:rgba(23,23,26,0.72); }
 .memory-loc { font-size:0.7rem; color:rgba(23,23,26,0.72); display:flex; align-items:center; gap:0.2rem; }
 .tagged-list { display:flex; gap:0.3rem; flex-wrap:wrap; margin-top:0.5rem; }
@@ -272,7 +273,7 @@
                     <div class="memory-content">{{ memory.content }}</div>
 
                     <div class="memory-meta">
-                        <span>{{ memory.creator_initials }} {{ memory.creator_display }}</span>
+                        <span class="creator-av" title="{{ memory.creator_display }}">{{ memory.creator_initials }}</span>
                         {% if memory.memory_date %}<span class="memory-date-badge">📅 {{ memory.memory_date|date:"M j, Y" }}</span>{% endif %}
                         {% if memory.location_name %}<span class="memory-loc">📍 {{ memory.location_name }}</span>{% endif %}
                     </div>
@@ -365,9 +366,12 @@
         <p class="section-label" style="font-size:0.72rem;font-weight:500;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:1rem;">Board members</p>
         <div class="members-grid">
             {% for member in all_members %}
-            <div class="member-card" title="{{ member.display_name }}">
+            <div class="member-card">
                 <div class="member-av-lg">{{ member.initials }}</div>
-                {% if member == group.owner %}<div class="member-role">Owner</div>{% endif %}
+                <div>
+                    <div class="member-name">{{ member.display_name }}</div>
+                    <div class="member-role">{% if member == group.owner %}Owner{% else %}Member{% endif %}</div>
+                </div>
             </div>
             {% endfor %}
         </div>
