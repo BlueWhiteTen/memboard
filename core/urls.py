@@ -19,6 +19,8 @@ urlpatterns = [
     path('groups/<int:pk>/',              views.group_detail_view,    name='group_detail'),
     path('groups/<int:pk>/invite/',       views.invite_member_view,   name='invite_member'),
     path('groups/<int:pk>/invite-email/', views.invite_by_email_view, name='invite_by_email'),
+    path('groups/<int:pk>/invites/<int:invite_pk>/resend/', views.resend_invite_view, name='resend_invite'),
+    path('groups/<int:pk>/invites/<int:invite_pk>/cancel/', views.cancel_invite_view, name='cancel_invite'),
     path('groups/<int:pk>/delete/',       views.delete_group_view,    name='delete_group'),
     path('groups/<int:pk>/cover/',        views.update_cover_view,    name='update_cover'),
     path('groups/<int:pk>/leave/',        views.leave_board_view,     name='leave_board'),
@@ -28,7 +30,6 @@ urlpatterns = [
     path('groups/<int:pk>/join-requests/<int:req_id>/decline/', views.decline_join_request_view, name='decline_join_request'),
 
     # Friend Groups
-    path('friend-groups/',            views.friend_groups_view,        name='friend_groups'),
     path('friend-groups/new/',        views.create_friend_group_view,  name='create_friend_group'),
     path('friend-groups/<int:pk>/',   views.friend_group_detail_view,  name='friend_group_detail'),
     path('friend-groups/<int:pk>/delete/', views.delete_friend_group_view, name='delete_friend_group'),
