@@ -1,8 +1,18 @@
+import logging
+
 from django.core.mail import send_mail
 from django.conf import settings
 
+logger = logging.getLogger(__name__)
+
 
 def send_invite_email(inviter, email, group, token):
+    """
+    Returns (ok, error_message). error_message is the real reason the send
+    failed (e.g. an SMTP auth error), so callers can show something more
+    useful than a generic "failed to send" — it's also logged server-side
+    either way.
+    """
     invite_url = "{}/register/?invite={}".format(
         getattr(settings, 'APP_URL', 'http://localhost:8000'), token)
     subject = "{} invited you to join \"{}\" on Memboard".format(
@@ -17,9 +27,10 @@ def send_invite_email(inviter, email, group, token):
     ).format(inviter.first_name, inviter.last_name, group.name, invite_url)
     try:
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [email])
-        return True
-    except Exception:
-        return False
+        return True, None
+    except Exception as e:
+        logger.exception("Failed to send invite email to %s for group %s", email, group.pk)
+        return False, str(e)
 
 
 def send_notification_email(user, subject, body):

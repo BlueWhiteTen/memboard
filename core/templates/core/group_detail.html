@@ -177,10 +177,6 @@
 .member-role { font-size:0.72rem; color:var(--ink-muted); }
 
 /* Fonts */
-.font-picker { display:flex; gap:0.4rem; flex-wrap:wrap; margin-bottom:1rem; }
-.font-btn { padding:0.3rem 0.75rem; border-radius:0; border:1px solid var(--border); background:none; cursor:pointer; font-size:0.8rem; color:var(--ink-light); font-family:inherit; }
-.font-btn.active { background:var(--amber); color:white; border-color:var(--amber); }
-.font-btn:hover:not(.active) { border-color:var(--amber); }
 
 @media (max-width: 768px) {
     .memories-grid { columns: 2; }
@@ -242,13 +238,6 @@
         <button class="add-memory-cta" onclick="document.getElementById('add-memory-modal').classList.add('open')">
             <span class="plus-icon">+</span> Add a memory
         </button>
-
-        <!-- Font picker -->
-        <div class="font-picker">
-            {% for key, label in font_choices %}
-            <button class="font-btn {% if current_font == key %}active{% endif %}" onclick="setFont('{{ key }}', this)" style="font-family:{% if key == 'dm_sans' %}'DM Sans',sans-serif{% elif key == 'lora' %}'Lora',serif{% elif key == 'caveat' %}'Caveat',cursive{% elif key == 'courier_prime' %}'Courier Prime',monospace{% elif key == 'patrick_hand' %}'Patrick Hand',cursive{% endif %}">{{ label }}</button>
-            {% endfor %}
-        </div>
 
         {% if memories %}
         <div class="memories-grid" id="memories-container" style="font-family:{{ note_font }};">
@@ -476,7 +465,7 @@
     </div>
     <form method="post" action="{% url 'add_memory' group.pk %}" enctype="multipart/form-data">
         {% csrf_token %}
-        {% include 'core/_memory_form.html' with group=group all_members=all_members %}
+        {% include 'core/_memory_form.html' with group=group all_members=all_members prefix='add' %}
         <div style="display:flex;gap:0.5rem;margin-top:1.25rem;">
             <button type="submit" class="btn btn-primary" style="flex:1;">Save memory</button>
             <button type="button" class="btn btn-ghost" onclick="document.getElementById('add-memory-modal').classList.remove('open')">Cancel</button>
@@ -520,6 +509,22 @@
         </div>
         <div id="invite-msg" style="font-size:0.78rem;margin-top:0.5rem;"></div>
     </div>
+    {% if pending_invites %}
+    <div style="border-top:1px solid var(--border);padding-top:1rem;margin-top:1rem;">
+        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);">Pending invites ({{ pending_invites|length }})</label>
+        <div id="pending-invites-list" style="margin-top:0.5rem;display:flex;flex-direction:column;gap:0.4rem;">
+            {% for inv in pending_invites %}
+            <div class="pending-invite-row" id="pending-invite-{{ inv.pk }}" style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;font-size:0.82rem;padding:0.4rem 0.6rem;background:var(--cream);border:1px solid var(--border);">
+                <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ inv.email }}</span>
+                <span style="display:flex;gap:0.4rem;flex-shrink:0;">
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="resendInvite({{ inv.pk }})">Resend</button>
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="cancelInvite({{ inv.pk }})" style="color:#B83232;">Cancel</button>
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 </div>
 </div>
 
@@ -588,18 +593,6 @@ function switchTab(name) {
     document.getElementById('tab-' + name).classList.add('active');
     event.target.classList.add('active');
     if (name === 'map') initMap();
-}
-
-// Font
-function setFont(font, btn) {
-    fetch("{% url 'set_font' %}", {
-        method: 'POST', headers: {'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'font=' + font
-    }).then(() => {
-        document.getElementById('memories-container').style.fontFamily = btn.style.fontFamily;
-        document.querySelectorAll('.font-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-    });
 }
 
 // React to memory
@@ -721,8 +714,28 @@ function submitComment(memPk) {
 
 // Edit modal
 function openEditModal(memPk) {
-    // For now, redirect to a simple inline form – or we can load via fetch
-    window.location.href = `/memory/${memPk}/edit/`;
+    const container = document.getElementById('edit-memory-content');
+    container.innerHTML = '<p style="padding:1rem 0;color:var(--ink-muted);">Loading…</p>';
+    document.getElementById('edit-memory-modal').classList.add('open');
+    fetch(`/memory/${memPk}/edit/`)
+        .then(r => { if (!r.ok) throw new Error('forbidden'); return r.text(); })
+        .then(html => {
+            container.innerHTML = html;
+            // <script> tags injected via innerHTML don't execute — recreate
+            // them so the colour/permission/location setup actually runs.
+            container.querySelectorAll('script').forEach(oldScript => {
+                const newScript = document.createElement('script');
+                if (oldScript.src) {
+                    newScript.src = oldScript.src;
+                } else {
+                    newScript.textContent = oldScript.textContent;
+                }
+                oldScript.replaceWith(newScript);
+            });
+        })
+        .catch(() => {
+            container.innerHTML = '<p style="padding:1rem 0;color:#B83232;">You don\'t have permission to edit that memory.</p>';
+        });
 }
 
 // Email invite
@@ -737,6 +750,30 @@ function sendEmailInvite() {
         msg.textContent = d.message || d.error;
         msg.style.color = d.ok ? 'green' : '#c0392b';
         if (d.ok) document.getElementById('invite-email').value = '';
+    });
+}
+
+function resendInvite(invitePk) {
+    const msg = document.getElementById('invite-msg');
+    fetch(`/groups/${GROUP_PK}/invites/${invitePk}/resend/`, {
+        method: 'POST', headers: {'X-CSRFToken': CSRF}
+    }).then(r => r.json()).then(d => {
+        msg.textContent = d.message || d.error;
+        msg.style.color = d.ok ? 'green' : '#c0392b';
+    });
+}
+
+function cancelInvite(invitePk) {
+    const msg = document.getElementById('invite-msg');
+    fetch(`/groups/${GROUP_PK}/invites/${invitePk}/cancel/`, {
+        method: 'POST', headers: {'X-CSRFToken': CSRF}
+    }).then(r => r.json()).then(d => {
+        msg.textContent = d.message || d.error;
+        msg.style.color = d.ok ? 'green' : '#c0392b';
+        if (d.ok) {
+            const row = document.getElementById('pending-invite-' + invitePk);
+            if (row) row.remove();
+        }
     });
 }
 

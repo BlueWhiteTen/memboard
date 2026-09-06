@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db.models import Count, Q
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
@@ -352,6 +352,8 @@ def group_detail_view(request, pk):
     friend_groups = FriendGroup.objects.filter(owner=user) if is_owner else FriendGroup.objects.none()
     join_requests = (group.join_requests.select_related('requester') if is_owner
                       else BoardJoinRequest.objects.none())
+    pending_invites = (group.pending_invites.filter(accepted=False).order_by('-created_at') if is_owner
+                        else GroupInvite.objects.none())
     for jr in join_requests:
         jr.requester.initials     = get_initials(jr.requester)
         jr.requester.display_name = get_display_name(jr.requester)
@@ -373,8 +375,6 @@ def group_detail_view(request, pk):
         'other_members':    other_members,
         'all_members':      all_members,
         'note_font':        profile.note_font_css,
-        'font_choices':     FONT_CHOICES,
-        'current_font':     profile.note_font,
         'user_initials':    get_initials(user),
         'user_display':     get_display_name(user),
         'map_memories':     json.dumps(map_memories),
@@ -388,6 +388,7 @@ def group_detail_view(request, pk):
         'privacy_choices':  PRIVACY_CHOICES,
         'friend_groups':    friend_groups,
         'join_requests':    join_requests,
+        'pending_invites':  pending_invites,
     })
 
 
@@ -484,13 +485,34 @@ def invite_by_email_view(request, pk):
         if GroupInvite.objects.filter(group=group, email__iexact=email, accepted=False).exists():
             return JsonResponse({'ok': False, 'error': 'An invite was already sent to that address.'}, status=400)
         invite = GroupInvite.objects.create(group=group, invited_by=request.user, email=email)
-        sent   = send_invite_email(request.user, email, group, invite.token)
+        sent, err = send_invite_email(request.user, email, group, invite.token)
         if sent:
             return JsonResponse({'ok': True, 'message': f'Invitation sent to {email}!'})
         else:
             invite.delete()
-            return JsonResponse({'ok': False, 'error': 'Failed to send email. Check Gmail settings.'}, status=500)
+            return JsonResponse({'ok': False, 'error': f'Failed to send email: {err}'}, status=500)
     return JsonResponse({'ok': False}, status=405)
+
+
+@login_required
+@require_POST
+def resend_invite_view(request, pk, invite_pk):
+    group      = get_object_or_404(Group, pk=pk, owner=request.user)
+    invite     = get_object_or_404(GroupInvite, pk=invite_pk, group=group, accepted=False)
+    sent, err  = send_invite_email(request.user, invite.email, group, invite.token)
+    if sent:
+        return JsonResponse({'ok': True, 'message': f'Invitation re-sent to {invite.email}!'})
+    return JsonResponse({'ok': False, 'error': f'Failed to send email: {err}'}, status=500)
+
+
+@login_required
+@require_POST
+def cancel_invite_view(request, pk, invite_pk):
+    group  = get_object_or_404(Group, pk=pk, owner=request.user)
+    invite = get_object_or_404(GroupInvite, pk=invite_pk, group=group, accepted=False)
+    email  = invite.email
+    invite.delete()
+    return JsonResponse({'ok': True, 'message': f'Invitation to {email} cancelled.'})
 
 
 @login_required
@@ -585,17 +607,6 @@ def decline_join_request_view(request, pk, req_id):
 
 
 # ── Friend Groups ─────────────────────────────────────────────────────────────
-
-@login_required
-def friend_groups_view(request):
-    user   = request.user
-    groups = FriendGroup.objects.filter(owner=user).annotate(member_count=Count('members'))
-    return render(request, 'core/friend_groups.html', {
-        'friend_groups': groups,
-        'user_initials': get_initials(user),
-        'user_display':  get_display_name(user),
-    })
-
 
 @login_required
 def create_friend_group_view(request):
@@ -721,21 +732,35 @@ def add_memory_view(request, pk):
 @login_required
 def edit_memory_view(request, pk):
     memory = get_object_or_404(Memory, pk=pk, is_deleted=False)
+
+    if request.method == 'GET':
+        # Fetched via AJAX by openEditModal() and injected into the Edit
+        # Memory modal — return just the form fragment, not a full page.
+        if not memory.can_edit(request.user):
+            return HttpResponseForbidden("You don't have permission to edit that memory.")
+        tagged_ids = list(memory.tagged.values_list('pk', flat=True))
+        return render(request, 'core/_edit_memory_fragment.html', {
+            'memory':      memory,
+            'group':       memory.group,
+            'all_members': memory.group.members.all(),
+            'tagged_ids':  tagged_ids,
+        })
+
     if not memory.can_edit(request.user):
         messages.error(request, "You don't have permission to edit that memory.")
         return redirect('group_detail', pk=memory.group.pk)
-    if request.method == 'POST':
-        form = EditMemoryForm(request.POST, request.FILES, instance=memory, group=memory.group)
-        if form.is_valid():
-            form.save()
-            log_activity(memory.group, request.user, 'memory_edit',
-                         f'{get_display_name(request.user)} edited a memory: {memory.title or memory.content[:40]}',
-                         memory=memory)
-            messages.success(request, "Memory updated!")
-        else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f"{field}: {error}")
+
+    form = EditMemoryForm(request.POST, request.FILES, instance=memory, group=memory.group)
+    if form.is_valid():
+        form.save()
+        log_activity(memory.group, request.user, 'memory_edit',
+                     f'{get_display_name(request.user)} edited a memory: {memory.title or memory.content[:40]}',
+                     memory=memory)
+        messages.success(request, "Memory updated!")
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                messages.error(request, f"{field}: {error}")
     return redirect('group_detail', pk=memory.group.pk)
 
 
@@ -1127,6 +1152,8 @@ def my_profile_view(request):
         'stats':         get_user_stats(user),
         'user_initials': get_initials(user),
         'user_display':  get_display_name(user),
+        'font_choices':  FONT_CHOICES,
+        'current_font':  profile.note_font,
     })
 
 

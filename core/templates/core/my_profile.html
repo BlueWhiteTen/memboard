@@ -36,6 +36,11 @@
 .vis-option label{display:flex;flex-direction:column;align-items:center;gap:0.3rem;padding:0.8rem 0.5rem;border:2px solid var(--border-strong);border-radius:0;cursor:pointer;text-align:center;font-size:0.8rem;font-weight:600;color:var(--ink-light);background:var(--cream);transition:all 0.12s;}
 .vis-option input:checked + label{border-color:var(--amber);background:var(--amber-pale);color:var(--ink);box-shadow:2px 2px 0 var(--amber);}
 
+.font-picker{display:flex;gap:0.5rem;flex-wrap:wrap;}
+.font-btn{padding:0.5rem 1rem;border:2px solid var(--border-strong);border-radius:0;background:var(--cream);cursor:pointer;font-size:0.85rem;color:var(--ink-light);transition:all 0.12s;}
+.font-btn.active{background:var(--amber);color:var(--warm-white);border-color:var(--amber);box-shadow:2px 2px 0 var(--border-strong);}
+.font-btn:hover:not(.active){border-color:var(--amber);}
+
 @media(max-width:680px){.page-header,.page-content{padding:1.25rem;}}
 {% endblock %}
 
@@ -101,5 +106,30 @@
             <button type="submit" class="btn btn-primary">Save changes</button>
         </form>
     </div>
+
+    <div class="section-title">Note font</div>
+    <div class="info-card">
+        <p class="hint">The font your memory notes are written in, on every board you belong to. This only affects board content — not the rest of the site.</p>
+        <div class="font-picker">
+            {% for key, label in font_choices %}
+            <button type="button" class="font-btn {% if current_font == key %}active{% endif %}" onclick="setNoteFont('{{ key }}', this)"
+                    style="font-family:{% if key == 'dm_sans' %}'DM Sans',sans-serif{% elif key == 'lora' %}'Lora',serif{% elif key == 'caveat' %}'Caveat',cursive{% elif key == 'courier_prime' %}'Courier Prime',monospace{% elif key == 'patrick_hand' %}'Patrick Hand',cursive{% endif %}">{{ label }}</button>
+            {% endfor %}
+        </div>
+    </div>
 </div>
+
+<script>
+const PROFILE_CSRF = "{{ csrf_token }}";
+function setNoteFont(font, btn) {
+    fetch("{% url 'set_font' %}", {
+        method: 'POST',
+        headers: {'X-CSRFToken': PROFILE_CSRF, 'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'font=' + font
+    }).then(() => {
+        document.querySelectorAll('.font-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    });
+}
+</script>
 {% endblock %}
