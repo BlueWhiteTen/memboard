@@ -100,8 +100,13 @@
 /* Comment button */
 .comment-toggle-btn { display:flex; align-items:center; gap:0.3rem; font-size:0.75rem; color:var(--ink-muted); background:none; border:none; cursor:pointer; padding:0; font-family:inherit; }
 .comment-toggle-btn:hover { color: var(--amber); }
-.comments-section { border-top:1px solid var(--border); margin-top:0.6rem; padding-top:0.6rem; display:none; }
-.comments-section.open { display:block; }
+.comments-section { display:none; }
+.comments-section.open {
+    display:block; position:absolute; left:0; right:0; top:100%; margin-top:0.4rem;
+    background:var(--warm-white); border:2px solid var(--border-strong);
+    box-shadow:var(--shadow-ink-sm); padding:0.65rem 0.75rem;
+    max-height:260px; overflow-y:auto; z-index:50;
+}
 .comment-item { margin-bottom:0.5rem; }
 .comment-author { font-size:0.72rem; font-weight:500; color:var(--ink-muted); }
 .comment-text { font-size:0.82rem; color:var(--ink); margin-top:0.1rem; }
@@ -767,8 +772,29 @@ function deleteMemory(memPk) {
 // Comments
 function toggleComments(memPk, btn) {
     const section = document.getElementById('comments-' + memPk);
-    section.classList.toggle('open');
-    if (section.classList.contains('open')) loadComments(memPk);
+    if (section.classList.contains('open')) {
+        closeComments(section);
+        return;
+    }
+    section.classList.add('open');
+    loadComments(memPk);
+    // Comments now float over the card (so opening one doesn't reflow and
+    // shuffle the other memory cards around it) — clicking anywhere
+    // outside this card closes it, like a dropdown.
+    const card = section.closest('.memory-card');
+    const handler = function(e) {
+        if (!card || !card.contains(e.target)) closeComments(section);
+    };
+    section._outsideClickHandler = handler;
+    setTimeout(() => document.addEventListener('click', handler), 0);
+}
+
+function closeComments(section) {
+    section.classList.remove('open');
+    if (section._outsideClickHandler) {
+        document.removeEventListener('click', section._outsideClickHandler);
+        section._outsideClickHandler = null;
+    }
 }
 
 function loadComments(memPk) {
