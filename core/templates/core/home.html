@@ -74,12 +74,11 @@
 
 /* Friends row */
 .friends-row { display: flex; gap: 0.65rem; flex-wrap: wrap; align-items: center; margin-bottom: 1rem; }
-.friend-chip { display: flex; align-items: center; gap: 0.5rem; border: 2px solid var(--border-strong); background: var(--yellow); padding: 0.3rem 0.75rem 0.3rem 0.3rem; font-weight: 700; font-size: 0.85rem; box-shadow: var(--shadow-ink-sm); text-decoration: none; color: var(--ink); }
-.friend-chip:nth-child(4n+2) { background: var(--amber-pale); }
-.friend-chip:nth-child(4n+3) { background: #FFD8CF; }
-.friend-chip:nth-child(4n+4) { background: #DFF5DA; }
-.fav { width: 26px; height: 26px; border: 1.5px solid var(--border-strong); background: var(--warm-white); display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; }
-.friend-chip-count { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--ink-light); font-weight: 600; }
+.friend-chip { display: flex; align-items: center; justify-content: center; padding: 0; border-radius: 50%; text-decoration: none; color: var(--ink); }
+.fav { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border-strong); background: var(--yellow); display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; box-shadow: var(--shadow-ink-sm); }
+.friend-chip:nth-child(4n+2) .fav { background: var(--amber-pale); }
+.friend-chip:nth-child(4n+3) .fav { background: #FFD8CF; }
+.friend-chip:nth-child(4n+4) .fav { background: #DFF5DA; }
 .add-friend-link { display: inline-flex; align-items: center; border: 2px dashed var(--border-strong); color: var(--ink-muted); font-weight: 700; font-size: 0.85rem; padding: 0.3rem 0.8rem; text-decoration: none; }
 .add-friend-link:hover { color: var(--ink); border-color: var(--amber); }
 {% endblock %}
@@ -107,7 +106,7 @@
 
     <div class="gauges">
         <div class="gauge"><b>{{ user_groups.count }}</b><span>Boards</span></div>
-        <div class="gauge"><b>{{ friends.count }}</b><span>Friends</span></div>
+        <div class="gauge"><b>{{ friends|length }}</b><span>Friends</span></div>
         <div class="gauge"><b>{{ total_memories }}</b><span>Memories</span></div>
         <a href="{% url 'notifications' %}" class="gauge"><b>{{ unread_notifs }}</b><span>Notifications</span></a>
     </div>
@@ -196,10 +195,8 @@
     <div class="section-title">Your friends</div>
     <div class="friends-row">
         {% for friend in friends %}
-        <a href="{% url 'friend_profile' friend.pk %}" class="friend-chip">
+        <a href="{% url 'friend_profile' friend.pk %}" class="friend-chip" title="{{ friend.display_name }}{% if friend.shared_boards %} · {{ friend.shared_boards }} board{{ friend.shared_boards|pluralize }}{% endif %}">
             <span class="fav">{{ friend.initials }}</span>
-            {{ friend.display_name|truncatechars:16 }}
-            {% if friend.shared_boards %}<span class="friend-chip-count">{{ friend.shared_boards }} board{{ friend.shared_boards|pluralize }}</span>{% endif %}
         </a>
         {% endfor %}
         <a href="{% url 'friends' %}" class="add-friend-link">+ Add friend</a>

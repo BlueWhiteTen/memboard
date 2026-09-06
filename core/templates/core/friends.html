@@ -147,7 +147,7 @@
     {% endif %}
 
     <!-- Friends list -->
-    <div class="section-title" style="margin-top:1.5rem;">Your friends ({{ friends.count }})</div>
+    <div class="section-title" style="margin-top:1.5rem;">Your friends ({{ friends|length }})</div>
     {% if friends %}
     <div class="friends-grid">
         {% for friend in friends %}
