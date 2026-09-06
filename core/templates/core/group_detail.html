@@ -26,6 +26,7 @@
 .board-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
 .board-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); padding: 0 2rem; background: var(--warm-white); }
+.tab-btn-trash { margin-left: auto; }
 .tab-btn { padding: 0.65rem 1rem; font-size:0.83rem; border:none; background:none; cursor:pointer; color:var(--ink-muted); border-bottom: 2px solid transparent; margin-bottom: -1px; font-family:inherit; transition:color 0.12s; }
 .tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); font-weight:500; }
 .tab-btn:hover { color: var(--ink); }
@@ -172,9 +173,23 @@
 /* Members panel */
 .members-grid { display: flex; flex-wrap: wrap; gap: 0.75rem; }
 .member-card { display:flex; align-items:center; gap:0.6rem; padding:0.6rem 0.85rem; background:var(--warm-white); border:1px solid var(--border); border-radius:0; }
-.member-av-lg { width:36px; height:36px; border-radius:50%; background:var(--amber-pale); color:var(--amber); font-size:0.8rem; font-weight:500; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.member-av-lg { width:36px; height:36px; border-radius:50%; background:var(--amber-pale); color:var(--amber); font-size:0.8rem; font-weight:500; display:flex; align-items:center; justify-content:center; flex-shrink:0; border:2px solid var(--amber); box-sizing:border-box; }
 .member-name { font-size:0.875rem; font-weight:500; color:var(--ink); }
 .member-role { font-size:0.72rem; color:var(--ink-muted); }
+
+/* Memory view modal (opened by clicking a memory card) */
+.memory-card { cursor: pointer; }
+.memory-view-modal-box { max-width: 900px; width: 92%; padding: 0; overflow: hidden; position: relative; }
+.memory-view-body { display: flex; max-height: 88vh; }
+.memory-view-body.no-photo { flex-direction: column; }
+.memory-view-photo-col { flex: 1 1 50%; background: #17171a; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.memory-view-photo-col img { width: 100%; height: 100%; max-height: 88vh; object-fit: contain; }
+.memory-view-info-col { flex: 1 1 50%; padding: 2rem 1.75rem 1.75rem; overflow-y: auto; max-height: 88vh; }
+.memory-view-body.no-photo .memory-view-info-col { flex: 1 1 100%; }
+.memory-view-info-col .memory-title { font-size: 1.35rem; margin-bottom: 0.6rem; }
+.memory-view-info-col .memory-content { font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem; white-space: pre-wrap; }
+.memory-view-comments { border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 0.5rem; }
+.memory-view-comments-list { max-height: 240px; overflow-y: auto; margin-bottom: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; }
 
 /* Fonts */
 
@@ -222,11 +237,12 @@
 
     <!-- Tabs -->
     <div class="board-tabs">
-        <button class="tab-btn active" onclick="switchTab('memories')">📋 Memories</button>
-        <button class="tab-btn" onclick="switchTab('map')">🗺 Map</button>
-        <button class="tab-btn" onclick="switchTab('members')">👥 Members</button>
-        <button class="tab-btn" onclick="switchTab('activity')">📜 Activity</button>
-        <button class="tab-btn" onclick="switchTab('trash')">🗑 Trash{% if trashed_memories %} ({{ trashed_memories|length }}){% endif %}</button>
+        <button class="tab-btn active" data-tab="memories" onclick="switchTab('memories')">📋 Memories</button>
+        <button class="tab-btn" data-tab="map" onclick="switchTab('map')">🗺 Map</button>
+        <button class="tab-btn" data-tab="members" onclick="switchTab('members')">👥 Members</button>
+        {# Activity tab hidden for now (removed from nav, code kept for later) — see #tab-activity below #}
+        {# <button class="tab-btn" data-tab="activity" onclick="switchTab('activity')">📜 Activity</button> #}
+        <button class="tab-btn tab-btn-trash" data-tab="trash" onclick="switchTab('trash')">🗑 Trash{% if trashed_memories %} ({{ trashed_memories|length }}){% endif %}</button>
     </div>
 </div>
 
@@ -245,7 +261,8 @@
             <div class="memory-wrapper">
             <div class="memory-card {% if memory.is_pinned %}pinned{% endif %}"
                  style="background: var(--note-{{ memory.colour }});"
-                 id="memory-{{ memory.pk }}">
+                 id="memory-{{ memory.pk }}"
+                 onclick="openMemoryView({{ memory.pk }}, event)">
                 {% if memory.is_pinned %}<span class="pin-badge" title="Pinned">📌</span>{% endif %}
                 {% if memory.photo %}
                 <img src="{{ memory.photo.url }}" alt="" class="memory-photo" onclick="openLightbox('{{ memory.photo.url }}')">
@@ -348,12 +365,9 @@
         <p class="section-label" style="font-size:0.72rem;font-weight:500;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:1rem;">Board members</p>
         <div class="members-grid">
             {% for member in all_members %}
-            <div class="member-card">
+            <div class="member-card" title="{{ member.display_name }}">
                 <div class="member-av-lg">{{ member.initials }}</div>
-                <div>
-                    <div class="member-name">{{ member.display_name }}</div>
-                    <div class="member-role">{% if member == group.owner %}Owner{% else %}Member{% endif %}</div>
-                </div>
+                {% if member == group.owner %}<div class="member-role">Owner</div>{% endif %}
             </div>
             {% endfor %}
         </div>
@@ -485,6 +499,15 @@
 </div>
 </div>
 
+<!-- Memory View Modal (bigger read view: photo left / comments right when a
+     photo is present, title-then-comments stacked when it isn't) -->
+<div class="modal-overlay" id="memory-view-modal" onclick="if(event.target===this) closeMemoryView()">
+<div class="modal memory-view-modal-box">
+    <button class="modal-close" style="position:absolute;top:0.85rem;right:0.85rem;z-index:1;" onclick="closeMemoryView()">✕</button>
+    <div id="memory-view-content"><!-- populated by JS from the clicked card --></div>
+</div>
+</div>
+
 <!-- Invite Modal -->
 {% if group.owner == request.user %}
 <div class="modal-overlay" id="invite-modal">
@@ -493,25 +516,17 @@
         <div class="modal-title">Add member</div>
         <button class="modal-close" onclick="document.getElementById('invite-modal').classList.remove('open')">✕</button>
     </div>
-    <form method="post" action="{% url 'invite_member' group.pk %}">
-        {% csrf_token %}
-        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);">Username</label>
-        <div style="display:flex;gap:0.5rem;margin-top:0.4rem;margin-bottom:1rem;">
-            <input type="text" name="username" placeholder="Enter username…" class="comment-input" style="flex:1;padding:0.5rem 0.75rem;font-size:0.875rem;">
-            <button type="submit" class="btn btn-primary">Add</button>
-        </div>
-    </form>
-    <div style="border-top:1px solid var(--border);padding-top:1rem;">
-        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);">Invite by email</label>
+    <div>
+        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);">Add by username or email</label>
         <div style="display:flex;gap:0.5rem;margin-top:0.4rem;">
-            <input type="email" id="invite-email" placeholder="their@email.com" class="comment-input" style="flex:1;padding:0.5rem 0.75rem;font-size:0.875rem;">
+            <input type="text" id="invite-email" placeholder="Username or email…" class="comment-input" style="flex:1;padding:0.5rem 0.75rem;font-size:0.875rem;" onkeydown="if(event.key==='Enter'){event.preventDefault();sendEmailInvite();}">
             <button class="btn btn-amber" onclick="sendEmailInvite()">Invite</button>
         </div>
         <div id="invite-msg" style="font-size:0.78rem;margin-top:0.5rem;"></div>
+        <p style="font-size:0.72rem;color:var(--ink-muted);margin-top:0.4rem;">If they already have a Memboard account, they'll get a request to accept. Otherwise we'll email them an invite.</p>
     </div>
-    {% if pending_invites %}
-    <div style="border-top:1px solid var(--border);padding-top:1rem;margin-top:1rem;">
-        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);">Pending invites ({{ pending_invites|length }})</label>
+    <div id="pending-invites-section" style="border-top:1px solid var(--border);padding-top:1rem;margin-top:1rem;" {% if not pending_invites %}hidden{% endif %}>
+        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);">Pending invites (<span id="pending-invites-count">{{ pending_invites|length }}</span>)</label>
         <div id="pending-invites-list" style="margin-top:0.5rem;display:flex;flex-direction:column;gap:0.4rem;">
             {% for inv in pending_invites %}
             <div class="pending-invite-row" id="pending-invite-{{ inv.pk }}" style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;font-size:0.82rem;padding:0.4rem 0.6rem;background:var(--cream);border:1px solid var(--border);">
@@ -524,7 +539,6 @@
             {% endfor %}
         </div>
     </div>
-    {% endif %}
 </div>
 </div>
 
@@ -586,14 +600,28 @@ const CSRF = '{{ csrf_token }}';
 const GROUP_PK = {{ group.pk }};
 const MAP_MEMORIES = {{ map_memories|safe }};
 
-// Tab switching
-function switchTab(name) {
+// Tab switching — the active tab is kept in the URL hash so a refresh
+// (or a shared link) lands back on the same tab instead of resetting to
+// Memories.
+function switchTab(name, updateHash = true) {
+    const panel = document.getElementById('tab-' + name);
+    if (!panel) return;
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('tab-' + name).classList.add('active');
-    event.target.classList.add('active');
+    panel.classList.add('active');
+    const btn = document.querySelector(`.tab-btn[data-tab="${name}"]`);
+    if (btn) btn.classList.add('active');
     if (name === 'map') initMap();
+    if (updateHash) history.replaceState(null, '', '#' + name);
 }
+
+// Restore the tab that was active before the last refresh, if any.
+(function restoreActiveTab() {
+    const hash = window.location.hash.replace('#', '');
+    if (hash && document.getElementById('tab-' + hash)) {
+        switchTab(hash, false);
+    }
+})();
 
 // React to memory
 function toggleReaction(memPk, emoji, btn) {
@@ -738,9 +766,105 @@ function openEditModal(memPk) {
         });
 }
 
+// Memory view modal — clicking a memory card opens it larger in-page,
+// photo on the left / comments on the right when there's a photo, title
+// then comments stacked when there isn't. Ignores clicks that land on an
+// already-interactive part of the card (buttons, inputs, the photo itself,
+// the inline comments panel) so those keep working as before.
+function openMemoryView(memPk, evt) {
+    if (evt && evt.target.closest('button, a, input, .memory-photo, .comments-section, .reaction-picker')) return;
+    const card = document.getElementById('memory-' + memPk);
+    if (!card) return;
+
+    const photoEl   = card.querySelector('.memory-photo');
+    const titleEl   = card.querySelector('.memory-title');
+    const contentEl = card.querySelector('.memory-content');
+    const metaEl    = card.querySelector('.memory-meta');
+    const tagsEl    = card.querySelector('.tagged-list');
+    const hasPhoto  = !!photoEl;
+
+    const infoHtml = `
+        ${titleEl ? `<div class="memory-title">${titleEl.innerHTML}</div>` : ''}
+        ${contentEl ? `<div class="memory-content">${contentEl.innerHTML}</div>` : ''}
+        ${metaEl ? `<div class="memory-meta" style="margin-bottom:0.85rem;">${metaEl.innerHTML}</div>` : ''}
+        ${tagsEl ? `<div class="tagged-list" style="margin-bottom:0.85rem;">${tagsEl.innerHTML}</div>` : ''}
+        <div class="memory-view-comments">
+            <div class="memory-view-comments-list" id="modal-comments-list"></div>
+            <div class="comment-form">
+                <input type="text" class="comment-input" id="modal-comment-input" placeholder="Write a comment…"
+                       onkeydown="if(event.key==='Enter'){submitModalComment(${memPk})}">
+                <button class="comment-submit" onclick="submitModalComment(${memPk})">Send</button>
+            </div>
+        </div>`;
+
+    document.getElementById('memory-view-content').innerHTML = `
+        <div class="memory-view-body ${hasPhoto ? '' : 'no-photo'}" style="background:${card.style.background || 'var(--warm-white)'};">
+            ${hasPhoto ? `<div class="memory-view-photo-col"><img src="${photoEl.src}" alt=""></div>` : ''}
+            <div class="memory-view-info-col">${infoHtml}</div>
+        </div>`;
+
+    document.getElementById('memory-view-modal').classList.add('open');
+    loadModalComments(memPk);
+}
+
+function closeMemoryView() {
+    document.getElementById('memory-view-modal').classList.remove('open');
+}
+
+function loadModalComments(memPk) {
+    fetch(`/memory/${memPk}/comments/`)
+    .then(r => r.json()).then(data => {
+        if (!data.ok) return;
+        const list = document.getElementById('modal-comments-list');
+        if (!list) return;
+        list.innerHTML = data.comments.map(c => `
+            <div class="comment-item">
+                <div class="comment-author">${c.author}</div>
+                <div class="comment-text">${c.content}</div>
+            </div>
+        `).join('') || '<p style="font-size:0.78rem;color:var(--ink-muted);">No comments yet.</p>';
+    });
+}
+
+function submitModalComment(memPk) {
+    const input = document.getElementById('modal-comment-input');
+    const content = input.value.trim();
+    if (!content) return;
+    fetch(`/memory/${memPk}/comments/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': CSRF, 'Content-Type': 'application/json'},
+        body: JSON.stringify({content})
+    }).then(r => r.json()).then(data => {
+        if (!data.ok) return;
+        input.value = '';
+        const c = data.comment;
+        const list = document.getElementById('modal-comments-list');
+        if (list) {
+            if (list.querySelector('p')) list.innerHTML = '';
+            const item = document.createElement('div'); item.className = 'comment-item';
+            item.innerHTML = `<div class="comment-author">${c.author}</div><div class="comment-text">${c.content}</div>`;
+            list.appendChild(item);
+        }
+        // Keep the card's own comment count — and its inline comments panel,
+        // if it happens to be open — in sync with what was just posted here.
+        const memCard = document.getElementById('memory-' + memPk);
+        if (memCard) {
+            const countEl = memCard.querySelector('.comment-count');
+            if (countEl) countEl.textContent = parseInt(countEl.textContent) + 1;
+            const cardList = document.getElementById('comments-list-' + memPk);
+            if (cardList && !cardList.querySelector('p')) {
+                const item2 = document.createElement('div'); item2.className = 'comment-item';
+                item2.innerHTML = `<div class="comment-author">${c.author}</div><div class="comment-text">${c.content}</div>`;
+                cardList.appendChild(item2);
+            }
+        }
+    });
+}
+
 // Email invite
 function sendEmailInvite() {
-    const email = document.getElementById('invite-email').value.trim();
+    const emailInput = document.getElementById('invite-email');
+    const email = emailInput.value.trim();
     const msg = document.getElementById('invite-msg');
     if (!email) return;
     fetch(`/groups/${GROUP_PK}/invite-email/`, {
@@ -749,8 +873,38 @@ function sendEmailInvite() {
     }).then(r=>r.json()).then(d=>{
         msg.textContent = d.message || d.error;
         msg.style.color = d.ok ? 'green' : '#c0392b';
-        if (d.ok) document.getElementById('invite-email').value = '';
+        if (d.ok) {
+            emailInput.value = '';
+            if (d.invite_pk) addPendingInviteRow(d.invite_pk, d.email);
+        }
     });
+}
+
+function addPendingInviteRow(invitePk, email) {
+    const list = document.getElementById('pending-invites-list');
+    if (!list || document.getElementById('pending-invite-' + invitePk)) return;
+    const row = document.createElement('div');
+    row.className = 'pending-invite-row';
+    row.id = 'pending-invite-' + invitePk;
+    row.setAttribute('style', 'display:flex;align-items:center;justify-content:space-between;gap:0.5rem;font-size:0.82rem;padding:0.4rem 0.6rem;background:var(--cream);border:1px solid var(--border);');
+    row.innerHTML = `
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+        <span style="display:flex;gap:0.4rem;flex-shrink:0;">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="resendInvite(${invitePk})">Resend</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="cancelInvite(${invitePk})" style="color:#B83232;">Cancel</button>
+        </span>`;
+    row.querySelector('span').textContent = email;
+    list.appendChild(row);
+    refreshPendingInvitesUI();
+}
+
+function refreshPendingInvitesUI() {
+    const section = document.getElementById('pending-invites-section');
+    const list = document.getElementById('pending-invites-list');
+    const count = list ? list.querySelectorAll('.pending-invite-row').length : 0;
+    const countEl = document.getElementById('pending-invites-count');
+    if (countEl) countEl.textContent = count;
+    if (section) section.hidden = (count === 0);
 }
 
 function resendInvite(invitePk) {
@@ -773,6 +927,7 @@ function cancelInvite(invitePk) {
         if (d.ok) {
             const row = document.getElementById('pending-invite-' + invitePk);
             if (row) row.remove();
+            refreshPendingInvitesUI();
         }
     });
 }
@@ -786,7 +941,11 @@ function closeLightbox() {
     document.getElementById('lightbox-overlay').classList.remove('open');
     document.getElementById('lightbox-img').src = '';
 }
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
+document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    closeLightbox();
+    closeMemoryView();
+});
 
 // Map init (Leaflet)
 let mapInitialized = false;

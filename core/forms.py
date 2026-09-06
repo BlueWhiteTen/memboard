@@ -196,26 +196,6 @@ class EditMemoryForm(forms.ModelForm):
         return photo
 
 
-class InviteMemberForm(forms.Form):
-    username = forms.CharField(max_length=150,
-        widget=forms.TextInput(attrs={'placeholder': 'Enter a username…'}))
-
-    def __init__(self, *args, group=None, **kwargs):
-        self.group = group
-        super().__init__(*args, **kwargs)
-
-    def clean_username(self):
-        username = self.cleaned_data['username'].strip()
-        try:
-            user = User.objects.get(username=username)
-        except User.DoesNotExist:
-            raise forms.ValidationError("No user with that username exists.")
-        if self.group and self.group.members.filter(pk=user.pk).exists():
-            raise forms.ValidationError(f"{user.get_full_name()} is already a member.")
-        self._resolved_user = user
-        return username
-
-
 class FriendRequestForm(forms.Form):
     query = forms.EmailField(max_length=200,
         widget=forms.EmailInput(attrs={'placeholder': 'Their email address…'}))

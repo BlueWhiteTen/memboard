@@ -8,6 +8,7 @@ from django.http import JsonResponse, HttpResponseForbidden
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
+from django import forms as django_forms
 import json
 
 from .models import (
@@ -19,7 +20,7 @@ from .models import (
 )
 from .forms import (
     RegisterForm, EmailAuthenticationForm, GroupForm, GroupCoverForm,
-    MemoryForm, EditMemoryForm, InviteMemberForm, FriendRequestForm,
+    MemoryForm, EditMemoryForm, FriendRequestForm,
     GroupSettingsForm, FriendGroupForm, ProfileForm,
 )
 from .email_utils import send_invite_email, send_friend_invite_email
@@ -461,58 +462,64 @@ def update_board_settings_view(request, pk):
 
 
 @login_required
-def invite_member_view(request, pk):
-    group = get_object_or_404(Group, pk=pk, owner=request.user)
-    if request.method == 'POST':
-        form = InviteMemberForm(request.POST, group=group)
-        if form.is_valid():
-            new_member = form._resolved_user
-            group.members.add(new_member)
-            log_activity(group, request.user, 'member_join',
-                         f'{get_display_name(new_member)} was added to the board')
-            create_notification(new_member, request.user, 'board_invite',
-                                f'{get_display_name(request.user)} added you to "{group.name}"',
-                                group=group)
-            messages.success(request, f"{get_display_name(new_member)} added!")
-        else:
-            for error in form.errors.values():
-                messages.error(request, error.as_text())
-    return redirect('group_detail', pk=pk)
-
-
-@login_required
+@require_POST
 def invite_by_email_view(request, pk):
+    """Unified "Add member" endpoint: takes a single query that can be a
+    username or an email address (in this app usernames are just the
+    account's email, truncated to 150 chars — see RegisterForm — so
+    matching on both covers the same ground). A match on an existing
+    account always goes through the pending-invite/accept flow, never an
+    instant add; a query with no matching account falls back to emailing
+    an invite, provided it's shaped like an email address.
+
+    Note: this deliberately searches ALL accounts, not just the inviter's
+    friends — narrowing username search to friends-only is a requested
+    follow-up, not implemented yet.
+    """
     group = get_object_or_404(Group, pk=pk, owner=request.user)
-    if request.method == 'POST':
-        email = request.POST.get('email', '').strip().lower()
-        if not email:
-            return JsonResponse({'ok': False, 'error': 'No email provided.'}, status=400)
-        if group.members.filter(email__iexact=email).exists():
+    query = request.POST.get('email', '').strip()
+    if not query:
+        return JsonResponse({'ok': False, 'error': 'Enter a username or email address.'}, status=400)
+
+    existing = User.objects.filter(
+        Q(email__iexact=query) | Q(username__iexact=query)
+    ).exclude(pk=request.user.pk).first()
+
+    if existing:
+        email = existing.email
+        if group.members.filter(pk=existing.pk).exists():
             return JsonResponse({'ok': False, 'error': 'That person is already a member of this board.'}, status=400)
-        if GroupInvite.objects.filter(group=group, email__iexact=email, accepted=False).exists():
-            return JsonResponse({'ok': False, 'error': 'An invite was already sent to that address.'}, status=400)
+        if GroupInvite.objects.filter(group=group, invited_user=existing, accepted=False).exists():
+            return JsonResponse({'ok': False, 'error': 'An invite was already sent to that person.'}, status=400)
+        # They already have an account — invite them in-app rather than
+        # adding them directly; they accept or decline from Notifications.
+        invite = GroupInvite.objects.create(
+            group=group, invited_by=request.user, email=email, invited_user=existing)
+        create_notification(
+            existing, request.user, 'board_invite_pending',
+            f'{get_display_name(request.user)} invited you to join "{group.name}"',
+            group=group,
+        )
+        return JsonResponse({'ok': True, 'invite_pk': invite.pk, 'email': email, 'message': f'Invite sent to {get_display_name(existing)} — they\'ll need to accept it.'})
 
-        existing = User.objects.filter(email__iexact=email).first()
-        if existing:
-            # They already have an account — invite them in-app rather than
-            # adding them directly; they accept or decline from Notifications.
-            invite = GroupInvite.objects.create(
-                group=group, invited_by=request.user, email=email, invited_user=existing)
-            create_notification(
-                existing, request.user, 'board_invite_pending',
-                f'{get_display_name(request.user)} invited you to join "{group.name}"',
-                group=group,
-            )
-            return JsonResponse({'ok': True, 'message': f'Invite sent to {get_display_name(existing)} — they\'ll need to accept it.'})
+    email = query.lower()
+    try:
+        django_forms.EmailField().clean(email)
+    except django_forms.ValidationError:
+        return JsonResponse({'ok': False, 'error': "No Memboard account found with that username. To invite someone new, enter their email address instead."}, status=404)
 
-        invite = GroupInvite.objects.create(group=group, invited_by=request.user, email=email)
-        sent, err = send_invite_email(request.user, email, group, invite.token)
-        if sent:
-            return JsonResponse({'ok': True, 'message': f'Invitation sent to {email}!'})
-        else:
-            invite.delete()
-            return JsonResponse({'ok': False, 'error': f'Failed to send email: {err}'}, status=500)
-    return JsonResponse({'ok': False}, status=405)
+    if group.members.filter(email__iexact=email).exists():
+        return JsonResponse({'ok': False, 'error': 'That person is already a member of this board.'}, status=400)
+    if GroupInvite.objects.filter(group=group, email__iexact=email, accepted=False).exists():
+        return JsonResponse({'ok': False, 'error': 'An invite was already sent to that address.'}, status=400)
+
+    invite = GroupInvite.objects.create(group=group, invited_by=request.user, email=email)
+    sent, err = send_invite_email(request.user, email, group, invite.token)
+    if sent:
+        return JsonResponse({'ok': True, 'invite_pk': invite.pk, 'email': email, 'message': f'Invitation sent to {email}!'})
+    else:
+        invite.delete()
+        return JsonResponse({'ok': False, 'error': f'Failed to send email: {err}'}, status=500)
 
 
 @login_required
