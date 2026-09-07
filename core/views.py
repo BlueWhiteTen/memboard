@@ -172,10 +172,10 @@ def register_view(request):
                 notify_boards_visible_after_friendship(finv.from_user, user)
                 create_notification(
                     finv.from_user, user, 'friend_req',
-                    f'{get_display_name(user)} accepted your friend invite and joined Memboard!',
+                    f'{get_display_name(user)} accepted your friend invite and joined Rememory!',
                 )
         login(request, user)
-        messages.success(request, f"Welcome to Memboard, {user.first_name}!")
+        messages.success(request, f"Welcome to Rememory, {user.first_name}!")
         return redirect('home')
     return render(request, 'core/register.html', {'form': form, 'invite_token': invite_token})
 
@@ -695,7 +695,7 @@ def invite_by_email_view(request, pk):
     try:
         django_forms.EmailField().clean(email)
     except django_forms.ValidationError:
-        return JsonResponse({'ok': False, 'error': "No Memboard account found with that username. To invite someone new, enter their email address instead."}, status=404)
+        return JsonResponse({'ok': False, 'error': "No Rememory account found with that username. To invite someone new, enter their email address instead."}, status=404)
 
     if group.members.filter(email__iexact=email).exists():
         return JsonResponse({'ok': False, 'error': 'That person is already a member of this board.'}, status=400)
@@ -1537,7 +1537,7 @@ def send_friend_request_view(request):
                 invite = FriendInvite.objects.create(from_user=request.user, email=email)
                 sent, err = send_friend_invite_email(request.user, email, invite.token)
                 if sent:
-                    messages.success(request, f"{email} isn't on Memboard yet — we've emailed them an invite. You'll be friends automatically once they sign up.")
+                    messages.success(request, f"{email} isn't on Rememory yet — we've emailed them an invite. You'll be friends automatically once they sign up.")
                 else:
                     invite.delete()
                     messages.error(request, f"Failed to send email: {err}")
@@ -1661,13 +1661,13 @@ def sw_view(request):
 def manifest_view(request):
     from django.http import JsonResponse
     manifest = {
-        "name": "Memboard",
-        "short_name": "Memboard",
-        "description": "Your shared memory boards",
+        "name": "Rememory",
+        "short_name": "Rememory",
+        "description": "For things worth remembering",
         "start_url": "/",
         "display": "standalone",
-        "background_color": "#F7F3EC",
-        "theme_color": "#C97B2A",
+        "background_color": "#EAE2CD",
+        "theme_color": "#8C6A2F",
         "icons": [
             {"src": "/static/core/icon-192.png", "sizes": "192x192", "type": "image/png"},
             {"src": "/static/core/icon-512.png", "sizes": "512x512", "type": "image/png"},

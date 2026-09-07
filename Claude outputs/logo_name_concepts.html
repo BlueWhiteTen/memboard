@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logo &amp; Name Concepts</title>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --ground:#EAE2CD; --paper:#FAF6EA; --ink:#241F18; --ink-soft:#6B5F48;
+    --gold:#8C6A2F; --border:#241F18;
+  }
+  body{
+    font-family:'Spectral',serif; background:var(--ground); color:var(--ink);
+    padding:3rem 1.5rem 5rem; min-height:100vh;
+  }
+  .wrap{ max-width:1100px; margin:0 auto; }
+  header{ text-align:center; margin-bottom:3rem; }
+  .eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:0.68rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--gold); margin-bottom:0.7rem; }
+  h1{ font-family:'Spectral',serif; font-style:italic; font-weight:500; font-size:clamp(1.8rem,5vw,2.6rem); margin-bottom:0.9rem; }
+  header p{ color:var(--ink-soft); font-size:0.95rem; max-width:520px; margin:0 auto; line-height:1.55; }
+
+  .grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:1.25rem; }
+  @media(max-width:760px){ .grid{ grid-template-columns:1fr; } }
+
+  .card{
+    background:var(--paper); border:1.5px solid var(--border);
+    box-shadow:4px 5px 0 rgba(36,31,24,0.15);
+    padding:1.4rem 1.4rem 1.6rem; transform:rotate(-0.15deg);
+  }
+  .card:nth-child(even){ transform:rotate(0.15deg); }
+  .num{ font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--ink-soft); letter-spacing:0.08em; margin-bottom:0.7rem; }
+  .swatches{ display:flex; gap:0.6rem; margin-bottom:1rem; }
+  .swatch{
+    flex:1; height:92px; display:flex; align-items:center; justify-content:center;
+    border:1px solid rgba(36,31,24,0.15);
+  }
+  .swatch.light{ background:#FAF6EA; color:#241F18; }
+  .swatch.dark{ background:#171B2C; color:#F6E7BD; }
+  .swatch svg{ width:40px; height:40px; }
+
+  .name{ font-family:'Spectral',serif; font-style:italic; font-weight:600; font-size:1.3rem; margin-bottom:0.35rem; }
+  .why{ font-size:0.85rem; color:var(--ink-soft); line-height:1.45; }
+
+  .note{
+    max-width:700px; margin:3rem auto 0; text-align:center;
+    font-family:'IBM Plex Mono',monospace; font-size:0.78rem; color:var(--ink-soft);
+    line-height:1.6; padding-top:1.5rem; border-top:1px solid rgba(36,31,24,0.18);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Rebrand exploration — nothing live yet</div>
+    <h1>10 marks, 10 names</h1>
+    <p>Each card pairs one logo idea with one name suggestion, but none of it is locked together — mix and match freely. Every mark is drawn as a single-line ink icon (not a filled color block), so it reads the same on parchment or on a night sky without a separate dark-mode version.</p>
+  </header>
+
+  <div class="grid">
+
+    <div class="card">
+      <div class="num">01 / CONSTELLATION</div>
+      <div class="swatches">
+        <div class="swatch light"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="14" r="1.4" fill="currentColor" stroke="none"/><circle cx="18" cy="9" r="1.4" fill="currentColor" stroke="none"/><circle cx="27" cy="15" r="1.4" fill="currentColor" stroke="none"/><circle cx="24" cy="25" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="27" r="1.2" fill="currentColor" stroke="none"/><path d="M9 14L18 9L27 15L24 25L12 27"/></svg></div>
+        <div class="swatch dark"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="14" r="1.4" fill="currentColor" stroke="none"/><circle cx="18" cy="9" r="1.4" fill="currentColor" stroke="none"/><circle cx="27" cy="15" r="1.4" fill="currentColor" stroke="none"/><circle cx="24" cy="25" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="27" r="1.2" fill="currentColor" stroke="none"/><path d="M9 14L18 9L27 15L24 25L12 27"/></svg></div>
+      </div>
+      <div class="name">Kindred</div>
+      <div class="why">A loose cluster of points, joined by thin lines — the people you keep close, mapped rather than listed.</div>
+    </div>
+
+    <div class="card">
+      <div class="num">02 / ATLAS RULE</div>
+      <div class="swatches">
+        <div class="swatch light"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="20" cy="20" r="13"/><path d="M7 20h26M20 7v26" stroke-width="1"/><path d="M20 7c-5 5-5 21 0 26M20 7c5 5 5 21 0 26" stroke-width="1"/></svg></div>
+        <div class="swatch dark"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="20" cy="20" r="13"/><path d="M7 20h26M20 7v26" stroke-width="1"/><path d="M20 7c-5 5-5 21 0 26M20 7c5 5 5 21 0 26" stroke-width="1"/></svg></div>
+      </div>
+      <div class="name">Atlas</div>
+      <div class="why">A globe's graticule lines, drawn like an old map — a chart of everywhere a memory happened.</div>
+    </div>
+
+    <div class="card">
+      <div class="num">03 / WAYMARK</div>
+      <div class="swatches">
+        <div class="swatch light"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M20 6c-6 0-10 4.4-10 10 0 7.5 10 18 10 18s10-10.5 10-18c0-5.6-4-10-10-10z"/><circle cx="20" cy="16" r="1.6" fill="currentColor" stroke="none"/></svg></div>
+        <div class="swatch dark"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M20 6c-6 0-10 4.4-10 10 0 7.5 10 18 10 18s10-10.5 10-18c0-5.6-4-10-10-10z"/><circle cx="20" cy="16" r="1.6" fill="currentColor" stroke="none"/></svg></div>
+      </div>
+      <div class="name">Waypoint</div>
+      <div class="why">A single map pin with a star for its dot — the spots worth marking down as you go.</div>
+    </div>
+
+    <div class="card">
+      <div class="num">04 / CAIRN</div>
+      <div class="swatches">
+        <div class="swatch light"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><ellipse cx="20" cy="29" rx="11" ry="4"/><ellipse cx="20" cy="20" rx="7.5" ry="3.2"/><ellipse cx="20" cy="12.5" rx="4.5" ry="2.4"/></svg></div>
+        <div class="swatch dark"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><ellipse cx="20" cy="29" rx="11" ry="4"/><ellipse cx="20" cy="20" rx="7.5" ry="3.2"/><ellipse cx="20" cy="12.5" rx="4.5" ry="2.4"/></svg></div>
+      </div>
+      <div class="name">Cairn</div>
+      <div class="why">Stones stacked one at a time — small markers left behind, the way memories get added one by one.</div>
+    </div>
+
+    <div class="card">
+      <div class="num">05 / KEEP</div>
+      <div class="swatches">
+        <div class="swatch light"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M11 8h18v24l-9-6-9 6z"/></svg></div>
+        <div class="swatch dark"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M11 8h18v24l-9-6-9 6z"/></svg></div>
+      </div>
+      <div class="name">Keepsake</div>
+      <div class="why">A simple bookmark shape — the plainest possible way to say "this is worth holding on to."</div>
+    </div>
+
+    <div class="card">
+      <div class="num">06 / TAPESTRY</div>
+      <div class="swatches">
+        <div class="swatch light"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 14c6 0 6 12 12 12s6-12 12-12"/><path d="M8 26c6 0 6-12 12-12s6 12 12 12"/></svg></div>
+        <div class="swatch dark"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 14c6 0 6 12 12 12s6-12 12-12"/><path d="M8 26c6 0 6-12 12-12s6 12 12 12"/></svg></div>
+      </div>
+      <div class="name">Tapestry</div>
+      <div class="why">Two threads crossing back and forth — many small strands from different people, woven into one record.</div>
+    </div>
+
+    <div class="card">
+      <div class="num">07 / ALMANAC</div>
+      <div class="swatches">
+        <div class="swatch light"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="8" y="10" width="24" height="21" rx="0.5"/><path d="M8 16h24M14 10v-3M26 10v-3"/></svg></div>
+        <div class="swatch dark"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="8" y="10" width="24" height="21" rx="0.5"/><path d="M8 16h24M14 10v-3M26 10v-3"/></svg></div>
+      </div>
+      <div class="name">Almanac</div>
+      <div class="why">A page torn from a dated record book — a running account of a life, kept year over year.</div>
+    </div>
+
+    <div class="card">
+      <div class="num">08 / HEARTH</div>
+      <div class="swatches">
+        <div class="swatch light"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M20 8c-6 8-8 12-8 16a8 8 0 0016 0c0-2.5-1-4.5-2.5-6.5.5 3-1 5-2.5 5.5 1-4-1-8-3-9 .5 2.5-.5 4-.8 4.7"/></svg></div>
+        <div class="swatch dark"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M20 8c-6 8-8 12-8 16a8 8 0 0016 0c0-2.5-1-4.5-2.5-6.5.5 3-1 5-2.5 5.5 1-4-1-8-3-9 .5 2.5-.5 4-.8 4.7"/></svg></div>
+      </div>
+      <div class="name">Fireside</div>
+      <div class="why">A single flame — the gathering-place feeling, the reason people come back to tell each other things.</div>
+    </div>
+
+    <div class="card">
+      <div class="num">09 / MOSAIC</div>
+      <div class="swatches">
+        <div class="swatch light"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="8" y="8" width="10" height="10"/><rect x="22" y="8" width="10" height="10"/><rect x="8" y="22" width="10" height="10"/><rect x="22" y="22" width="10" height="10"/></svg></div>
+        <div class="swatch dark"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="8" y="8" width="10" height="10"/><rect x="22" y="8" width="10" height="10"/><rect x="8" y="22" width="10" height="10"/><rect x="22" y="22" width="10" height="10"/></svg></div>
+      </div>
+      <div class="name">Mosaic</div>
+      <div class="why">The current four-square mark, redrawn as an outline instead of a filled block — familiar, but it survives dark mode.</div>
+    </div>
+
+    <div class="card">
+      <div class="num">10 / LANTERN</div>
+      <div class="swatches">
+        <div class="swatch light"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M16 10a4 4 0 018 0" stroke-linecap="round"/><rect x="13" y="10" width="14" height="18" rx="2"/><line x1="13" y1="16" x2="27" y2="16"/><line x1="13" y1="22" x2="27" y2="22"/><circle cx="20" cy="19" r="1.5" fill="currentColor" stroke="none"/></svg></div>
+        <div class="swatch dark"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M16 10a4 4 0 018 0" stroke-linecap="round"/><rect x="13" y="10" width="14" height="18" rx="2"/><line x1="13" y1="16" x2="27" y2="16"/><line x1="13" y1="22" x2="27" y2="22"/><circle cx="20" cy="19" r="1.5" fill="currentColor" stroke="none"/></svg></div>
+      </div>
+      <div class="name">Lantern</div>
+      <div class="why">A small lantern, banded like an old sea-lantern — something to carry the past forward by, one memory lighting the next.</div>
+    </div>
+
+  </div>
+
+  <div class="note">This is a first pass to react to, not a shortlist — say which marks or names you want refined, combined, or thrown out, and I'll take the next round further in that direction. Nothing here touches the live app yet.</div>
+</div>
+</body>
+</html>

@@ -15,15 +15,15 @@ def send_invite_email(inviter, email, group, token):
     """
     invite_url = "{}/register/?invite={}".format(
         getattr(settings, 'APP_URL', 'http://localhost:8000'), token)
-    subject = "{} invited you to join \"{}\" on Memboard".format(
+    subject = "{} invited you to join \"{}\" on Rememory".format(
         inviter.first_name, group.name)
     body = (
         "Hi!\n\n"
         "{} {} has invited you to join the memory board "
-        "\"{}\" on Memboard.\n\n"
+        "\"{}\" on Rememory.\n\n"
         "Click the link below to create your free account and join:\n{}\n\n"
         "This link will add you directly to the board when you register.\n\n"
-        "-- The Memboard team"
+        "-- The Rememory team"
     ).format(inviter.first_name, inviter.last_name, group.name, invite_url)
     try:
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [email])
@@ -36,21 +36,21 @@ def send_invite_email(inviter, email, group, token):
 def send_friend_invite_email(inviter, email, token):
     """
     Like send_invite_email, but for a friend invite rather than a board
-    invite — the recipient doesn't have a Memboard account yet, so we email
+    invite — the recipient doesn't have a Rememory account yet, so we email
     them a registration link. They become friends with `inviter`
     automatically once they sign up with this email address.
     Returns (ok, error_message).
     """
     invite_url = "{}/register/?invite={}".format(
         getattr(settings, 'APP_URL', 'http://localhost:8000'), token)
-    subject = "{} wants to add you as a friend on Memboard".format(inviter.first_name)
+    subject = "{} wants to add you as a friend on Rememory".format(inviter.first_name)
     body = (
         "Hi!\n\n"
-        "{} {} uses Memboard to keep shared memories with friends, and wants "
+        "{} {} uses Rememory to keep shared memories with friends, and wants "
         "to add you as a friend there.\n\n"
         "Click the link below to create your free account — you'll be "
         "connected as friends automatically as soon as you sign up:\n{}\n\n"
-        "-- The Memboard team"
+        "-- The Rememory team"
     ).format(inviter.first_name, inviter.last_name, invite_url)
     try:
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [email])
@@ -75,9 +75,9 @@ def send_weekly_digest_email(user, memories):
     lines = ["Here's what happened on your boards this week:\n"]
     for m in memories[:10]:
         lines.append("* {}: {}".format(m.group.name, m.title or m.content[:60]))
-    lines.append("\n\nVisit Memboard to see more: {}".format(app_url))
+    lines.append("\n\nVisit Rememory to see more: {}".format(app_url))
     body = "\n".join(lines)
-    return send_notification_email(user, "Your Memboard weekly digest", body)
+    return send_notification_email(user, "Your Rememory weekly digest", body)
 
 
 def send_problem_report_email(user, message):
@@ -88,9 +88,9 @@ def send_problem_report_email(user, message):
     to_email = getattr(settings, 'REPORT_PROBLEM_EMAIL', None)
     if not to_email:
         return False, "No report recipient configured."
-    subject = "Memboard problem report from {} {}".format(user.first_name, user.last_name)
+    subject = "Rememory problem report from {} {}".format(user.first_name, user.last_name)
     body = (
-        "{} {} ({}) reported a problem on Memboard:\n\n"
+        "{} {} ({}) reported a problem on Rememory:\n\n"
         "{}\n"
     ).format(user.first_name, user.last_name, user.email, message)
     try:
@@ -102,12 +102,12 @@ def send_problem_report_email(user, message):
 
 
 def send_password_reset_email(user, reset_url):
-    subject = "Reset your Memboard password"
+    subject = "Reset your Rememory password"
     body = (
         "Hi {},\n\n"
-        "We received a request to reset your Memboard password.\n\n"
+        "We received a request to reset your Rememory password.\n\n"
         "Click the link below to set a new password:\n{}\n\n"
         "This link expires in 24 hours. If you did not request this, you can ignore this email.\n\n"
-        "-- The Memboard team"
+        "-- The Rememory team"
     ).format(user.first_name, reset_url)
     return send_notification_email(user, subject, body)

@@ -212,7 +212,7 @@ class GroupInvite(models.Model):
     group        = models.ForeignKey('Group', related_name='pending_invites', on_delete=models.CASCADE)
     invited_by   = models.ForeignKey(User, related_name='sent_invites', on_delete=models.CASCADE)
     email        = models.EmailField()
-    # Set only when the invited email already belonged to a Memboard account
+    # Set only when the invited email already belonged to a Rememory account
     # at invite time — lets that person accept/decline from their
     # notifications instead of being added immediately. Left null for
     # invites to people who don't have an account yet (they join
@@ -232,7 +232,7 @@ class GroupInvite(models.Model):
 
 class FriendInvite(models.Model):
     """An email-based friend invite sent to someone who doesn't have a
-    Memboard account yet. They become friends automatically once they
+    Rememory account yet. They become friends automatically once they
     register with that email address."""
     from_user  = models.ForeignKey(User, related_name='sent_friend_invites', on_delete=models.CASCADE)
     email      = models.EmailField()

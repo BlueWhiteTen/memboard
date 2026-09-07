@@ -1,4 +1,4 @@
-# Memboard v8
+# Rememory v8
 
 A Django-based shared memory-keeping app with rich social features, PWA support, and Cloudflare R2 photo storage.
 
@@ -38,7 +38,7 @@ This round focused on bug fixes and the design flaws flagged as most urgent.
 
 Deliberately **not** in this round (flagged for later, on request): moving photo
 storage to Cloudflare R2, and the SQLite→PostgreSQL item (which turned out to
-be about the separate *Vault* project, not Memboard).
+be about the separate *Vault* project, not Rememory).
 
 ### 🗑 Recycle bin, backups & on-this-day housekeeping
 
