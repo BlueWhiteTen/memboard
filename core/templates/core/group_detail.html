@@ -293,9 +293,9 @@
         <button class="cover-upload-btn" onclick="document.getElementById('cover-input').click()">
             📷 Change cover
         </button>
-        <form id="cover-form" method="post" action="{% url 'update_cover' group.pk %}" enctype="multipart/form-data" style="display:none;">
+        <form id="cover-form" method="post" action="{% url 'update_cover' group.pk %}" enctype="multipart/form-data" style="display:none;" onsubmit="return false;">
             {% csrf_token %}
-            <input type="file" id="cover-input" name="cover_photo" accept="image/*" onchange="document.getElementById('cover-form').submit()">
+            <input type="file" id="cover-input" name="cover_photo" accept="image/*" onchange="submitCoverForm()">
         </form>
         {% endif %}
     </div>
@@ -915,6 +915,17 @@ function removeAdmin(userId, btn) {
     .then(r => r.json()).then(data => {
         if (data.ok) { window.location.reload(); } else { alert(data.error || 'Could not remove admin.'); }
     });
+}
+
+function submitCoverForm() {
+    const form = document.getElementById('cover-form');
+    const fd = new FormData(form);
+    fetch(form.action, { method: 'POST', headers: {'X-CSRFToken': CSRF}, body: fd })
+        .then(r => r.json())
+        .then(data => {
+            if (data.ok) { window.location.reload(); } else { alert('Could not update the cover photo.'); }
+        })
+        .catch(() => alert('Could not update the cover photo.'));
 }
 
 function toggleBoardShare(enable) {

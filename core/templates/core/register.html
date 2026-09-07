@@ -104,13 +104,13 @@
                     <div class="field">
                         <label for="id_first_name">First name</label>
                         <input type="text" id="id_first_name" name="first_name"
-                               placeholder="Alex" value="{{ form.first_name.value|default:'' }}" required>
+                               placeholder="" value="{{ form.first_name.value|default:'' }}" required>
                         {% if form.first_name.errors %}<div class="field-error">{{ form.first_name.errors.0 }}</div>{% endif %}
                     </div>
                     <div class="field">
                         <label for="id_last_name">Last name</label>
                         <input type="text" id="id_last_name" name="last_name"
-                               placeholder="Smith" value="{{ form.last_name.value|default:'' }}" required>
+                               placeholder="" value="{{ form.last_name.value|default:'' }}" required>
                         {% if form.last_name.errors %}<div class="field-error">{{ form.last_name.errors.0 }}</div>{% endif %}
                     </div>
                 </div>
