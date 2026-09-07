@@ -131,6 +131,9 @@ DEFAULT_FROM_EMAIL = RESEND_FROM_EMAIL
 # Kept only for VAPID_ADMIN_EMAIL below (unused elsewhere) — harmless if unset.
 EMAIL_HOST_USER    = os.environ.get('EMAIL_HOST_USER', '')
 
+# Where "Report a problem" messages from the sidebar get sent.
+REPORT_PROBLEM_EMAIL = os.environ.get('REPORT_PROBLEM_EMAIL', 'memory.board.26@gmail.com')
+
 # Password reset
 PASSWORD_RESET_TIMEOUT = 86400
 

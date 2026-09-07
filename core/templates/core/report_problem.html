@@ -1,0 +1,61 @@
+{% extends 'core/base.html' %}
+{% block title %}Memboard – Report a problem{% endblock %}
+
+{% block extra_styles %}
+.page-header { padding:1.75rem 2.5rem 1.25rem; border-bottom:1px solid var(--border); background:var(--warm-white); display:flex; align-items:center; gap:0.75rem; }
+.back-btn { display:flex; align-items:center; gap:0.3rem; font-size:0.85rem; color:var(--ink-light); text-decoration:none; padding:0.3rem 0.6rem; border-radius:0; transition:background 0.12s; }
+.back-btn:hover { background:var(--amber-pale); color:var(--ink); }
+.back-btn svg { width:13px; height:13px; }
+.page-header h2 { font-family:'Spectral', serif; font-size:1.35rem; font-weight:600; color:var(--ink); }
+.page-content { padding:2rem 2.5rem; max-width:560px; }
+.page-intro { font-size:0.88rem; color:var(--ink-muted); margin-bottom:1.5rem; line-height:1.5; }
+
+.form-textarea { width:100%; border:1px solid var(--border-strong); border-radius:0; padding:0.75rem 0.9rem; font-family:'Spectral', serif; font-size:0.95rem; color:var(--ink); background:var(--warm-white); outline:none; resize:vertical; transition:border-color 0.15s,box-shadow 0.15s; }
+.form-textarea:focus { border-color:var(--amber); box-shadow:2px 2px 0 var(--amber); }
+.form-textarea::placeholder { color:var(--ink-muted); opacity:0.65; }
+.field-errors { color:#B14A3A; font-size:0.8rem; margin-top:0.4rem; }
+
+.form-actions { margin-top:1.25rem; }
+
+.sent-box {
+    background:var(--amber-pale); border:1px solid var(--amber);
+    padding:1.5rem; display:flex; flex-direction:column; gap:0.75rem;
+}
+.sent-box h3 { font-family:'Spectral', serif; font-size:1.1rem; color:var(--ink); }
+.sent-box p { font-size:0.88rem; color:var(--ink-light); }
+
+@media(max-width:680px){ .page-header,.page-content{padding:1.25rem;} }
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <a href="{% url 'home' %}" class="back-btn">
+        <svg viewBox="0 0 13 13" fill="none"><path d="M8.5 2L4 6.5l4.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back
+    </a>
+    <h2>Report a problem</h2>
+</div>
+<div class="page-content">
+    {% if sent %}
+    <div class="sent-box">
+        <h3>Thanks — that's been sent.</h3>
+        <p>Your message has been emailed over. If it's something we need to follow up with you about, we'll reach out at {{ request.user.email }}.</p>
+        <div>
+            <a href="{% url 'home' %}" class="btn btn-ghost btn-sm">Back to home</a>
+        </div>
+    </div>
+    {% else %}
+    <p class="page-intro">Something not working right, or looking off? Describe it below and it'll be sent straight to us — no need to open an email client.</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.message }}
+        {% if form.message.errors %}
+        <div class="field-errors">{{ form.message.errors.0 }}</div>
+        {% endif %}
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Send report</button>
+        </div>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

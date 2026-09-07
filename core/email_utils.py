@@ -80,6 +80,27 @@ def send_weekly_digest_email(user, memories):
     return send_notification_email(user, "Your Memboard weekly digest", body)
 
 
+def send_problem_report_email(user, message):
+    """Sends a user's 'Report a problem' message to the site's support
+    inbox (settings.REPORT_PROBLEM_EMAIL), not to the user themselves.
+    Returns (ok, error_message).
+    """
+    to_email = getattr(settings, 'REPORT_PROBLEM_EMAIL', None)
+    if not to_email:
+        return False, "No report recipient configured."
+    subject = "Memboard problem report from {} {}".format(user.first_name, user.last_name)
+    body = (
+        "{} {} ({}) reported a problem on Memboard:\n\n"
+        "{}\n"
+    ).format(user.first_name, user.last_name, user.email, message)
+    try:
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [to_email])
+        return True, None
+    except Exception as e:
+        logger.exception("Failed to send problem report email from user %s", user.pk)
+        return False, str(e)
+
+
 def send_password_reset_email(user, reset_url):
     subject = "Reset your Memboard password"
     body = (

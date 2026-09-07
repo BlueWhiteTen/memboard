@@ -221,6 +221,13 @@
         }
         .logout-form button:hover { background: var(--cream); color: var(--ink); box-shadow: var(--shadow-ink-sm); }
 
+        .report-problem-link {
+            display: block; text-align: center; margin-top: 0.65rem;
+            font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
+            letter-spacing: 0.03em; color: var(--ink-muted); text-decoration: none;
+        }
+        .report-problem-link:hover { color: var(--amber); text-decoration: underline; }
+
         .theme-toggle-row {
             display: flex; align-items: center; justify-content: space-between;
             margin-bottom: 0.75rem; font-size: 0.8rem; color: var(--ink-light);
@@ -394,6 +401,7 @@
             {% csrf_token %}
             <button type="submit">Sign out</button>
         </form>
+        <a href="{% url 'report_problem' %}" class="report-problem-link">Report a problem</a>
     </div>
 </aside>
 {% endif %}

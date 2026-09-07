@@ -27,9 +27,9 @@ from .models import (
 from .forms import (
     RegisterForm, EmailAuthenticationForm, GroupForm, GroupCoverForm,
     MemoryForm, EditMemoryForm, FriendRequestForm,
-    GroupSettingsForm, FriendGroupForm, ProfileForm,
+    GroupSettingsForm, FriendGroupForm, ProfileForm, ReportProblemForm,
 )
-from .email_utils import send_invite_email, send_friend_invite_email
+from .email_utils import send_invite_email, send_friend_invite_email, send_problem_report_email
 from .on_this_day import get_on_this_day_memories
 
 
@@ -290,6 +290,28 @@ def notifications_view(request):
         'notifs':        notifs,
         'user_initials': get_initials(user),
         'user_display':  get_display_name(user),
+    })
+
+
+@login_required
+def report_problem_view(request):
+    sent = False
+    if request.method == 'POST':
+        form = ReportProblemForm(request.POST)
+        if form.is_valid():
+            ok, _err = send_problem_report_email(request.user, form.cleaned_data['message'])
+            if ok:
+                sent = True
+                form = ReportProblemForm()
+            else:
+                messages.error(request, "Couldn't send your report just now — please try again in a moment.")
+    else:
+        form = ReportProblemForm()
+    return render(request, 'core/report_problem.html', {
+        'form':          form,
+        'sent':          sent,
+        'user_initials': get_initials(request.user),
+        'user_display':  get_display_name(request.user),
     })
 
 

@@ -10,6 +10,9 @@ urlpatterns = [
     # Search
     path('search/', views.search_view, name='search'),
 
+    # Report a problem
+    path('report-problem/', views.report_problem_view, name='report_problem'),
+
     # Notifications
     path('notifications/',               views.notifications_view,    name='notifications'),
     path('notifications/<int:pk>/read/', views.mark_notif_read_view,  name='mark_notif_read'),

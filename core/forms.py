@@ -284,6 +284,17 @@ class FriendRequestForm(forms.Form):
         return q
 
 
+class ReportProblemForm(forms.Form):
+    message = forms.CharField(
+        label='',
+        widget=forms.Textarea(attrs={
+            'placeholder': "What went wrong? The more detail, the easier it is to track down…",
+            'class': 'form-textarea', 'rows': 7,
+        }),
+        max_length=4000,
+    )
+
+
 class ProfileForm(forms.ModelForm):
     class Meta:
         model  = UserProfile
