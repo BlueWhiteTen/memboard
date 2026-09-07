@@ -41,7 +41,12 @@
 .memories-grid {
     columns: 4; column-gap: 0.75rem;
 }
-.memory-wrapper { break-inside: avoid; margin-bottom: 0.75rem; }
+/* padding-top (rather than a negative-margin/overflow trick) reserves real,
+   non-collapsing space for the .memory-tape strip that hangs above each
+   card — needed because the masonry "columns" layout below treats each
+   wrapper as a fragmented unit and can clip anything that overflows its
+   own box, even with overflow:visible set. */
+.memory-wrapper { break-inside: avoid; margin-bottom: 0.4rem; padding-top: 10px; }
 .memory-card {
     position: relative; border-radius:0; height: 224px;
     background: var(--warm-white);
