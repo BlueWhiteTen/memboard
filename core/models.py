@@ -179,7 +179,7 @@ class UserProfile(models.Model):
     push_p256dh    = models.TextField(blank=True)
     push_auth      = models.TextField(blank=True)
     weekly_digest  = models.BooleanField(default=True)
-    theme          = models.CharField(max_length=10, choices=THEME_CHOICES, default='system')
+    theme          = models.CharField(max_length=10, choices=THEME_CHOICES, default='light')
 
     # Personal info shown on the profile page — visible to friends or kept
     # private, controlled by info_visibility (one toggle for the whole bundle).

@@ -20,8 +20,8 @@
     border-bottom: 4px solid var(--border-strong); padding-bottom: 1rem; margin-bottom: 1.6rem;
     display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 0.8rem;
 }
-.mh-title { font-family: 'Big Shoulders Display', sans-serif; font-weight: 800; font-size: 2rem; text-transform: uppercase; letter-spacing: 0.01em; }
-.mh-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--ink-muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.mh-title { font-family: 'Spectral', serif; font-weight: 800; font-size: 2rem; text-transform: uppercase; letter-spacing: 0.01em; }
+.mh-sub { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--ink-muted); letter-spacing: 0.04em; text-transform: uppercase; }
 
 /* stat gauges */
 .gauges { display: flex; gap: 0.9rem; margin: 1.4rem 0 2.2rem; flex-wrap: wrap; }
@@ -29,29 +29,29 @@
 .gauge:nth-child(2) { transform: rotate(0.5deg); }
 .gauge:nth-child(3) { transform: rotate(-0.4deg); }
 .gauge:nth-child(4) { transform: rotate(0.3deg); }
-.gauge b { display: block; font-family: 'JetBrains Mono', monospace; font-size: 1.9rem; color: var(--coral); font-variant-numeric: tabular-nums; }
+.gauge b { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 1.9rem; color: var(--coral); font-variant-numeric: tabular-nums; }
 .gauge span { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-muted); font-weight: 700; }
 
 .section-title {
-    font-family: 'Big Shoulders Display', sans-serif; font-weight: 800; font-size: 1.2rem; text-transform: uppercase;
+    font-family: 'Spectral', serif; font-weight: 800; font-size: 1.2rem; text-transform: uppercase;
     margin: 0 0 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
 }
-.section-title .see { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--amber); font-weight: 600; text-transform: none; text-decoration: none; }
+.section-title .see { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--amber); font-weight: 600; text-transform: none; text-decoration: none; }
 
 /* On this day — vertical stack in the home-side rail */
 .otd-stack { display: flex; flex-direction: column; gap: 0.9rem; margin-bottom: 2.4rem; }
 .otd-card { border: 2.5px solid var(--border-strong); background: var(--warm-white); padding: 0.85rem 1rem; position: relative; box-shadow: var(--shadow-ink-sm); }
 .otd-card:nth-child(odd) { transform: rotate(-0.5deg); }
 .otd-card:nth-child(even) { transform: rotate(0.4deg); }
-.otd-year { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; color: var(--coral); text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 0.4rem; font-weight: 700; }
+.otd-year { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--coral); text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 0.4rem; font-weight: 700; }
 .otd-text { font-size: 0.85rem; color: var(--ink); font-weight: 600; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.otd-board { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--ink-muted); margin-top: 0.5rem; }
+.otd-board { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--ink-muted); margin-top: 0.5rem; }
 
 /* Shared with me */
 .shared-list { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 2.4rem; }
 .shared-item { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; border: 2px dashed var(--border-strong); padding: 0.6rem 0.9rem; font-size: 0.88rem; font-weight: 600; flex-wrap: wrap; }
 .shared-item .owner { font-weight: 400; color: var(--ink-muted); font-size: 0.8rem; }
-.btn-request { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; border: 2px solid var(--border-strong); background: var(--amber); color: var(--warm-white); padding: 0.35rem 0.7rem; box-shadow: var(--shadow-ink-sm); cursor: pointer; }
+.btn-request { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; border: 2px solid var(--border-strong); background: var(--amber); color: var(--warm-white); padding: 0.35rem 0.7rem; box-shadow: var(--shadow-ink-sm); cursor: pointer; }
 .btn-request:disabled { opacity: 0.55; cursor: default; background: var(--ink-muted); box-shadow: none; }
 
 /* Boards as flyers */
@@ -64,25 +64,25 @@
 .flyer-photo.no-photo { background: repeating-linear-gradient(135deg, var(--amber-pale), var(--amber-pale) 10px, var(--warm-white) 10px, var(--warm-white) 20px); }
 .flyer-body { padding: 0.9rem 1.05rem 1.05rem; }
 .flyer-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; }
-.flyer h3 { font-family: 'Big Shoulders Display', sans-serif; font-size: 1.25rem; text-transform: uppercase; margin: 0.1rem 0 0.35rem; line-height: 1.05; }
+.flyer h3 { font-family: 'Spectral', serif; font-size: 1.25rem; text-transform: uppercase; margin: 0.1rem 0 0.35rem; line-height: 1.05; }
 .flyer .desc { font-size: 0.78rem; color: var(--ink-muted); margin-bottom: 0.6rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .flyer .row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
-.flyer .m { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--ink-muted); }
-.badge { display: inline-flex; align-items: center; gap: 0.25rem; border: 2px solid var(--border-strong); background: var(--yellow); font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.6rem; text-transform: uppercase; padding: 0.1rem 0.5rem; box-shadow: var(--shadow-ink-sm); flex-shrink: 0; white-space: nowrap; }
+.flyer .m { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--ink-muted); }
+.badge { display: inline-flex; align-items: center; gap: 0.25rem; border: 2px solid var(--border-strong); background: var(--yellow); font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 0.6rem; text-transform: uppercase; padding: 0.1rem 0.5rem; box-shadow: var(--shadow-ink-sm); flex-shrink: 0; white-space: nowrap; }
 
 .empty-state { text-align: center; padding: 3.5rem 2rem; background: var(--warm-white); border: 2.5px dashed var(--border-strong); margin-bottom: 2.5rem; }
-.empty-state h3 { font-family: 'Big Shoulders Display', sans-serif; font-size: 1.3rem; text-transform: uppercase; color: var(--ink); margin-bottom: 0.4rem; }
+.empty-state h3 { font-family: 'Spectral', serif; font-size: 1.3rem; text-transform: uppercase; color: var(--ink); margin-bottom: 0.4rem; }
 .empty-state p { font-size: 0.875rem; color: var(--ink-muted); margin-bottom: 1.5rem; }
 
 /* Onboarding (no friends yet) */
 .onboard-card { background: var(--amber-pale); border: 2.5px solid var(--border-strong); padding: 1.15rem 1.4rem; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; box-shadow: var(--shadow-ink); }
-.onboard-card h3 { font-family: 'Big Shoulders Display', sans-serif; font-size: 1.15rem; text-transform: uppercase; color: var(--ink); margin-bottom: 0.3rem; }
+.onboard-card h3 { font-family: 'Spectral', serif; font-size: 1.15rem; text-transform: uppercase; color: var(--ink); margin-bottom: 0.3rem; }
 .onboard-card p { font-size: 0.85rem; color: var(--ink-light); max-width: 480px; }
 
 /* Friends row */
 .friends-row { display: flex; gap: 0.65rem; flex-wrap: wrap; align-items: center; margin-bottom: 1rem; }
 .friend-chip { display: flex; align-items: center; justify-content: center; padding: 0; border-radius: 50%; text-decoration: none; color: var(--ink); }
-.fav { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border-strong); background: var(--yellow); display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; box-shadow: var(--shadow-ink-sm); }
+.fav { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border-strong); background: var(--yellow); display: flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; box-shadow: var(--shadow-ink-sm); }
 .friend-chip:nth-child(4n+2) .fav { background: var(--amber-pale); }
 .friend-chip:nth-child(4n+3) .fav { background: #FFD8CF; }
 .friend-chip:nth-child(4n+4) .fav { background: #DFF5DA; }

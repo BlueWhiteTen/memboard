@@ -29,5 +29,5 @@ def sidebar_context(request):
         'sidebar_groups': [],
         'sidebar_groups_count': 0,
         'pending_requests': [],
-        'user_theme': 'system',
+        'user_theme': 'light',
     }
