@@ -44,6 +44,7 @@
 .memory-wrapper { break-inside: avoid; margin-bottom: 0.75rem; }
 .memory-card {
     position: relative; border-radius:0; height: 224px;
+    background: var(--warm-white);
     box-shadow: 2px 3px 10px rgba(23, 23, 26,0.13), 0 1px 3px rgba(23, 23, 26,0.08);
     /* overflow stays visible (not hidden) so the reaction picker popup and
        the comments popover — both absolutely-positioned children — aren't
@@ -72,8 +73,21 @@
 .memory-card.pinned { box-shadow: 0 0 0 2px var(--amber), 2px 3px 10px rgba(23, 23, 26,0.13); }
 .memory-card.pinned:hover { box-shadow: 0 0 0 2px var(--amber), 6px 8px 24px rgba(23, 23, 26,0.28); }
 .memory-inner { padding: 0.75rem 0.65rem 0.55rem; }
-.pin-badge { position: absolute; top: 8px; right: 8px; font-size: 0.9rem; }
-.media-badge { position: absolute; top: 8px; left: 8px; font-size: 0.85rem; background:rgba(23,23,26,0.55); color:#fff; padding:1px 6px; border-radius:10px; letter-spacing:2px; }
+.pin-badge { position: absolute; top: 8px; right: 8px; font-size: 0.9rem; z-index: 7; }
+.media-badge { position: absolute; top: 8px; left: 8px; font-size: 0.85rem; background:rgba(23,23,26,0.55); color:#fff; padding:1px 6px; border-radius:10px; letter-spacing:2px; z-index: 7; }
+/* Colour tag rendered as a small semi-transparent strip of "tape" stuck to
+   the top of the card, instead of the card's whole surface being a solid
+   colour — the card itself stays on the same parchment paper as the rest
+   of the site, in either light or dark mode. */
+.memory-tape {
+    position: absolute; top: -8px; left: 50%; margin-left: -29px;
+    width: 58px; height: 18px; opacity: 0.62; transform: rotate(-3deg);
+    box-shadow: 0 2px 3px rgba(0,0,0,0.28); z-index: 6; pointer-events: none;
+}
+.memory-tape::after {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(115deg, rgba(255,255,255,0.4) 0 2px, transparent 2px 5px);
+}
 .memory-photo { width:100%; max-height:150px; object-fit:cover; display:block; }
 /* Photo lives in a column on the left (~25% of the card), text to its
    right — rather than a photo strip across the top. */
@@ -81,23 +95,23 @@
 .memory-card.has-photo .memory-photo-col { flex: 0 0 25%; max-width: 25%; position: relative; overflow: hidden; }
 .memory-card.has-photo .memory-photo-col .memory-photo { width: 100%; height: 100%; max-height: none; }
 .memory-card.has-photo .memory-inner { flex: 1 1 auto; min-width: 0; }
-/* Note paper stays the same bright color in light or dark mode, so its text
-   is pinned to a fixed dark ink (not the var(--ink) token, which flips light
-   in dark mode) with a soft light shadow to lift it off the paper. */
-.memory-title { font-weight:700; font-size:1.08rem; margin-bottom:0.35rem; color:#17171A; text-shadow:0 1px 0 rgba(255,255,255,0.4); }
-.memory-content { font-size:1rem; line-height:1.45; color:#17171A; white-space:pre-wrap; text-shadow:0 1px 0 rgba(255,255,255,0.35); }
-.memory-meta { font-size:0.72rem; color:rgba(23,23,26,0.72); margin-top:0.65rem; display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; }
-.creator-av { width:22px; height:22px; border-radius:50%; background:rgba(255,255,255,0.55); color:var(--ink); border:1.5px solid rgba(23,23,26,0.35); display:inline-flex; align-items:center; justify-content:center; font-size:0.6rem; font-weight:700; flex-shrink:0; box-sizing:border-box; }
+/* The card is now plain parchment (see .memory-card), so its text follows
+   the normal theme ink tokens like the rest of the site instead of being
+   pinned to a fixed dark color for contrast against a bright note color. */
+.memory-title { font-weight:700; font-size:1.08rem; margin-bottom:0.35rem; color:var(--ink); }
+.memory-content { font-size:1rem; line-height:1.45; color:var(--ink); white-space:pre-wrap; }
+.memory-meta { font-size:0.72rem; color:var(--ink-muted); margin-top:0.65rem; display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; }
+.creator-av { width:22px; height:22px; border-radius:50%; background:var(--amber-pale); color:var(--amber); border:1.5px solid var(--border); display:inline-flex; align-items:center; justify-content:center; font-size:0.6rem; font-weight:700; flex-shrink:0; box-sizing:border-box; }
 .creator-name { font-weight:600; }
 .quickpick-list { margin-top:0.5rem; max-height:160px; overflow-y:auto; display:flex; flex-direction:column; gap:0.3rem; }
 .quickpick-row { display:flex; align-items:center; gap:0.5rem; width:100%; text-align:left; padding:0.45rem 0.6rem; background:var(--cream); border:1px solid var(--border); font-family:inherit; font-size:0.82rem; color:var(--ink); cursor:pointer; transition:background 0.12s; }
 .quickpick-row:hover { background:var(--amber-pale); }
 .quickpick-row:disabled { opacity:0.6; cursor:default; }
 .quickpick-count { margin-left:auto; font-size:0.7rem; color:var(--ink-muted); flex-shrink:0; }
-.memory-date-badge { font-size:0.7rem; color:rgba(23,23,26,0.72); }
-.memory-loc { font-size:0.7rem; color:rgba(23,23,26,0.72); display:flex; align-items:center; gap:0.2rem; }
+.memory-date-badge { font-size:0.7rem; color:var(--ink-muted); }
+.memory-loc { font-size:0.7rem; color:var(--ink-muted); display:flex; align-items:center; gap:0.2rem; }
 .tagged-list { display:flex; gap:0.3rem; flex-wrap:wrap; margin-top:0.5rem; }
-.tag-chip { font-size:0.68rem; padding:1px 6px; border-radius:0; background:rgba(23, 23, 26,0.08); color:var(--ink-muted); }
+.tag-chip { font-size:0.68rem; padding:1px 6px; border-radius:0; background:var(--amber-pale); color:var(--ink-muted); }
 
 /* Reactions */
 .memory-reactions { display:flex; gap:0.3rem; flex-wrap:wrap; margin-top:0.6rem; align-items:center; }
@@ -258,7 +272,8 @@
 .memory-view-photo-col { flex: 1 1 50%; background: #17171a; display: flex; flex-direction: column; align-items: center; overflow-y: auto; max-height: 88vh; }
 .memory-view-photo-col img { width: 100%; max-height: 88vh; object-fit: contain; cursor: zoom-in; flex-shrink: 0; }
 .memory-view-photo-col img:not(:first-child) { border-top: 2px solid #17171a; }
-.memory-view-info-col { flex: 1 1 50%; padding: 2rem 1.75rem 1.75rem; overflow-y: auto; max-height: 88vh; }
+.memory-view-info-col { flex: 1 1 50%; padding: 2rem 1.75rem 1.75rem; overflow-y: auto; max-height: 88vh; position: relative; background: var(--warm-white); }
+.memory-view-info-col .memory-tape { top: 10px; left: 1.75rem; margin-left: 0; }
 .memory-view-body.no-photo .memory-view-info-col { flex: 1 1 100%; }
 .memory-view-info-col .memory-title { font-size: 1.35rem; margin-bottom: 0.6rem; }
 .memory-view-info-col .memory-content { font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem; white-space: pre-wrap; }
@@ -408,7 +423,6 @@
             {% for memory in memories %}
             <div class="memory-wrapper">
             <div class="memory-card {% if memory.is_pinned %}pinned{% endif %} {% if memory.card_photo_url %}has-photo{% endif %}"
-                 style="background: var(--note-{{ memory.colour }});"
                  id="memory-{{ memory.pk }}"
                  data-created-at="{{ memory.created_at|date:'M j, Y, g:i A' }}"
                  data-video-url="{% if memory.video %}{{ memory.video.url }}{% endif %}"
@@ -416,7 +430,9 @@
                  data-photo-urls='{{ memory.photo_urls_json }}'
                  data-can-share="{% if memory.user_can_share %}1{% else %}0{% endif %}"
                  data-share-url="{{ memory.share_url }}"
+                 data-colour="{{ memory.colour }}"
                  onclick="openMemoryView({{ memory.pk }}, event)">
+                {% if memory.colour %}<span class="memory-tape" style="background: var(--note-{{ memory.colour }});" title="{{ memory.colour|title }}"></span>{% endif %}
                 <input type="checkbox" class="select-checkbox" onclick="event.stopPropagation(); toggleMemorySelect({{ memory.pk }}, this)" title="Select this memory">
                 {% if memory.video or memory.voice_note %}
                 <span class="media-badge" title="{% if memory.video %}Has a video clip{% endif %}{% if memory.video and memory.voice_note %} & {% endif %}{% if memory.voice_note %}Has a voice note{% endif %}">
@@ -1323,10 +1339,13 @@ function openMemoryView(memPk, evt) {
     const photosHtml = photoUrls.map(url =>
         `<img src="${url}" alt="" onclick="openLightbox('${url}')">`).join('');
 
+    const colour = card.dataset.colour || '';
+    const tapeHtml = colour ? `<span class="memory-tape" style="background: var(--note-${colour});" title="${colour}"></span>` : '';
+
     document.getElementById('memory-view-content').innerHTML = `
-        <div class="memory-view-body ${hasPhoto ? '' : 'no-photo'}" style="background:${card.style.background || 'var(--warm-white)'};">
+        <div class="memory-view-body ${hasPhoto ? '' : 'no-photo'}">
             ${hasPhoto ? `<div class="memory-view-photo-col">${photosHtml}</div>` : ''}
-            <div class="memory-view-info-col">${infoHtml}</div>
+            <div class="memory-view-info-col">${tapeHtml}${infoHtml}</div>
         </div>`;
 
     const viewModal = document.getElementById('memory-view-modal');
