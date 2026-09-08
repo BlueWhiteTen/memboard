@@ -116,6 +116,12 @@ THEME_CHOICES = [
     ('dark',   'Dark'),
 ]
 
+BOARD_SORT_CHOICES = [
+    ('recent',       'Most recently updated'),
+    ('alphabetical', 'Alphabetical'),
+    ('custom',       'Custom'),
+]
+
 PROFILE_VISIBILITY_CHOICES = [
     ('friends', 'Visible to friends'),
     ('private', 'Only me'),
@@ -186,6 +192,11 @@ class UserProfile(models.Model):
     # timestamp while that view is building the page — null on a user's very
     # first visit, when there's nothing to compare against yet.
     last_seen_home_at = models.DateTimeField(null=True, blank=True)
+
+    # Which order "Your Boards" is shown in on the home page — remembered
+    # per-user rather than per-board, since two people sharing a board may
+    # each want it sorted differently.
+    board_sort_mode = models.CharField(max_length=15, choices=BOARD_SORT_CHOICES, default='recent')
 
     # Personal info shown on the profile page — visible to friends or kept
     # private, controlled by info_visibility (one toggle for the whole bundle).
@@ -320,6 +331,28 @@ class Group(models.Model):
         if self.privacy == 'friend_group' and self.visible_to_group_id:
             return self.visible_to_group.members.filter(pk=user.pk).exists()
         return False
+
+
+class BoardOrder(models.Model):
+    """Per-user placement for a board on that user's home dashboard — pin
+    state and a custom drag position. Deliberately keyed by (user, group)
+    rather than living on Group itself, since two people sharing a board
+    may each want it pinned or ordered differently.
+
+    A row here is only created once a user actually pins a board or drags
+    it while in custom-sort mode — most boards never get one, and just fall
+    back to the active sort mode's natural order (or, in custom mode, to
+    the end of the list, ordered by when they were created)."""
+    user       = models.ForeignKey(User, on_delete=models.CASCADE, related_name='board_orders')
+    group      = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='user_orders')
+    pinned     = models.BooleanField(default=False)
+    sort_order = models.FloatField(default=0)
+
+    class Meta:
+        unique_together = ('user', 'group')
+
+    def __str__(self):
+        return f"{self.user} / {self.group} (pinned={self.pinned}, order={self.sort_order})"
 
 
 class BoardJoinRequest(models.Model):

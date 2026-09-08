@@ -34,6 +34,15 @@ textarea.form-input { resize:vertical; min-height:80px; }
 .extra-photo-thumb { display:flex; flex-direction:column; align-items:center; gap:0.25rem; cursor:pointer; }
 .extra-photo-thumb img { width:64px; height:64px; object-fit:cover; border:1px solid var(--border); }
 .extra-photo-remove { font-size:0.68rem; color:#B83232; display:flex; align-items:center; gap:0.2rem; }
+.unified-upload-current { display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center; margin-bottom:0.5rem; font-size:0.78rem; color:var(--ink-muted); }
+.unified-upload-current a { color:var(--amber); }
+.unified-upload-current .u-current-item { display:flex; align-items:center; gap:0.3rem; padding:0.2rem 0.5rem; border:1px solid var(--border); background:var(--cream); }
+.unified-upload-hint { font-size:0.72rem; color:var(--ink-muted); margin-top:0.3rem; }
+.unified-upload-list { display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.6rem; }
+.unified-upload-chip { display:flex; align-items:center; gap:0.4rem; padding:0.3rem 0.5rem; border:1px solid var(--border-strong); background:var(--warm-white); font-size:0.78rem; color:var(--ink); max-width:220px; }
+.unified-upload-chip .u-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.unified-upload-chip .u-remove { cursor:pointer; color:#B83232; font-weight:700; flex-shrink:0; padding:0 0.15rem; }
+.unified-upload-chip.u-ignored { opacity:0.55; text-decoration:line-through; }
 </style>
 
 <input type="hidden" name="colour" id="{{ prefix }}-colour-field" value="{{ memory.colour|default:'yellow' }}">
@@ -70,42 +79,32 @@ textarea.form-input { resize:vertical; min-height:80px; }
 </div>
 
 <div class="form-group">
-    <label class="form-label">🖼 Photo</label>
-    {% if memory.photo %}
-    <div style="margin-bottom:0.4rem;font-size:0.78rem;color:var(--ink-muted);">Current: <a href="{{ memory.photo.url }}" target="_blank" rel="noopener">view photo</a> — choose a new file to replace it.</div>
-    {% endif %}
-    <input type="file" name="photo" class="form-input" accept="image/*" style="padding:0.35rem;">
-</div>
+    <label class="form-label">📎 Photos, video, or a voice note</label>
 
-<div class="form-group">
-    <label class="form-label">🖼🖼 Additional photos <span style="font-weight:400;color:var(--ink-muted);">(optional — e.g. more shots from a trip)</span></label>
-    {% if extra_photos %}
-    <div class="extra-photos-current">
+    {% if memory.photo or memory.video or memory.voice_note or extra_photos %}
+    <div class="unified-upload-current">
+        {% if memory.photo %}<span class="u-current-item">🖼 <a href="{{ memory.photo.url }}" target="_blank" rel="noopener">photo</a></span>{% endif %}
         {% for p in extra_photos %}
-        <label class="extra-photo-thumb">
-            <img src="{{ p.photo.url }}" alt="">
-            <span class="extra-photo-remove"><input type="checkbox" name="remove_photo" value="{{ p.pk }}"> Remove</span>
-        </label>
+        <span class="u-current-item">🖼 <a href="{{ p.photo.url }}" target="_blank" rel="noopener">extra photo</a> <label style="cursor:pointer;color:#B83232;"><input type="checkbox" name="remove_photo" value="{{ p.pk }}"> remove</label></span>
         {% endfor %}
+        {% if memory.video %}<span class="u-current-item">🎬 <a href="{{ memory.video.url }}" target="_blank" rel="noopener">video</a></span>{% endif %}
+        {% if memory.voice_note %}<span class="u-current-item">🎙 <a href="{{ memory.voice_note.url }}" target="_blank" rel="noopener">voice note</a></span>{% endif %}
     </div>
+    <div class="unified-upload-hint">Picking a new photo, video, or voice note below replaces the matching one above.</div>
     {% endif %}
-    <input type="file" name="extra_photos" class="form-input" accept="image/*" multiple style="padding:0.35rem;">
-</div>
 
-<div class="form-group">
-    <label class="form-label">🎬 Video clip <span style="font-weight:400;color:var(--ink-muted);">(optional, up to 50MB)</span></label>
-    {% if memory.video %}
-    <div style="margin-bottom:0.4rem;font-size:0.78rem;color:var(--ink-muted);">Current: <a href="{{ memory.video.url }}" target="_blank" rel="noopener">view clip</a> — choose a new file to replace it.</div>
-    {% endif %}
-    <input type="file" name="video" class="form-input" accept="video/*" style="padding:0.35rem;">
-</div>
+    <input type="file" id="{{ prefix }}-unified-input" class="form-input" accept="image/*,video/*,audio/*" multiple style="padding:0.35rem;" onchange="handleUnifiedUpload('{{ prefix }}', this.files)">
+    <div class="unified-upload-hint">Add any mix of photos, one video clip (up to 50MB), and one voice note (up to 15MB) — they'll sort themselves out.</div>
+    <div id="{{ prefix }}-unified-list" class="unified-upload-list"></div>
 
-<div class="form-group">
-    <label class="form-label">🎙 Voice note <span style="font-weight:400;color:var(--ink-muted);">(optional, up to 15MB)</span></label>
-    {% if memory.voice_note %}
-    <div style="margin-bottom:0.4rem;font-size:0.78rem;color:var(--ink-muted);">Current: <a href="{{ memory.voice_note.url }}" target="_blank" rel="noopener">listen</a> — choose a new file to replace it.</div>
-    {% endif %}
-    <input type="file" name="voice_note" class="form-input" accept="audio/*" style="padding:0.35rem;">
+    <!-- Real fields submitted with the form — kept in sync from the unified
+         picker above via DataTransfer rather than shown directly, since the
+         underlying model still stores one photo + many extra photos + one
+         video + one voice note. -->
+    <input type="file" name="photo" id="{{ prefix }}-photo-input" accept="image/*" style="display:none;">
+    <input type="file" name="extra_photos" id="{{ prefix }}-extra-input" accept="image/*" multiple style="display:none;">
+    <input type="file" name="video" id="{{ prefix }}-video-input" accept="video/*" style="display:none;">
+    <input type="file" name="voice_note" id="{{ prefix }}-voice-input" accept="audio/*" style="display:none;">
 </div>
 
 <div class="form-group">
@@ -161,6 +160,98 @@ function setMemoryColour(prefix, c, el) {
     el.classList.add('selected');
 }
 function setMemoryPerm(prefix, p) { document.getElementById(prefix + '-perm-field').value = p; }
+
+// Unified upload box — one picker for photos/video/voice note. Files
+// accumulate here across multiple picks (like an email attach list) and get
+// redistributed into the real, hidden per-type inputs the form actually
+// submits, since the backend model still stores one photo + many extra
+// photos + one video + one voice note. Keyed by prefix so the Add and Edit
+// modals (both including this partial) keep separate state.
+window._unifiedFiles = window._unifiedFiles || {};
+// Reset this instance's bucket whenever its script (re)runs — matters for
+// the Edit modal, whose fragment (partial + this script) is re-fetched
+// fresh each time it opens, so files picked while editing one memory never
+// leak into editing another.
+window._unifiedFiles['{{ prefix }}'] = [];
+
+function fileKey(f) { return f.name + '|' + f.size + '|' + f.lastModified; }
+
+function handleUnifiedUpload(prefix, fileList) {
+    const bucket = window._unifiedFiles[prefix] || (window._unifiedFiles[prefix] = []);
+    const existingKeys = new Set(bucket.map(fileKey));
+    for (const f of fileList) {
+        if (existingKeys.has(fileKey(f))) continue;
+        let kind = null;
+        if (f.type.startsWith('image/')) kind = 'image';
+        else if (f.type.startsWith('video/')) kind = 'video';
+        else if (f.type.startsWith('audio/')) kind = 'audio';
+        else continue; // not a type this box accepts
+        bucket.push({ file: f, kind });
+    }
+    document.getElementById(prefix + '-unified-input').value = '';
+    renderUnifiedUpload(prefix);
+}
+
+function removeUnifiedFile(prefix, idx) {
+    window._unifiedFiles[prefix].splice(idx, 1);
+    renderUnifiedUpload(prefix);
+}
+
+function renderUnifiedUpload(prefix) {
+    const bucket = window._unifiedFiles[prefix] || [];
+    const list = document.getElementById(prefix + '-unified-list');
+
+    // Only the first video and first voice note picked are kept — the
+    // model has room for one of each per memory. Extras still show in the
+    // list (so it's clear they were picked) but crossed out and excluded
+    // from what actually gets submitted.
+    let videoSeen = false, voiceSeen = false;
+    const icons = { image: '🖼', video: '🎬', audio: '🎙' };
+    list.innerHTML = bucket.map((entry, i) => {
+        let ignored = false;
+        if (entry.kind === 'video') { ignored = videoSeen; videoSeen = true; }
+        if (entry.kind === 'audio') { ignored = voiceSeen; voiceSeen = true; }
+        entry.ignored = ignored;
+        const sizeKb = Math.round(entry.file.size / 1024);
+        const title = ignored
+            ? (entry.kind === 'video' ? 'Only one video clip per memory — this one is ignored.' : 'Only one voice note per memory — this one is ignored.')
+            : `${sizeKb} KB`;
+        return `<span class="unified-upload-chip${ignored ? ' u-ignored' : ''}" title="${title}">
+            ${icons[entry.kind]} <span class="u-name">${entry.file.name}</span>
+            <span class="u-remove" onclick="removeUnifiedFile('${prefix}', ${i})">×</span>
+        </span>`;
+    }).join('');
+
+    syncUnifiedInputs(prefix);
+}
+
+function syncUnifiedInputs(prefix) {
+    const bucket = window._unifiedFiles[prefix] || [];
+    const images = bucket.filter(e => e.kind === 'image').map(e => e.file);
+    const video  = bucket.find(e => e.kind === 'video' && !e.ignored);
+    const voice  = bucket.find(e => e.kind === 'audio' && !e.ignored);
+
+    const photoInput = document.getElementById(prefix + '-photo-input');
+    const extraInput = document.getElementById(prefix + '-extra-input');
+    const videoInput = document.getElementById(prefix + '-video-input');
+    const voiceInput = document.getElementById(prefix + '-voice-input');
+
+    const photoDT = new DataTransfer();
+    if (images[0]) photoDT.items.add(images[0]);
+    photoInput.files = photoDT.files;
+
+    const extraDT = new DataTransfer();
+    images.slice(1).forEach(f => extraDT.items.add(f));
+    extraInput.files = extraDT.files;
+
+    const videoDT = new DataTransfer();
+    if (video) videoDT.items.add(video.file);
+    videoInput.files = videoDT.files;
+
+    const voiceDT = new DataTransfer();
+    if (voice) voiceDT.items.add(voice.file);
+    voiceInput.files = voiceDT.files;
+}
 
 // Location autocomplete using Nominatim
 function onMemoryLocationInput(prefix) {

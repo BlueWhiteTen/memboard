@@ -3,7 +3,8 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Max
+from django.db.models.functions import Coalesce
 from django.http import JsonResponse, HttpResponseForbidden, Http404, HttpResponse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -20,9 +21,9 @@ from django.conf import settings
 from .models import (
     Group, Memory, MemoryPhoto, Friendship, FriendRequest, UserProfile,
     GroupInvite, FriendInvite, Reaction, Comment, Notification, ActivityLog,
-    FriendGroup, BoardJoinRequest,
+    FriendGroup, BoardJoinRequest, BoardOrder,
     FONT_CHOICES, REACTION_CHOICES, COLOUR_CHOICES, THEME_CHOICES, PRIVACY_CHOICES,
-    MEMORY_DELETE_PERMISSION_CHOICES, BOARD_DELETE_PERMISSION_CHOICES,
+    MEMORY_DELETE_PERMISSION_CHOICES, BOARD_DELETE_PERMISSION_CHOICES, BOARD_SORT_CHOICES,
 )
 from .forms import (
     RegisterForm, EmailAuthenticationForm, GroupForm, GroupCoverForm,
@@ -204,9 +205,42 @@ def logout_view(request):
 @login_required
 def home_view(request):
     user = request.user
-    user_groups    = (Group.objects.filter(members=user)
-                      .annotate(memory_count=Count('memories', filter=Q(memories__is_deleted=False)))
-                      .order_by('-created_at'))
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+
+    user_groups = list(
+        Group.objects.filter(members=user)
+        .annotate(
+            memory_count=Count('memories', filter=Q(memories__is_deleted=False)),
+            # "Most recently updated" means any activity at all (a new
+            # memory, comment, reaction, cover change…) — fall back to
+            # created_at for a brand-new board with no activity logged yet.
+            last_activity=Coalesce(Max('activity_logs__created_at'), 'created_at'),
+        )
+    )
+
+    # Pin + custom-drag-order state, per user — most boards never have a
+    # BoardOrder row (see its docstring), so default to unpinned / pushed
+    # to the end of custom order (ordered by creation date among themselves).
+    orders = {
+        o.group_id: o for o in
+        BoardOrder.objects.filter(user=user, group_id__in=[g.pk for g in user_groups])
+    }
+    for g in user_groups:
+        o = orders.get(g.pk)
+        g.pinned = o.pinned if o else False
+        g.custom_order = o.sort_order if o else (1_000_000_000 + g.created_at.timestamp())
+
+    sort_mode = profile.board_sort_mode
+    if sort_mode == 'alphabetical':
+        user_groups.sort(key=lambda g: g.name.lower())
+    elif sort_mode == 'custom':
+        user_groups.sort(key=lambda g: g.custom_order)
+    else:
+        user_groups.sort(key=lambda g: g.last_activity, reverse=True)
+    # Pinned boards float to the top, keeping whatever relative order the
+    # sort above already gave them (Python's sort is stable).
+    user_groups.sort(key=lambda g: not g.pinned)
+
     friends        = list(Friendship.get_friends(user))
     pending_in     = FriendRequest.objects.filter(to_user=user, accepted=False)
     total_memories = Memory.objects.filter(group__members=user, is_deleted=False).count()
@@ -237,7 +271,6 @@ def home_view(request):
     # Since your last visit: what changed across the user's boards since the
     # last time home_view ran for them. Null last_seen_home_at (first-ever
     # visit) means there's nothing to compare against yet, so skip it.
-    profile, _ = UserProfile.objects.get_or_create(user=user)
     since_last_visit = []
     if profile.last_seen_home_at:
         since_last_visit = list(
@@ -262,6 +295,8 @@ def home_view(request):
         'shared_with_me':    shared_with_me,
         'on_this_day':       on_this_day,
         'since_last_visit':  since_last_visit,
+        'board_sort_mode':   sort_mode,
+        'board_sort_choices': BOARD_SORT_CHOICES,
         'user_initials':     get_initials(user),
         'user_display':      get_display_name(user),
     })
@@ -612,6 +647,58 @@ def set_theme_view(request):
             profile.save(update_fields=['theme'])
             return JsonResponse({'ok': True})
     return JsonResponse({'ok': False}, status=400)
+
+
+@login_required
+def set_board_sort_view(request):
+    if request.method == 'POST':
+        mode  = request.POST.get('mode', 'recent')
+        valid = [m[0] for m in BOARD_SORT_CHOICES]
+        if mode in valid:
+            profile, _ = UserProfile.objects.get_or_create(user=request.user)
+            profile.board_sort_mode = mode
+            profile.save(update_fields=['board_sort_mode'])
+            return JsonResponse({'ok': True})
+    return JsonResponse({'ok': False}, status=400)
+
+
+@login_required
+def toggle_board_pin_view(request, pk):
+    group = get_object_or_404(Group, pk=pk, members=request.user)
+    if request.method != 'POST':
+        return JsonResponse({'ok': False}, status=400)
+    order, _ = BoardOrder.objects.get_or_create(user=request.user, group=group)
+    order.pinned = not order.pinned
+    order.save(update_fields=['pinned'])
+    return JsonResponse({'ok': True, 'pinned': order.pinned})
+
+
+@login_required
+def reorder_boards_view(request):
+    """Persists a full drag-and-drop reorder of 'Your Boards' and switches
+    the user into custom sort mode — dragging a board is an explicit choice
+    to take over the ordering, so it shouldn't silently get undone the next
+    time the list re-sorts itself by the old mode."""
+    if request.method != 'POST':
+        return JsonResponse({'ok': False}, status=400)
+    try:
+        ordered_ids = json.loads(request.body).get('order', [])
+        ordered_ids = [int(i) for i in ordered_ids]
+    except (ValueError, TypeError, json.JSONDecodeError):
+        return JsonResponse({'ok': False, 'error': 'Invalid order'}, status=400)
+
+    # Only accept boards the user is actually a member of.
+    own_ids = set(Group.objects.filter(members=request.user, pk__in=ordered_ids).values_list('pk', flat=True))
+    for i, group_id in enumerate(ordered_ids):
+        if group_id not in own_ids:
+            continue
+        BoardOrder.objects.update_or_create(
+            user=request.user, group_id=group_id, defaults={'sort_order': i})
+
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    profile.board_sort_mode = 'custom'
+    profile.save(update_fields=['board_sort_mode'])
+    return JsonResponse({'ok': True})
 
 
 @login_required

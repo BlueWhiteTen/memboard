@@ -31,7 +31,9 @@
 }
 .cover-reposition-btn:hover { background: var(--amber-pale); }
 .reposition-frame {
-    position: relative; width: 100%; height: 180px; overflow: hidden;
+    /* Height is set from JS to match the real board-cover's aspect ratio,
+       so the preview is a faithful (if smaller) copy of the actual crop. */
+    position: relative; width: 100%; overflow: hidden;
     background: var(--warm-white); border: 1.5px solid var(--border-strong);
     cursor: grab; touch-action: none; user-select: none;
 }
@@ -1000,6 +1002,14 @@ function openRepositionModal() {
     repoFrame = document.getElementById('reposition-frame');
     repoImg = document.getElementById('reposition-img');
     document.getElementById('reposition-modal').classList.add('open');
+
+    // Match the frame's aspect ratio to the real board-cover's, so the
+    // preview here is a scaled-down but faithful copy of the actual crop —
+    // otherwise a narrower/wider preview box changes where object-fit:cover
+    // would crop, and the drag doesn't reflect what you'll actually get.
+    const realCover = document.querySelector('.board-cover');
+    const coverAspect = realCover.clientWidth / realCover.clientHeight;
+    repoFrame.style.height = (repoFrame.clientWidth / coverAspect) + 'px';
 
     const initPosition = () => {
         const frameW = repoFrame.clientWidth;

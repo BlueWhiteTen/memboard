@@ -85,6 +85,9 @@ urlpatterns = [
     path('api/set-theme/',          views.set_theme_view,             name='set_theme'),
     path('api/lookup-user/',        views.lookup_user_view,           name='lookup_user'),
     path('api/push-subscribe/',     views.save_push_subscription_view, name='push_subscribe'),
+    path('api/set-board-sort/',     views.set_board_sort_view,        name='set_board_sort'),
+    path('api/reorder-boards/',     views.reorder_boards_view,        name='reorder_boards'),
+    path('groups/<int:pk>/pin/',    views.toggle_board_pin_view,      name='toggle_board_pin'),
 
     # PWA
     path('sw.js',       views.sw_view,       name='sw'),

@@ -70,6 +70,19 @@
 .flyer .m { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--ink-muted); }
 .badge { display: inline-flex; align-items: center; gap: 0.25rem; border: 2px solid var(--border-strong); background: var(--yellow); font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 0.6rem; text-transform: uppercase; padding: 0.1rem 0.5rem; box-shadow: var(--shadow-ink-sm); flex-shrink: 0; white-space: nowrap; }
 
+.board-sort-select { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--ink); background: var(--warm-white); border: 1.5px solid var(--border-strong); padding: 0.25rem 0.5rem; cursor: pointer; }
+.flyer.dragging { opacity: 0.4; }
+.pin-btn {
+    position: absolute; top: 8px; right: 8px; z-index: 3;
+    width: 26px; height: 26px; padding: 0; border-radius: 50%;
+    border: 1.5px solid var(--border-strong); background: var(--warm-white);
+    font-size: 0.8rem; cursor: pointer; opacity: 0; transition: opacity 0.12s;
+    display: flex; align-items: center; justify-content: center;
+    filter: grayscale(1); box-shadow: var(--shadow-ink-sm);
+}
+.flyer:hover .pin-btn, .pin-btn.pinned { opacity: 1; }
+.pin-btn.pinned { filter: none; background: var(--yellow); }
+
 .empty-state { text-align: center; padding: 3.5rem 2rem; background: var(--warm-white); border: 2.5px dashed var(--border-strong); margin-bottom: 2.5rem; }
 .empty-state h3 { font-family: 'Spectral', serif; font-size: 1.3rem; text-transform: uppercase; color: var(--ink); margin-bottom: 0.4rem; }
 .empty-state p { font-size: 0.875rem; color: var(--ink-muted); margin-bottom: 1.5rem; }
@@ -80,6 +93,9 @@
 .onboard-card p { font-size: 0.85rem; color: var(--ink-light); max-width: 480px; }
 
 /* Since your last visit */
+.since-visit-empty { font-size: 0.85rem; color: var(--ink-muted); background: var(--warm-white); border: 1px dashed var(--border-strong); padding: 0.9rem 1rem; margin-bottom: 1rem; }
+.since-visit-empty a { color: var(--amber); font-weight: 600; text-decoration: none; margin-left: 0.3rem; }
+.since-visit-empty a:hover { text-decoration: underline; }
 .activity-log { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
 .activity-item { display:flex; gap:0.75rem; align-items:flex-start; padding:0.75rem; background:var(--warm-white); border-radius:0; border:1px solid var(--border); }
 .activity-avatar { width:28px; height:28px; border-radius:50%; background:var(--amber-pale); color:var(--amber); font-size:0.65rem; font-weight:500; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
@@ -119,7 +135,7 @@
     </div>
 
     <div class="gauges">
-        <div class="gauge"><b>{{ user_groups.count }}</b><span>Boards</span></div>
+        <div class="gauge"><b>{{ user_groups|length }}</b><span>Boards</span></div>
         <div class="gauge"><b>{{ friends|length }}</b><span>Friends</span></div>
         <div class="gauge"><b>{{ total_memories }}</b><span>Memories</span></div>
         <a href="{% url 'notifications' %}" class="gauge"><b>{{ unread_notifs }}</b><span>Notifications</span></a>
@@ -146,13 +162,25 @@
         <div class="home-main">
             <div class="section-title">
                 <span>Boards</span>
-                <a href="{% url 'annual_recap' %}" class="see">View {{ "now"|date:"Y" }} recap →</a>
+                <div style="display:flex;align-items:center;gap:0.85rem;">
+                    <select id="board-sort-select" class="board-sort-select" onchange="setBoardSort(this.value)">
+                        {% for val, label in board_sort_choices %}
+                        <option value="{{ val }}" {% if val == board_sort_mode %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <a href="{% url 'annual_recap' %}" class="see">View {{ "now"|date:"Y" }} recap →</a>
+                </div>
             </div>
 
             {% if user_groups %}
-            <div class="boards">
+            <div class="boards" id="boards-list">
                 {% for group in user_groups %}
-                <a href="{% url 'group_detail' group.pk %}" class="flyer">
+                <a href="{% url 'group_detail' group.pk %}" class="flyer" draggable="true"
+                   data-group-id="{{ group.pk }}"
+                   ondragstart="boardDragStart(event)" ondragover="boardDragOver(event)" ondragend="boardDragEnd(event)">
+                    <button type="button" class="pin-btn{% if group.pinned %} pinned{% endif %}"
+                            onclick="event.preventDefault(); event.stopPropagation(); toggleBoardPin({{ group.pk }}, this)"
+                            title="{% if group.pinned %}Unpin{% else %}Pin to top{% endif %}">📌</button>
                     <div class="tape"></div>
                     {% if group.cover_photo %}
                     <div class="flyer-photo" style="background-image:url('{{ group.cover_photo.url }}');background-position:center {{ group.cover_focal_y }}%;"></div>
@@ -221,8 +249,8 @@
         <a href="{% url 'friends' %}" class="add-friend-link">+ Add friend</a>
     </div>
 
-    {% if since_last_visit %}
     <div class="section-title">Since your last visit</div>
+    {% if since_last_visit %}
     <div class="activity-log">
         {% for log in since_last_visit %}
         <div class="activity-item">
@@ -234,6 +262,66 @@
         </div>
         {% endfor %}
     </div>
+    {% else %}
+    <div class="since-visit-empty">Nothing new since you were last here. Invite a friend to help relive these memories together →
+        <a href="{% url 'friends' %}">Add a friend</a>
+    </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const CSRF = '{{ csrf_token }}';
+
+function setBoardSort(mode) {
+    fetch("{% url 'set_board_sort' %}", {
+        method: 'POST', headers: {'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'mode=' + encodeURIComponent(mode),
+    }).then(r => r.json()).then(data => { if (data.ok) window.location.reload(); });
+}
+
+function toggleBoardPin(groupId, btn) {
+    fetch(`/groups/${groupId}/pin/`, {method: 'POST', headers: {'X-CSRFToken': CSRF}})
+        .then(r => r.json())
+        .then(data => { if (data.ok) window.location.reload(); });
+}
+
+// Drag-and-drop board reordering. Dragging is an explicit "take over the
+// order" action — on drop we persist the new order AND switch the sort
+// dropdown to Custom, so it doesn't silently snap back to the old mode.
+function boardDragStart(e) {
+    e.currentTarget.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    // Firefox requires setData to be called for drag to actually start.
+    e.dataTransfer.setData('text/plain', e.currentTarget.dataset.groupId);
+}
+
+function boardDragOver(e) {
+    e.preventDefault();
+    const container = document.getElementById('boards-list');
+    const dragging  = container.querySelector('.dragging');
+    const target    = e.currentTarget;
+    if (!dragging || dragging === target) return;
+    const rect   = target.getBoundingClientRect();
+    const before = (e.clientX - rect.left) < rect.width / 2;
+    if (before) container.insertBefore(dragging, target);
+    else container.insertBefore(dragging, target.nextSibling);
+}
+
+function boardDragEnd(e) {
+    e.currentTarget.classList.remove('dragging');
+    const container = document.getElementById('boards-list');
+    const order = Array.from(container.querySelectorAll('.flyer')).map(el => el.dataset.groupId);
+    fetch("{% url 'reorder_boards' %}", {
+        method: 'POST', headers: {'X-CSRFToken': CSRF, 'Content-Type': 'application/json'},
+        body: JSON.stringify({order}),
+    }).then(r => r.json()).then(data => {
+        if (data.ok) {
+            const select = document.getElementById('board-sort-select');
+            if (select) select.value = 'custom';
+        }
+    });
+}
+</script>
 {% endblock %}
