@@ -79,6 +79,8 @@ urlpatterns = [
 
     # My Profile
     path('profile/', views.my_profile_view, name='my_profile'),
+    path('profile/disable/', views.disable_account_view, name='disable_account'),
+    path('profile/delete/',  views.delete_account_view,  name='delete_account'),
 
     # API / settings
     path('api/set-font/',           views.set_font_view,              name='set_font'),

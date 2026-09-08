@@ -122,6 +122,16 @@ BOARD_SORT_CHOICES = [
     ('custom',       'Custom'),
 ]
 
+# 'active' is the normal state. 'disabled' is a reversible pause the user
+# chose themselves — logging back in returns them straight to 'active' with
+# nothing touched. 'deleted' is permanent: set once, by delete_account_view,
+# and never flipped back.
+ACCOUNT_STATUS_CHOICES = [
+    ('active',   'Active'),
+    ('disabled', 'Disabled'),
+    ('deleted',  'Deleted'),
+]
+
 PROFILE_VISIBILITY_CHOICES = [
     ('friends', 'Visible to friends'),
     ('private', 'Only me'),
@@ -197,6 +207,15 @@ class UserProfile(models.Model):
     # per-user rather than per-board, since two people sharing a board may
     # each want it sorted differently.
     board_sort_mode = models.CharField(max_length=15, choices=BOARD_SORT_CHOICES, default='recent')
+
+    # Disable = "close for a bit": reversible, nothing is touched besides
+    # this flag. Delete = permanent: the account is scrubbed and locked, but
+    # the row itself is kept (never actually deleted) so content on boards
+    # this person doesn't own can stay in place, anonymized, rather than
+    # vanishing out from under everyone else on that board. See
+    # get_display_name()/get_initials() in views.py for how that anonymized
+    # display is applied everywhere.
+    account_status = models.CharField(max_length=10, choices=ACCOUNT_STATUS_CHOICES, default='active')
 
     # Personal info shown on the profile page — visible to friends or kept
     # private, controlled by info_visibility (one toggle for the whole bundle).

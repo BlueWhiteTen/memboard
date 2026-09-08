@@ -36,7 +36,26 @@ from .on_this_day import get_on_this_day_memories
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
+def _hidden_account_label(user):
+    """None for a normal, active account. Otherwise the placeholder text
+    that should stand in for this person's real name everywhere — both a
+    disabled account (paused, reversible) and a deleted one (permanent) hide
+    the person behind a placeholder rather than showing their real name, per
+    account_status on their profile."""
+    profile = getattr(user, 'profile', None)
+    if profile is None:
+        return None
+    if profile.account_status == 'deleted':
+        return 'A former member'
+    if profile.account_status == 'disabled':
+        return 'Account paused'
+    return None
+
+
 def get_initials(user):
+    hidden = _hidden_account_label(user)
+    if hidden:
+        return '––'
     fn = (user.first_name or '').strip()
     ln = (user.last_name  or '').strip()
     if fn and ln:
@@ -47,6 +66,9 @@ def get_initials(user):
 
 
 def get_display_name(user):
+    hidden = _hidden_account_label(user)
+    if hidden:
+        return hidden
     full = f"{user.first_name} {user.last_name}".strip()
     return full if full else user.email
 
@@ -189,7 +211,19 @@ def login_view(request):
         return render(request, 'core/login.html', {'form': EmailAuthenticationForm(), 'rate_limited': True})
     form = EmailAuthenticationForm(request, data=request.POST or None)
     if request.method == 'POST' and form.is_valid():
-        login(request, form.get_user())
+        user = form.get_user()
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        was_disabled = profile.account_status == 'disabled'
+        if was_disabled:
+            # Logging in is how a disabled account re-enables itself —
+            # nothing was touched while disabled, so this just flips the
+            # flag back.
+            profile.account_status = 'active'
+            profile.save(update_fields=['account_status'])
+        login(request, user)
+        if was_disabled:
+            messages.success(request, "Welcome back — your account is active again.")
+            return redirect('home')
         return redirect(request.GET.get('next', 'home'))
     return render(request, 'core/login.html', {'form': form})
 
@@ -1763,6 +1797,74 @@ def my_profile_view(request):
         'font_choices':  FONT_CHOICES,
         'current_font':  profile.note_font,
     })
+
+
+@login_required
+@require_POST
+def disable_account_view(request):
+    """Reversible — logging back in flips this straight back to 'active'
+    with nothing else touched. Boards, memories, friendships all stay
+    exactly as they are; only the display name/initials are hidden
+    everywhere (see get_display_name/get_initials) while paused."""
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    profile.account_status = 'disabled'
+    profile.save(update_fields=['account_status'])
+    logout(request)
+    messages.success(request, "Your account is paused. Log back in any time to pick up right where you left off.")
+    return redirect('login')
+
+
+@login_required
+@require_POST
+def delete_account_view(request):
+    """Permanent. Boards this person owns are deleted outright (cascades to
+    every memory/comment/reaction/activity log on them). Everywhere else —
+    boards they don't own — their content stays in place but is anonymized:
+    the account row itself is kept (never actually deleted) so those
+    memories/comments keep a valid author, but get_display_name/get_initials
+    show a placeholder for it from here on, and past activity-log text
+    mentioning their real name is best-effort scrubbed below."""
+    user = request.user
+    confirm = request.POST.get('confirm_email', '').strip().lower()
+    if confirm != (user.email or '').lower():
+        messages.error(request, "That didn't match your account email — nothing was deleted.")
+        return redirect('my_profile')
+
+    old_name = get_display_name(user)
+
+    # Boards you own are gone, along with everything on them.
+    Group.objects.filter(owner=user).delete()
+
+    # Best-effort: scrub your real name out of activity-log text on boards
+    # you don't own. (The live display elsewhere is already covered by
+    # get_display_name/get_initials once account_status is set below.)
+    if old_name:
+        for log in ActivityLog.objects.filter(actor=user).exclude(description__isnull=True):
+            if old_name in log.description:
+                log.description = log.description.replace(old_name, 'A former member')
+                log.save(update_fields=['description'])
+
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+    profile.account_status = 'deleted'
+    profile.bio            = ''
+    profile.location        = ''
+    profile.birthday        = None
+    profile.push_endpoint   = ''
+    profile.push_p256dh     = ''
+    profile.push_auth       = ''
+    profile.save()
+
+    user.first_name = ''
+    user.last_name  = ''
+    user.email    = f'deleted-{user.pk}@deleted.rememory.local'
+    user.username = user.email
+    user.is_active = False
+    user.set_unusable_password()
+    user.save()
+
+    logout(request)
+    messages.success(request, "Your account has been deleted.")
+    return redirect('login')
 
 
 # ── PWA / Push ────────────────────────────────────────────────────────────────

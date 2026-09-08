@@ -41,6 +41,24 @@
 .font-btn.active{background:var(--amber);color:var(--warm-white);border-color:var(--amber);box-shadow:2px 2px 0 var(--border-strong);}
 .font-btn:hover:not(.active){border-color:var(--amber);}
 
+.danger-card{background:var(--warm-white);border:2.5px solid #B83232;border-radius:0;padding:1.5rem;}
+.danger-row{display:flex;align-items:flex-start;justify-content:space-between;gap:1.25rem;flex-wrap:wrap;}
+.danger-row + .danger-row{margin-top:1.25rem;padding-top:1.25rem;border-top:1px dashed var(--border);}
+.danger-row h4{font-family:'Spectral', serif;font-weight:700;font-size:1rem;color:var(--ink);margin-bottom:0.25rem;}
+.danger-row p{font-size:0.82rem;color:var(--ink-muted);max-width:420px;}
+.btn-danger{flex-shrink:0;background:var(--warm-white);color:#B83232;border:2px solid #B83232;padding:0.55rem 1.1rem;font-family:'IBM Plex Mono', monospace;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.03em;cursor:pointer;}
+.btn-danger:hover{background:#B83232;color:var(--warm-white);}
+.btn-danger.solid{background:#B83232;color:var(--warm-white);}
+.btn-danger.solid:hover{opacity:0.85;}
+.confirm-modal{display:none;position:fixed;inset:0;background:rgba(30,26,20,0.55);z-index:200;align-items:center;justify-content:center;padding:1.25rem;}
+.confirm-modal.open{display:flex;}
+.confirm-box{background:var(--warm-white);border:2.5px solid var(--border-strong);box-shadow:var(--shadow-ink);max-width:420px;width:100%;padding:1.5rem;}
+.confirm-box h4{font-family:'Spectral', serif;font-weight:800;font-size:1.1rem;margin-bottom:0.6rem;color:var(--ink);}
+.confirm-box p{font-size:0.85rem;color:var(--ink-muted);margin-bottom:1rem;}
+.confirm-box .form-input{margin-bottom:1rem;}
+.confirm-actions{display:flex;gap:0.6rem;justify-content:flex-end;}
+.btn-plain{background:var(--cream);color:var(--ink);border:2px solid var(--border-strong);padding:0.55rem 1.1rem;font-family:'IBM Plex Mono', monospace;font-size:0.75rem;font-weight:700;text-transform:uppercase;cursor:pointer;}
+
 @media(max-width:680px){.page-header,.page-content{padding:1.25rem;}}
 {% endblock %}
 
@@ -116,6 +134,42 @@
                     style="font-family:{% if key == 'dm_sans' %}'DM Sans',sans-serif{% elif key == 'lora' %}'Lora',serif{% elif key == 'caveat' %}'Caveat',cursive{% elif key == 'courier_prime' %}'Courier Prime',monospace{% elif key == 'patrick_hand' %}'Patrick Hand',cursive{% endif %}">{{ label }}</button>
             {% endfor %}
         </div>
+    </div>
+
+    <div class="section-title">Account</div>
+    <div class="danger-card">
+        <div class="danger-row">
+            <div>
+                <h4>Disable my account</h4>
+                <p>Closes your account for a while — you're logged out and your name is hidden from friends and boards. Log back in any time and everything picks up exactly where it was.</p>
+            </div>
+            <form method="post" action="{% url 'disable_account' %}" onsubmit="return confirm('Disable your account? You can log back in any time to re-enable it.');">
+                {% csrf_token %}
+                <button type="submit" class="btn-danger">Disable account</button>
+            </form>
+        </div>
+        <div class="danger-row">
+            <div>
+                <h4>Delete my account</h4>
+                <p>Permanent. Boards you own are deleted entirely. Your name is removed everywhere else, and you can't log back in.</p>
+            </div>
+            <button type="button" class="btn-danger solid" onclick="document.getElementById('delete-modal').classList.add('open')">Delete account</button>
+        </div>
+    </div>
+</div>
+
+<div class="confirm-modal" id="delete-modal">
+    <div class="confirm-box">
+        <h4>Delete your account?</h4>
+        <p>This can't be undone. Boards you own will be deleted along with everything on them. To confirm, type your email address below.</p>
+        <form method="post" action="{% url 'delete_account' %}">
+            {% csrf_token %}
+            <input type="email" name="confirm_email" class="form-input" placeholder="{{ user.email }}" autocomplete="off" required>
+            <div class="confirm-actions">
+                <button type="button" class="btn-plain" onclick="document.getElementById('delete-modal').classList.remove('open')">Cancel</button>
+                <button type="submit" class="btn-danger solid">Permanently delete</button>
+            </div>
+        </form>
     </div>
 </div>
 
