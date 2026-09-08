@@ -181,6 +181,12 @@ class UserProfile(models.Model):
     weekly_digest  = models.BooleanField(default=True)
     theme          = models.CharField(max_length=10, choices=THEME_CHOICES, default='light')
 
+    # Powers the "Since your last visit" panel on the home page: set to now
+    # every time home_view runs, so it always holds the *previous* visit's
+    # timestamp while that view is building the page — null on a user's very
+    # first visit, when there's nothing to compare against yet.
+    last_seen_home_at = models.DateTimeField(null=True, blank=True)
+
     # Personal info shown on the profile page — visible to friends or kept
     # private, controlled by info_visibility (one toggle for the whole bundle).
     bio             = models.CharField(max_length=200, blank=True, help_text="A short line about you")
@@ -256,6 +262,12 @@ class Group(models.Model):
     admins      = models.ManyToManyField(User, related_name='admin_boards', blank=True,
                     help_text='Members promoted by the owner to help manage this board.')
     cover_photo = models.ImageField(upload_to='covers/', blank=True, null=True)
+    # Vertical focal point for the cover photo crop, as a 0-100 percentage —
+    # matches CSS object-position/background-position Y% semantics exactly,
+    # so it applies consistently wherever the cover renders at a different
+    # aspect ratio (the board header banner vs. the smaller board-tile strip
+    # on the home page). 50 = centered (the old fixed behaviour).
+    cover_focal_y = models.PositiveSmallIntegerField(default=50)
     created_at  = models.DateTimeField(auto_now_add=True)
 
     # Only used when privacy == 'friend_group': the one friend-group whose

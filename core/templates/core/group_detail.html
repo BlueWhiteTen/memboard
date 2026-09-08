@@ -14,12 +14,31 @@
 .board-cover img { width: 100%; height: 100%; object-fit: cover; }
 .cover-upload-btn {
     position: absolute; bottom: 10px; right: 10px;
-    background: rgba(255,255,255,0.85); border: none; border-radius:0;
+    background: var(--warm-white); border: 1.5px solid var(--border-strong); border-radius:0;
     padding: 0.35rem 0.75rem; font-size: 0.75rem; cursor: pointer;
-    backdrop-filter: blur(4px); font-family: inherit; color: var(--ink);
+    font-family: inherit; color: var(--ink);
     display: flex; align-items: center; gap: 0.35rem;
+    box-shadow: var(--shadow-ink-sm);
 }
-.cover-upload-btn:hover { background: white; }
+.cover-upload-btn:hover { background: var(--amber-pale); }
+.cover-reposition-btn {
+    position: absolute; bottom: 10px; right: 148px;
+    background: var(--warm-white); border: 1.5px solid var(--border-strong); border-radius:0;
+    padding: 0.35rem 0.75rem; font-size: 0.75rem; cursor: pointer;
+    font-family: inherit; color: var(--ink);
+    display: flex; align-items: center; gap: 0.35rem;
+    box-shadow: var(--shadow-ink-sm);
+}
+.cover-reposition-btn:hover { background: var(--amber-pale); }
+.reposition-frame {
+    position: relative; width: 100%; height: 180px; overflow: hidden;
+    background: var(--warm-white); border: 1.5px solid var(--border-strong);
+    cursor: grab; touch-action: none; user-select: none;
+}
+.reposition-frame.dragging { cursor: grabbing; }
+.reposition-frame img { position: absolute; left: 0; width: 100%; max-width: none; pointer-events: none; }
+.reposition-hint { font-size: 0.78rem; color: var(--ink-muted); margin-top: 0.6rem; }
+.reposition-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.1rem; }
 .board-header-inner { padding: 1.25rem 2rem; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
 .board-title { font-family:'Spectral', serif; font-size:1.5rem; font-weight:600; color:var(--ink); }
 .board-meta { font-size:0.8rem; color:var(--ink-muted); margin-top:0.2rem; }
@@ -307,12 +326,17 @@
 <div class="board-header">
     <div class="board-cover">
         {% if group.cover_photo %}
-        <img src="{{ group.cover_photo.url }}" alt="Board cover" style="cursor:zoom-in;" onclick="openLightbox('{{ group.cover_photo.url }}')">
+        <img id="board-cover-img" src="{{ group.cover_photo.url }}" alt="Board cover" style="cursor:zoom-in;object-position:center {{ group.cover_focal_y }}%;" onclick="openLightbox('{{ group.cover_photo.url }}')">
         {% endif %}
         {% if group.owner == request.user %}
         <button class="cover-upload-btn" onclick="document.getElementById('cover-input').click()">
             📷 Change cover
         </button>
+        {% if group.cover_photo %}
+        <button class="cover-reposition-btn" onclick="openRepositionModal()">
+            ↕️ Reposition
+        </button>
+        {% endif %}
         <form id="cover-form" method="post" action="{% url 'update_cover' group.pk %}" enctype="multipart/form-data" style="display:none;" onsubmit="return false;">
             {% csrf_token %}
             <input type="file" id="cover-input" name="cover_photo" accept="image/*" onchange="submitCoverForm()">
@@ -839,6 +863,26 @@
     <img id="lightbox-img" src="" alt="Full size photo">
 </div>
 
+{% if group.owner == request.user and group.cover_photo %}
+<!-- Cover reposition modal -->
+<div class="modal-overlay" id="reposition-modal">
+<div class="modal">
+    <div class="modal-header">
+        <div class="modal-title">Reposition cover</div>
+        <button class="modal-close" onclick="closeRepositionModal()">✕</button>
+    </div>
+    <div class="reposition-frame" id="reposition-frame">
+        <img id="reposition-img" src="{{ group.cover_photo.url }}" alt="Drag to reposition">
+    </div>
+    <p class="reposition-hint">Drag the photo up or down to set what shows in the cover.</p>
+    <div class="reposition-actions">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="closeRepositionModal()">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="saveRepositionFocalY()">Save</button>
+    </div>
+</div>
+</div>
+{% endif %}
+
 <!-- ── Scripts ── -->
 <script>
 const CSRF = '{{ csrf_token }}';
@@ -947,6 +991,76 @@ function submitCoverForm() {
             if (data.ok) { window.location.reload(); } else { alert('Could not update the cover photo.'); }
         })
         .catch(() => alert('Could not update the cover photo.'));
+}
+
+// Cover reposition (drag to pan)
+let repoFrame, repoImg, repoOffsetY = 0, repoMinY = 0, repoDragging = false, repoStartY = 0, repoStartOffset = 0;
+
+function openRepositionModal() {
+    repoFrame = document.getElementById('reposition-frame');
+    repoImg = document.getElementById('reposition-img');
+    document.getElementById('reposition-modal').classList.add('open');
+
+    const initPosition = () => {
+        const frameH = repoFrame.clientHeight;
+        const renderedH = repoImg.clientHeight;
+        repoMinY = Math.min(0, frameH - renderedH);
+        const focalY = {{ group.cover_focal_y }};
+        repoOffsetY = repoMinY * (focalY / 100);
+        repoImg.style.top = repoOffsetY + 'px';
+    };
+    if (repoImg.complete) initPosition(); else repoImg.onload = initPosition;
+
+    repoFrame.onmousedown = repoDragStart;
+    repoFrame.ontouchstart = repoDragStart;
+    window.addEventListener('mousemove', repoDragMove);
+    window.addEventListener('touchmove', repoDragMove, {passive: false});
+    window.addEventListener('mouseup', repoDragEnd);
+    window.addEventListener('touchend', repoDragEnd);
+}
+
+function closeRepositionModal() {
+    document.getElementById('reposition-modal').classList.remove('open');
+    window.removeEventListener('mousemove', repoDragMove);
+    window.removeEventListener('touchmove', repoDragMove);
+    window.removeEventListener('mouseup', repoDragEnd);
+    window.removeEventListener('touchend', repoDragEnd);
+}
+
+function repoEventY(e) { return e.touches ? e.touches[0].clientY : e.clientY; }
+
+function repoDragStart(e) {
+    repoDragging = true;
+    repoFrame.classList.add('dragging');
+    repoStartY = repoEventY(e);
+    repoStartOffset = repoOffsetY;
+}
+
+function repoDragMove(e) {
+    if (!repoDragging) return;
+    e.preventDefault();
+    const delta = repoEventY(e) - repoStartY;
+    repoOffsetY = Math.max(repoMinY, Math.min(0, repoStartOffset + delta));
+    repoImg.style.top = repoOffsetY + 'px';
+}
+
+function repoDragEnd() {
+    repoDragging = false;
+    if (repoFrame) repoFrame.classList.remove('dragging');
+}
+
+function saveRepositionFocalY() {
+    const focalY = repoMinY === 0 ? 0 : Math.round((repoOffsetY / repoMinY) * 100);
+    fetch(`/groups/${GROUP_PK}/cover-position/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': CSRF, 'Content-Type': 'application/json'},
+        body: JSON.stringify({focal_y: focalY})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) { window.location.reload(); } else { alert('Could not save the new position.'); }
+    })
+    .catch(() => alert('Could not save the new position.'));
 }
 
 function toggleBoardShare(enable) {

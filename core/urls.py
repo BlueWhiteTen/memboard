@@ -28,6 +28,7 @@ urlpatterns = [
     path('board-invites/<int:invite_pk>/decline/', views.decline_board_invite_view, name='decline_board_invite'),
     path('groups/<int:pk>/delete/',       views.delete_group_view,    name='delete_group'),
     path('groups/<int:pk>/cover/',        views.update_cover_view,    name='update_cover'),
+    path('groups/<int:pk>/cover-position/', views.update_cover_position_view, name='update_cover_position'),
     path('groups/<int:pk>/leave/',        views.leave_board_view,     name='leave_board'),
     path('groups/<int:pk>/settings/',     views.update_board_settings_view, name='update_board_settings'),
     path('groups/<int:pk>/request-join/', views.request_join_board_view, name='request_join_board'),

@@ -234,16 +234,36 @@ def home_view(request):
         m.creator_initials = get_initials(m.creator)
         m.creator_display  = get_display_name(m.creator)
 
+    # Since your last visit: what changed across the user's boards since the
+    # last time home_view ran for them. Null last_seen_home_at (first-ever
+    # visit) means there's nothing to compare against yet, so skip it.
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+    since_last_visit = []
+    if profile.last_seen_home_at:
+        since_last_visit = list(
+            ActivityLog.objects
+            .filter(group__members=user, created_at__gt=profile.last_seen_home_at)
+            .exclude(actor=user)
+            .select_related('actor', 'group')[:20]
+        )
+        for a in since_last_visit:
+            if a.actor:
+                a.actor.initials     = get_initials(a.actor)
+                a.actor.display_name = get_display_name(a.actor)
+    profile.last_seen_home_at = timezone.now()
+    profile.save(update_fields=['last_seen_home_at'])
+
     return render(request, 'core/home.html', {
-        'user_groups':      user_groups,
-        'friends':          friends,
-        'pending_requests': pending_in,
-        'total_memories':   total_memories,
-        'unread_notifs':    unread_notifs,
-        'shared_with_me':   shared_with_me,
-        'on_this_day':      on_this_day,
-        'user_initials':    get_initials(user),
-        'user_display':     get_display_name(user),
+        'user_groups':       user_groups,
+        'friends':           friends,
+        'pending_requests':  pending_in,
+        'total_memories':    total_memories,
+        'unread_notifs':     unread_notifs,
+        'shared_with_me':    shared_with_me,
+        'on_this_day':       on_this_day,
+        'since_last_visit':  since_last_visit,
+        'user_initials':     get_initials(user),
+        'user_display':      get_display_name(user),
     })
 
 
@@ -543,10 +563,29 @@ def update_cover_view(request, pk):
         form = GroupCoverForm(request.POST, request.FILES, instance=group)
         if form.is_valid():
             form.save()
+            # A newly uploaded photo makes the old focal point meaningless —
+            # reset to centered so it doesn't carry over onto a different image.
+            group.cover_focal_y = 50
+            group.save(update_fields=['cover_focal_y'])
             log_activity(group, request.user, 'cover_changed',
                          f'{get_display_name(request.user)} updated the board cover')
             return JsonResponse({'ok': True})
     return JsonResponse({'ok': False}, status=400)
+
+
+@login_required
+def update_cover_position_view(request, pk):
+    group = get_object_or_404(Group, pk=pk, owner=request.user)
+    if request.method != 'POST':
+        return JsonResponse({'ok': False}, status=400)
+    try:
+        focal_y = int(json.loads(request.body).get('focal_y'))
+    except (ValueError, TypeError, json.JSONDecodeError):
+        return JsonResponse({'ok': False, 'error': 'Invalid focal_y'}, status=400)
+    focal_y = max(0, min(100, focal_y))
+    group.cover_focal_y = focal_y
+    group.save(update_fields=['cover_focal_y'])
+    return JsonResponse({'ok': True, 'focal_y': focal_y})
 
 
 @login_required

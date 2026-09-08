@@ -79,6 +79,13 @@
 .onboard-card h3 { font-family: 'Spectral', serif; font-size: 1.15rem; text-transform: uppercase; color: var(--ink); margin-bottom: 0.3rem; }
 .onboard-card p { font-size: 0.85rem; color: var(--ink-light); max-width: 480px; }
 
+/* Since your last visit */
+.activity-log { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
+.activity-item { display:flex; gap:0.75rem; align-items:flex-start; padding:0.75rem; background:var(--warm-white); border-radius:0; border:1px solid var(--border); }
+.activity-avatar { width:28px; height:28px; border-radius:50%; background:var(--amber-pale); color:var(--amber); font-size:0.65rem; font-weight:500; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.activity-text { font-size:0.82rem; color:var(--ink); }
+.activity-time { font-size:0.7rem; color:var(--ink-muted); margin-top:0.1rem; }
+
 /* Friends row */
 .friends-row { display: flex; gap: 0.65rem; flex-wrap: wrap; align-items: center; margin-bottom: 1rem; }
 .friend-chip { display: flex; align-items: center; justify-content: center; padding: 0; border-radius: 50%; text-decoration: none; color: var(--ink); }
@@ -148,7 +155,7 @@
                 <a href="{% url 'group_detail' group.pk %}" class="flyer">
                     <div class="tape"></div>
                     {% if group.cover_photo %}
-                    <div class="flyer-photo" style="background-image:url('{{ group.cover_photo.url }}');"></div>
+                    <div class="flyer-photo" style="background-image:url('{{ group.cover_photo.url }}');background-position:center {{ group.cover_focal_y }}%;"></div>
                     {% else %}
                     <div class="flyer-photo no-photo"></div>
                     {% endif %}
@@ -213,5 +220,20 @@
         {% endfor %}
         <a href="{% url 'friends' %}" class="add-friend-link">+ Add friend</a>
     </div>
+
+    {% if since_last_visit %}
+    <div class="section-title">Since your last visit</div>
+    <div class="activity-log">
+        {% for log in since_last_visit %}
+        <div class="activity-item">
+            <div class="activity-avatar">{% if log.actor %}{{ log.actor.initials }}{% else %}?{% endif %}</div>
+            <div>
+                <div class="activity-text">{{ log.description }} — <a href="{% url 'group_detail' log.group.pk %}" style="color:var(--amber);text-decoration:none;">{{ log.group.name }}</a></div>
+                <div class="activity-time">{{ log.created_at|timesince }} ago</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

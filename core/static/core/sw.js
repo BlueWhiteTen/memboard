@@ -1,11 +1,11 @@
-// Memboard Service Worker v7
-const CACHE_NAME = 'memboard-v7';
-const OFFLINE_URL = '/';
+// Rememory Service Worker v8
+const CACHE_NAME = 'rememory-v8';
+const OFFLINE_URL = '/static/core/offline.html';
 
 const PRECACHE_URLS = [
   '/',
   '/login/',
-  '/static/core/offline.html',
+  OFFLINE_URL,
 ];
 
 self.addEventListener('install', event => {
@@ -37,14 +37,18 @@ self.addEventListener('fetch', event => {
         }
         return response;
       })
-      .catch(() => caches.match(event.request).then(cached => cached || caches.match('/')))
+      .catch(() => caches.match(event.request).then(cached => {
+        if (cached) return cached;
+        if (event.request.mode === 'navigate') return caches.match(OFFLINE_URL);
+        return caches.match('/');
+      }))
   );
 });
 
 // Push notifications
 self.addEventListener('push', event => {
   const data = event.data ? event.data.json() : {};
-  const title   = data.title   || 'Memboard';
+  const title   = data.title   || 'Rememory';
   const options = {
     body:    data.body    || 'You have a new notification',
     icon:    '/static/core/icon-192.png',

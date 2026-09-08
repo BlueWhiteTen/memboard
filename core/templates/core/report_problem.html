@@ -45,7 +45,7 @@
         </div>
     </div>
     {% else %}
-    <p class="page-intro">Something not working right, or looking off? Describe it below and it'll be sent straight to us — no need to open an email client.</p>
+    <p class="page-intro">Something not working right, or looking off? Describe it below and it'll be sent straight to us.</p>
     <form method="post">
         {% csrf_token %}
         {{ form.message }}
