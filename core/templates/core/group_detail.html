@@ -162,11 +162,17 @@
 .comment-toggle-btn { display:flex; align-items:center; gap:0.3rem; font-size:0.75rem; color:var(--ink-muted); background:none; border:none; cursor:pointer; padding:0; font-family:inherit; }
 .comment-toggle-btn:hover { color: var(--amber); }
 .comments-section { display:none; }
+/* Positioned via JS (see toggleComments/positionCommentsSection) rather than
+   left:0/right:0/top:100% here — the memories grid is a CSS multi-column
+   ("masonry") layout, and a position:absolute box anchored inside a card
+   that lives in that layout can render detached from its own card, snapped
+   instead to the top of an unrelated column. Reparenting to <body> with
+   JS-computed position:fixed coordinates sidesteps that entirely. */
 .comments-section.open {
-    display:block; position:absolute; left:0; right:0; top:100%; margin-top:0.4rem;
+    display:block; position:fixed;
     background:var(--warm-white); border:2px solid var(--border-strong);
     box-shadow:var(--shadow-ink-sm); padding:0.65rem 0.75rem;
-    max-height:260px; overflow-y:auto; z-index:50;
+    overflow-y:auto; z-index:300;
 }
 .comment-item { display:flex; align-items:flex-start; justify-content:space-between; gap:0.5rem; margin-bottom:0.5rem; }
 .comment-main { flex:1; min-width:0; }
@@ -1227,17 +1233,37 @@ function toggleComments(memPk, btn) {
         closeComments(section);
         return;
     }
+    // Escape the memories grid's column layout entirely while open — see
+    // the .comments-section.open CSS comment for why. Stash where it came
+    // from so closeComments() can put it back.
+    const card = section.closest('.memory-card');
+    if (card && section.parentElement !== document.body) {
+        section._originalParent = section.parentElement;
+        section._originalNextSibling = section.nextSibling;
+        document.body.appendChild(section);
+    }
+    positionCommentsSection(section, card);
     section.classList.add('open');
     loadComments(memPk);
     // Comments now float over the card (so opening one doesn't reflow and
     // shuffle the other memory cards around it) — clicking anywhere
-    // outside this card closes it, like a dropdown.
-    const card = section.closest('.memory-card');
+    // outside this card and outside the (now body-level) comments box
+    // closes it, like a dropdown.
     const handler = function(e) {
-        if (!card || !card.contains(e.target)) closeComments(section);
+        if ((!card || !card.contains(e.target)) && !section.contains(e.target)) closeComments(section);
     };
     section._outsideClickHandler = handler;
     setTimeout(() => document.addEventListener('click', handler), 0);
+}
+
+function positionCommentsSection(section, card) {
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    section.style.left = rect.left + 'px';
+    section.style.width = rect.width + 'px';
+    const top = Math.min(rect.bottom + 4, window.innerHeight - 60);
+    section.style.top = top + 'px';
+    section.style.maxHeight = Math.max(120, Math.min(260, window.innerHeight - top - 16)) + 'px';
 }
 
 function closeComments(section) {
@@ -1246,6 +1272,19 @@ function closeComments(section) {
         document.removeEventListener('click', section._outsideClickHandler);
         section._outsideClickHandler = null;
     }
+    if (section._originalParent) {
+        if (section._originalNextSibling) {
+            section._originalParent.insertBefore(section, section._originalNextSibling);
+        } else {
+            section._originalParent.appendChild(section);
+        }
+        section._originalParent = null;
+        section._originalNextSibling = null;
+    }
+    section.style.left = '';
+    section.style.top = '';
+    section.style.width = '';
+    section.style.maxHeight = '';
 }
 
 // Shared comment-item markup (used by the card's inline panel and the
