@@ -244,7 +244,12 @@ def home_view(request):
     user_groups = list(
         Group.objects.filter(members=user)
         .annotate(
-            memory_count=Count('memories', filter=Q(memories__is_deleted=False)),
+            # distinct=True matters here: combining this Count with the
+            # Max(activity_logs...) annotation below joins both the memories
+            # and activity_logs tables into one query, and without distinct
+            # that join multiplies each memory row by however many
+            # activity-log rows the board has, wildly inflating the count.
+            memory_count=Count('memories', filter=Q(memories__is_deleted=False), distinct=True),
             # "Most recently updated" means any activity at all (a new
             # memory, comment, reaction, cover change…) — fall back to
             # created_at for a brand-new board with no activity logged yet.
