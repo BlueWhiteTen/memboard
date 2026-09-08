@@ -36,7 +36,7 @@
     cursor: grab; touch-action: none; user-select: none;
 }
 .reposition-frame.dragging { cursor: grabbing; }
-.reposition-frame img { position: absolute; left: 0; width: 100%; max-width: none; pointer-events: none; }
+.reposition-frame img { position: absolute; max-width: none; pointer-events: none; }
 .reposition-hint { font-size: 0.78rem; color: var(--ink-muted); margin-top: 0.6rem; }
 .reposition-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.1rem; }
 .board-header-inner { padding: 1.25rem 2rem; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
@@ -1002,8 +1002,24 @@ function openRepositionModal() {
     document.getElementById('reposition-modal').classList.add('open');
 
     const initPosition = () => {
+        const frameW = repoFrame.clientWidth;
         const frameH = repoFrame.clientHeight;
-        const renderedH = repoImg.clientHeight;
+        const aspect = repoImg.naturalWidth / repoImg.naturalHeight;
+
+        // Size the image so it always fully covers the frame — matching the
+        // real cover's object-fit:cover behaviour — instead of just setting
+        // width:100%, which left gaps (and no room to drag) whenever the
+        // photo was wider/shorter than the frame.
+        let renderedW = frameW;
+        let renderedH = frameW / aspect;
+        if (renderedH < frameH) {
+            renderedH = frameH;
+            renderedW = frameH * aspect;
+        }
+        repoImg.style.width = renderedW + 'px';
+        repoImg.style.height = renderedH + 'px';
+        repoImg.style.left = ((frameW - renderedW) / 2) + 'px';
+
         repoMinY = Math.min(0, frameH - renderedH);
         const focalY = {{ group.cover_focal_y }};
         repoOffsetY = repoMinY * (focalY / 100);
