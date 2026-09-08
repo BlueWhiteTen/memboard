@@ -179,7 +179,11 @@
 .comment-author { font-size:0.72rem; font-weight:500; color:var(--ink-muted); }
 .comment-text { font-size:0.82rem; color:var(--ink); margin-top:0.1rem; overflow-wrap:break-word; }
 .comment-form { display:flex; gap:0.4rem; margin-top:0.6rem; }
-.comment-input { flex:1; border:1px solid var(--border); border-radius:0; padding:0.4rem 0.65rem; font-size:0.8rem; font-family:inherit; background:var(--cream); outline:none; }
+/* color is explicit (not just inherited) because this class is also used
+   on the <select> elements in Board Settings — without it, browsers fall
+   back to their own default form-control text color instead of following
+   the page's theme, which is unreadable in dark mode against --cream. */
+.comment-input { flex:1; border:1px solid var(--border); border-radius:0; padding:0.4rem 0.65rem; font-size:0.8rem; font-family:inherit; color:var(--ink); background:var(--cream); outline:none; }
 .comment-input:focus { border-color:var(--amber); }
 .comment-submit { padding:0.4rem 0.75rem; background:var(--ink); color:var(--warm-white); border:none; border-radius:0; font-size:0.78rem; cursor:pointer; }
 .comment-actions { display:flex; align-items:center; gap:0.3rem; flex-shrink:0; }
