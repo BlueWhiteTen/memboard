@@ -82,6 +82,9 @@ urlpatterns = [
     path('profile/disable/', views.disable_account_view, name='disable_account'),
     path('profile/delete/',  views.delete_account_view,  name='delete_account'),
 
+    # Site Settings — appearance, language, note font
+    path('settings/', views.site_settings_view, name='site_settings'),
+
     # API / settings
     path('api/set-font/',           views.set_font_view,              name='set_font'),
     path('api/set-theme/',          views.set_theme_view,             name='set_theme'),

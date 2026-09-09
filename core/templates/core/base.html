@@ -259,6 +259,14 @@
         }
         .report-problem-link:hover { color: var(--amber); text-decoration: underline; }
 
+        .settings-link {
+            display: flex; align-items: center; gap: 0.4rem;
+            font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; font-weight: 600;
+            color: var(--ink-light); text-decoration: none; margin-bottom: 0.85rem;
+            padding: 0.25rem 0.15rem; transition: color 0.12s;
+        }
+        .settings-link:hover { color: var(--amber); }
+
         .theme-toggle-row {
             display: flex; align-items: center; justify-content: space-between;
             margin-bottom: 0.75rem; font-size: 0.8rem; color: var(--ink-light);
@@ -437,21 +445,9 @@
             <div class="avatar">{{ user_initials }}</div>
             <span class="user-name">{{ user_display }}</span>
         </a>
-        <div class="theme-toggle-row">
-            <span>🌙 {% trans "Dark mode" %}</span>
-            <label class="theme-switch">
-                <input type="checkbox" id="theme-toggle" {% if user_theme == 'dark' %}checked{% endif %} onchange="setTheme(this.checked ? 'dark' : 'light')">
-                <span class="theme-slider"></span>
-            </label>
-        </div>
-        <div class="language-row">
-            <span>🌐 {% trans "Language" %}</span>
-            <select class="language-select" onchange="setLanguage(this.value)">
-                {% for code, name in language_choices %}
-                <option value="{{ code }}" {% if LANGUAGE_CODE == code %}selected{% endif %}>{{ name }}</option>
-                {% endfor %}
-            </select>
-        </div>
+        <a href="{% url 'site_settings' %}" class="settings-link" style="{% if request.resolver_match.url_name == 'site_settings' %}outline:2px solid var(--border-strong);{% endif %}">
+            ⚙️ {% trans "Site Settings" %}
+        </a>
         <form class="logout-form" method="post" action="{% url 'logout' %}">
             {% csrf_token %}
             <button type="submit">{% trans "Sign out" %}</button>

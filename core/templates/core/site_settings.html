@@ -1,0 +1,92 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Rememory – Site Settings" %}{% endblock %}
+
+{% block extra_styles %}
+.page-header{padding:2rem 2.5rem 1.25rem;border-bottom:1px solid var(--border);background:var(--warm-white);display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+.page-header h2{font-family:'Spectral', serif;font-size:1.6rem;font-weight:800;text-transform:uppercase;color:var(--ink);}
+.page-header p{font-size:0.875rem;color:var(--ink-muted);margin-top:0.2rem;}
+.page-content{padding:2rem 2.5rem;max-width:700px;}
+
+.section-title{font-family:'Spectral', serif;font-weight:800;font-size:1.05rem;text-transform:uppercase;margin-bottom:1rem;}
+
+.info-card{background:var(--warm-white);border:2.5px solid var(--border-strong);border-radius:0;padding:1.5rem;margin-bottom:2rem;}
+.info-card p.hint{font-size:0.85rem;color:var(--ink-muted);margin-bottom:1.25rem;}
+.info-card p.hint:last-child{margin-bottom:0;}
+
+.font-picker{display:flex;gap:0.5rem;flex-wrap:wrap;}
+.font-btn{padding:0.5rem 1rem;border:2px solid var(--border-strong);border-radius:0;background:var(--cream);cursor:pointer;font-size:0.85rem;color:var(--ink-light);transition:all 0.12s;}
+.font-btn.active{background:var(--amber);color:var(--warm-white);border-color:var(--amber);box-shadow:2px 2px 0 var(--border-strong);}
+.font-btn:hover:not(.active){border-color:var(--amber);}
+
+.settings-report-link{display:inline-block;font-family:'IBM Plex Mono', monospace;font-size:0.78rem;font-weight:600;color:var(--ink-light);text-decoration:none;}
+.settings-report-link:hover{color:var(--amber);text-decoration:underline;}
+
+@media(max-width:680px){.page-header,.page-content{padding:1.25rem;}}
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>{% trans "Site Settings" %}</h2>
+        <p>{% trans "How Rememory looks and reads, for you" %}</p>
+    </div>
+</div>
+
+<div class="page-content">
+    <div class="section-title">{% trans "Appearance" %}</div>
+    <div class="info-card">
+        <div class="theme-toggle-row">
+            <span>🌙 {% trans "Dark mode" %}</span>
+            <label class="theme-switch">
+                <input type="checkbox" id="theme-toggle" {% if user_theme == 'dark' %}checked{% endif %} onchange="setTheme(this.checked ? 'dark' : 'light')">
+                <span class="theme-slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <div class="section-title">{% trans "Language" %}</div>
+    <div class="info-card">
+        <div class="language-row">
+            <span>🌐 {% trans "Language" %}</span>
+            <select class="language-select" onchange="setLanguage(this.value)">
+                {% for code, name in language_choices %}
+                <option value="{{ code }}" {% if LANGUAGE_CODE == code %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class="section-title">{% trans "Note font" %}</div>
+    <div class="info-card">
+        <p class="hint">{% blocktrans %}The font your memory notes are written in, on every board you belong to. This only affects board content — not the rest of the site.{% endblocktrans %}</p>
+        <div class="font-picker">
+            {% for key, label in font_choices %}
+            <button type="button" class="font-btn {% if current_font == key %}active{% endif %}" onclick="setNoteFont('{{ key }}', this)"
+                    style="font-family:{% if key == 'dm_sans' %}'DM Sans',sans-serif{% elif key == 'lora' %}'Lora',serif{% elif key == 'caveat' %}'Caveat',cursive{% elif key == 'courier_prime' %}'Courier Prime',monospace{% elif key == 'patrick_hand' %}'Patrick Hand',cursive{% endif %}">{{ label }}</button>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="section-title">{% trans "About the site" %}</div>
+    <div class="info-card">
+        <p class="hint">{% blocktrans %}Rememory is a place to keep the memories worth keeping — shared boards for photos, notes, videos and voice notes, built for the people who were actually there. No ads, no data selling — just your memories, on your terms.{% endblocktrans %}</p>
+        <p class="hint">
+            <a href="{% url 'report_problem' %}" class="settings-report-link">{% trans "Report a problem" %}</a>
+        </p>
+    </div>
+</div>
+
+<script>
+function setNoteFont(font, btn) {
+    fetch("{% url 'set_font' %}", {
+        method: 'POST',
+        headers: {'X-CSRFToken': THEME_CSRF, 'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'font=' + font
+    }).then(() => {
+        document.querySelectorAll('.font-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    });
+}
+</script>
+{% endblock %}

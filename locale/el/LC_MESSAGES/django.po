@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-09 19:28+0000\n"
+"POT-Creation-Date: 2026-09-09 19:39+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -153,7 +153,7 @@ msgstr "Χαχα"
 
 #: core/templates/core/_edit_memory_fragment.html:6
 #: core/templates/core/friend_group_detail.html:71
-#: core/templates/core/my_profile.html:125
+#: core/templates/core/my_profile.html:120
 msgid "Save changes"
 msgstr "Αποθήκευση αλλαγών"
 
@@ -164,7 +164,7 @@ msgstr "Αποθήκευση αλλαγών"
 #: core/templates/core/group_detail.html:741
 #: core/templates/core/group_detail.html:818
 #: core/templates/core/group_detail.html:892
-#: core/templates/core/my_profile.html:170
+#: core/templates/core/my_profile.html:154
 msgid "Cancel"
 msgstr "Ακύρωση"
 
@@ -190,7 +190,7 @@ msgstr "Πότε συνέβη αυτό;"
 
 #: core/templates/core/_memory_form.html:67
 #: core/templates/core/friend_profile.html:71
-#: core/templates/core/my_profile.html:102
+#: core/templates/core/my_profile.html:97
 msgid "Location"
 msgstr "Τοποθεσία"
 
@@ -356,74 +356,75 @@ msgstr "Δοκιμάστε διαφορετική χρονιά ή ξεκινήσ
 msgid "Go to boards"
 msgstr "Μετάβαση στους πίνακες"
 
-#: core/templates/core/base.html:367
+#: core/templates/core/base.html:385
 msgid "for things worth remembering"
 msgstr "για ό,τι αξίζει να θυμάστε"
 
-#: core/templates/core/base.html:372
+#: core/templates/core/base.html:390
 msgid "Search memories…"
 msgstr "Αναζήτηση αναμνήσεων…"
 
-#: core/templates/core/base.html:378
+#: core/templates/core/base.html:396
 msgid "Navigation"
 msgstr "Πλοήγηση"
 
-#: core/templates/core/base.html:381
+#: core/templates/core/base.html:399
 msgid "Home"
 msgstr "Αρχική"
 
-#: core/templates/core/base.html:385 core/templates/core/friends.html:3
+#: core/templates/core/base.html:403 core/templates/core/friends.html:3
 #: core/templates/core/friends.html:67
 #: core/templates/core/group_detail.html:799 core/templates/core/home.html:140
 msgid "Friends"
 msgstr "Φίλοι"
 
-#: core/templates/core/base.html:390 core/templates/core/home.html:142
+#: core/templates/core/base.html:408 core/templates/core/home.html:142
 #: core/templates/core/notifications.html:3
 #: core/templates/core/notifications.html:22
 msgid "Notifications"
 msgstr "Ειδοποιήσεις"
 
-#: core/templates/core/base.html:395 core/templates/core/search.html:3
+#: core/templates/core/base.html:413 core/templates/core/search.html:3
 #: core/templates/core/search.html:30
 msgid "Search"
 msgstr "Αναζήτηση"
 
-#: core/templates/core/base.html:399 core/templates/core/on_this_day.html:3
+#: core/templates/core/base.html:417 core/templates/core/on_this_day.html:3
 msgid "On This Day"
 msgstr "Σαν σήμερα"
 
-#: core/templates/core/base.html:403
+#: core/templates/core/base.html:421
 msgid "Annual Recap"
 msgstr "Ετήσια ανασκόπηση"
 
-#: core/templates/core/base.html:406 core/templates/core/home.html:3
+#: core/templates/core/base.html:424 core/templates/core/home.html:3
 msgid "My Boards"
 msgstr "Οι πίνακές μου"
 
-#: core/templates/core/base.html:413 core/templates/core/home.html:208
+#: core/templates/core/base.html:431 core/templates/core/home.html:208
 msgid "No boards yet"
 msgstr "Δεν υπάρχουν πίνακες ακόμα"
 
-#: core/templates/core/base.html:416
+#: core/templates/core/base.html:434
 #, python-format
 msgid "See all boards (%(sidebar_groups_count)s)"
 msgstr "Δείτε όλους τους πίνακες (%(sidebar_groups_count)s)"
 
-#: core/templates/core/base.html:421 core/templates/core/create_group.html:3
+#: core/templates/core/base.html:439 core/templates/core/create_group.html:3
 msgid "New Board"
 msgstr "Νέος πίνακας"
 
-#: core/templates/core/base.html:431
-msgid "Dark mode"
-msgstr "Σκοτεινή λειτουργία"
+#: core/templates/core/base.html:449 core/templates/core/site_settings.html:31
+msgid "Site Settings"
+msgstr "Ρυθμίσεις ιστότοπου"
 
-#: core/templates/core/base.html:439
+#: core/templates/core/base.html:453
 msgid "Sign out"
 msgstr "Αποσύνδεση"
 
-#: core/templates/core/base.html:441 core/templates/core/report_problem.html:3
+#: core/templates/core/base.html:455 core/templates/core/report_problem.html:3
 #: core/templates/core/report_problem.html:37
+#: core/templates/core/site_settings.html:75
 msgid "Report a problem"
 msgstr "Αναφορά προβλήματος"
 
@@ -487,9 +488,9 @@ msgstr "Περιγραφή"
 
 #: core/templates/core/create_group.html:114
 #: core/templates/core/create_group.html:170
-#: core/templates/core/my_profile.html:96
-#: core/templates/core/my_profile.html:102
-#: core/templates/core/my_profile.html:108
+#: core/templates/core/my_profile.html:91
+#: core/templates/core/my_profile.html:97
+#: core/templates/core/my_profile.html:103
 msgid "optional"
 msgstr "προαιρετικό"
 
@@ -579,17 +580,17 @@ msgid "Stats"
 msgstr "Στατιστικά"
 
 #: core/templates/core/friend_profile.html:62
-#: core/templates/core/my_profile.html:85
+#: core/templates/core/my_profile.html:80
 msgid "Memories created"
 msgstr "Δημιουργημένες αναμνήσεις"
 
 #: core/templates/core/friend_profile.html:63
-#: core/templates/core/my_profile.html:86
+#: core/templates/core/my_profile.html:81
 msgid "Boards owned"
 msgstr "Πίνακες που κατέχετε"
 
 #: core/templates/core/friend_profile.html:64
-#: core/templates/core/my_profile.html:87
+#: core/templates/core/my_profile.html:82
 msgid "Boards joined"
 msgstr "Πίνακες στους οποίους συμμετέχετε"
 
@@ -602,7 +603,7 @@ msgid "Bio"
 msgstr "Βιογραφικό"
 
 #: core/templates/core/friend_profile.html:72
-#: core/templates/core/my_profile.html:108
+#: core/templates/core/my_profile.html:103
 msgid "Birthday"
 msgstr "Γενέθλια"
 
@@ -1222,27 +1223,27 @@ msgstr ""
 msgid "Rememory – Sign in"
 msgstr "Rememory – Σύνδεση"
 
-#: core/templates/core/login.html:107 core/templates/core/register.html:87
+#: core/templates/core/login.html:120 core/templates/core/register.html:100
 msgid "est. wherever you last were"
 msgstr "εκεί που μείνατε τελευταία φορά"
 
-#: core/templates/core/login.html:108
+#: core/templates/core/login.html:121
 #: core/templates/core/password_reset.html:32
-#: core/templates/core/register.html:88
+#: core/templates/core/register.html:101
 msgid "Rememory"
 msgstr "Rememory"
 
-#: core/templates/core/login.html:112
+#: core/templates/core/login.html:125
 msgid "Good to see you again"
 msgstr "Χαιρόμαστε που σας ξαναβλέπουμε"
 
-#: core/templates/core/login.html:113
+#: core/templates/core/login.html:126
 #: core/templates/core/password_reset_complete.html:5
-#: core/templates/core/register.html:143
+#: core/templates/core/register.html:156
 msgid "Sign in"
 msgstr "Σύνδεση"
 
-#: core/templates/core/login.html:115
+#: core/templates/core/login.html:128
 msgid ""
 "Too many login attempts from your network. Please wait a few minutes and try"
 " again."
@@ -1250,97 +1251,84 @@ msgstr ""
 "Πάρα πολλές προσπάθειες σύνδεσης από το δίκτυό σας. Περιμένετε λίγα λεπτά "
 "και δοκιμάστε ξανά."
 
-#: core/templates/core/login.html:122
+#: core/templates/core/login.html:135
 #: core/templates/core/password_reset.html:41
-#: core/templates/core/register.html:122
+#: core/templates/core/register.html:135
 msgid "Email address"
 msgstr "Διεύθυνση email"
 
-#: core/templates/core/login.html:123 core/templates/core/register.html:124
+#: core/templates/core/login.html:136 core/templates/core/register.html:137
 msgid "you@email.com"
 msgstr "you@email.com"
 
-#: core/templates/core/login.html:127 core/templates/core/register.html:129
+#: core/templates/core/login.html:140 core/templates/core/register.html:142
 msgid "Password"
 msgstr "Κωδικός πρόσβασης"
 
-#: core/templates/core/login.html:130
+#: core/templates/core/login.html:143
 msgid "Chart my way in"
 msgstr "Είσοδος"
 
-#: core/templates/core/login.html:133
+#: core/templates/core/login.html:146
 msgid "Forgot password?"
 msgstr "Ξεχάσατε τον κωδικό;"
 
-#: core/templates/core/login.html:136
+#: core/templates/core/login.html:149
 msgid "New around here?"
 msgstr "Καινούριος/α εδώ;"
 
-#: core/templates/core/login.html:136 core/templates/core/register.html:93
+#: core/templates/core/login.html:149 core/templates/core/register.html:106
 msgid "Start a board"
 msgstr "Ξεκινήστε έναν πίνακα"
 
-#: core/templates/core/my_profile.html:69
+#: core/templates/core/my_profile.html:64
 msgid "My Profile"
 msgstr "Το προφίλ μου"
 
-#: core/templates/core/my_profile.html:70
+#: core/templates/core/my_profile.html:65
 msgid "Your info and stats, as friends see them"
 msgstr "Τα στοιχεία και τα στατιστικά σας, όπως τα βλέπουν οι φίλοι"
 
-#: core/templates/core/my_profile.html:83
+#: core/templates/core/my_profile.html:78
 msgid "Your stats"
 msgstr "Τα στατιστικά σας"
 
-#: core/templates/core/my_profile.html:90
+#: core/templates/core/my_profile.html:85
 msgid "Personal info"
 msgstr "Προσωπικά στοιχεία"
 
-#: core/templates/core/my_profile.html:92
+#: core/templates/core/my_profile.html:87
 msgid ""
 "Shown on your profile when a friend looks you up — or keep it to yourself."
 msgstr ""
 "Εμφανίζεται στο προφίλ σας όταν ένας φίλος σας αναζητά — ή κρατήστε το για "
 "εσάς."
 
-#: core/templates/core/my_profile.html:96
+#: core/templates/core/my_profile.html:91
 msgid "About you"
 msgstr "Σχετικά με εσάς"
 
-#: core/templates/core/my_profile.html:98
+#: core/templates/core/my_profile.html:93
 msgid "A short line about you…"
 msgstr "Μια σύντομη γραμμή για εσάς…"
 
-#: core/templates/core/my_profile.html:104
+#: core/templates/core/my_profile.html:99
 msgid "e.g. Oxford, UK"
 msgstr "π.χ. Αθήνα, Ελλάδα"
 
-#: core/templates/core/my_profile.html:114
+#: core/templates/core/my_profile.html:109
 msgid "Who can see this info?"
 msgstr "Ποιος μπορεί να δει αυτά τα στοιχεία;"
 
-#: core/templates/core/my_profile.html:129
-msgid "Note font"
-msgstr "Γραμματοσειρά σημειώσεων"
-
-#: core/templates/core/my_profile.html:131
-msgid ""
-"The font your memory notes are written in, on every board you belong to. "
-"This only affects board content — not the rest of the site."
-msgstr ""
-"Η γραμματοσειρά στην οποία γράφονται οι σημειώσεις σας, σε κάθε πίνακα που "
-"ανήκετε. Αυτό επηρεάζει μόνο το περιεχόμενο των πινάκων — όχι την υπόλοιπη "
-"σελίδα."
-
-#: core/templates/core/my_profile.html:140
+#: core/templates/core/my_profile.html:124
 msgid "Account"
 msgstr "Λογαριασμός"
 
-#: core/templates/core/my_profile.html:144
+#: core/templates/core/my_profile.html:128
 msgid "Disable my account"
 msgstr "Απενεργοποίηση λογαριασμού μου"
 
-#: core/templates/core/my_profile.html:145
+#: core/templates/core/my_profile.html:129
 msgid ""
 "Closes your account for a while — you're logged out and your name is hidden "
 "from friends and boards. Log back in any time and everything picks up "
@@ -1350,15 +1338,15 @@ msgstr ""
 "κρύβεται από φίλους και πίνακες. Συνδεθείτε ξανά όποτε θέλετε και όλα "
 "συνεχίζουν ακριβώς από εκεί που έμειναν."
 
-#: core/templates/core/my_profile.html:149
+#: core/templates/core/my_profile.html:133
 msgid "Disable account"
 msgstr "Απενεργοποίηση λογαριασμού"
 
-#: core/templates/core/my_profile.html:154
+#: core/templates/core/my_profile.html:138
 msgid "Delete my account"
 msgstr "Διαγραφή λογαριασμού μου"
 
-#: core/templates/core/my_profile.html:155
+#: core/templates/core/my_profile.html:139
 msgid ""
 "Permanent. Boards you own are deleted entirely. Your name is removed "
 "everywhere else, and you can't log back in."
@@ -1366,15 +1354,15 @@ msgstr ""
 "Μόνιμη ενέργεια. Οι πίνακες που κατέχετε διαγράφονται εντελώς. Το όνομά σας "
 "αφαιρείται από παντού αλλού και δεν μπορείτε να συνδεθείτε ξανά."
 
-#: core/templates/core/my_profile.html:157
+#: core/templates/core/my_profile.html:141
 msgid "Delete account"
 msgstr "Διαγραφή λογαριασμού"
 
-#: core/templates/core/my_profile.html:164
+#: core/templates/core/my_profile.html:148
 msgid "Delete your account?"
 msgstr "Διαγραφή του λογαριασμού σας;"
 
-#: core/templates/core/my_profile.html:165
+#: core/templates/core/my_profile.html:149
 msgid ""
 "This can't be undone. Boards you own will be deleted along with everything "
 "on them. To confirm, type your email address below."
@@ -1383,7 +1371,7 @@ msgstr ""
 "όλο το περιεχόμενό τους. Για επιβεβαίωση, πληκτρολογήστε τη διεύθυνση email "
 "σας παρακάτω."
 
-#: core/templates/core/my_profile.html:171
+#: core/templates/core/my_profile.html:155
 msgid "Permanently delete"
 msgstr "Οριστική διαγραφή"
 
@@ -1502,7 +1490,7 @@ msgid "New password"
 msgstr "Νέος κωδικός"
 
 #: core/templates/core/password_reset_confirm.html:10
-#: core/templates/core/register.html:135
+#: core/templates/core/register.html:148
 msgid "Confirm password"
 msgstr "Επιβεβαίωση κωδικού"
 
@@ -1571,42 +1559,42 @@ msgstr "Από τον πίνακα «%(group.name)s»"
 msgid "Rememory – Create Account"
 msgstr "Rememory – Δημιουργία λογαριασμού"
 
-#: core/templates/core/register.html:92
+#: core/templates/core/register.html:105
 msgid "First time here"
 msgstr "Πρώτη φορά εδώ"
 
-#: core/templates/core/register.html:94
+#: core/templates/core/register.html:107
 msgid "Save the memories worth keeping, with the people who were there."
 msgstr ""
 "Αποθηκεύστε τις αναμνήσεις που αξίζει να κρατήσετε, με τους ανθρώπους που "
 "ήταν εκεί."
 
-#: core/templates/core/register.html:97
+#: core/templates/core/register.html:110
 msgid ""
 "Too many signup attempts from your network. Please wait a bit and try again."
 msgstr ""
 "Πάρα πολλές προσπάθειες εγγραφής από το δίκτυό σας. Περιμένετε λίγο και "
 "δοκιμάστε ξανά."
 
-#: core/templates/core/register.html:99
+#: core/templates/core/register.html:112
 msgid "You were invited to join a board. Sign up to accept!"
 msgstr ""
 "Έχετε προσκληθεί να συμμετάσχετε σε έναν πίνακα. Εγγραφείτε για να "
 "αποδεχτείτε!"
 
-#: core/templates/core/register.html:108
+#: core/templates/core/register.html:121
 msgid "First name"
 msgstr "Όνομα"
 
-#: core/templates/core/register.html:114
+#: core/templates/core/register.html:127
 msgid "Last name"
 msgstr "Επώνυμο"
 
-#: core/templates/core/register.html:140
+#: core/templates/core/register.html:153
 msgid "Create account"
 msgstr "Δημιουργία λογαριασμού"
 
-#: core/templates/core/register.html:143
+#: core/templates/core/register.html:156
 msgid "Already have an account?"
 msgstr "Έχετε ήδη λογαριασμό;"
 
@@ -1662,6 +1650,56 @@ msgstr "Δεν βρέθηκαν αναμνήσεις για «<strong>%(query)s<
 #: core/templates/core/search.html:63
 msgid "Search across all your boards and memories"
 msgstr "Αναζήτηση σε όλους τους πίνακες και τις αναμνήσεις σας"
+
+#: core/templates/core/site_settings.html:3
+msgid "Rememory – Site Settings"
+msgstr "Rememory – Ρυθμίσεις ιστότοπου"
+
+#: core/templates/core/site_settings.html:32
+msgid "How Rememory looks and reads, for you"
+msgstr "Πώς εμφανίζεται και διαβάζεται το Rememory, για εσάς"
+
+#: core/templates/core/site_settings.html:37
+msgid "Appearance"
+msgstr "Εμφάνιση"
+
+#: core/templates/core/site_settings.html:40
+msgid "Dark mode"
+msgstr "Σκοτεινή λειτουργία"
+
+#: core/templates/core/site_settings.html:48
+#: core/templates/core/site_settings.html:51
+msgid "Language"
+msgstr "Γλώσσα"
+
+#: core/templates/core/site_settings.html:60
+msgid "Note font"
+msgstr "Γραμματοσειρά σημειώσεων"
+
+#: core/templates/core/site_settings.html:62
+msgid ""
+"The font your memory notes are written in, on every board you belong to. "
+"This only affects board content — not the rest of the site."
+msgstr ""
+"Η γραμματοσειρά στην οποία γράφονται οι σημειώσεις σας, σε κάθε πίνακα που "
+"ανήκετε. Αυτό επηρεάζει μόνο το περιεχόμενο των πινάκων — όχι την υπόλοιπη "
+"σελίδα."
+
+#: core/templates/core/site_settings.html:71
+msgid "About the site"
+msgstr "Σχετικά με τον ιστότοπο"
+
+#: core/templates/core/site_settings.html:73
+msgid ""
+"Rememory is a place to keep the memories worth keeping — shared boards for "
+"photos, notes, videos and voice notes, built for the people who were "
+"actually there. No ads, no data selling — just your memories, on your terms."
+msgstr ""
+"Το Rememory είναι ένας χώρος για να κρατάτε τις αναμνήσεις που αξίζει να "
+"κρατήσετε — κοινόχρηστοι πίνακες για φωτογραφίες, σημειώσεις, βίντεο και "
+"φωνητικά σημειώματα, φτιαγμένοι για τους ανθρώπους που ήταν πραγματικά εκεί."
+" Χωρίς διαφημίσεις, χωρίς πώληση δεδομένων — μόνο οι αναμνήσεις σας, με τους"
+" δικούς σας όρους."
 
 #: core/views.py:145 core/views.py:160 core/views.py:1196
 #, python-format
@@ -1938,7 +1976,7 @@ msgstr "Δεν μοιράζεστε πίνακα ή φιλία με αυτό τ�
 msgid "Profile updated."
 msgstr "Το προφίλ ενημερώθηκε."
 
-#: core/views.py:1902
+#: core/views.py:1917
 msgid ""
 "Your account is paused. Log back in any time to pick up right where you left"
 " off."
@@ -1946,11 +1984,11 @@ msgstr ""
 "Ο λογαριασμός σας είναι σε παύση. Συνδεθείτε ξανά όποτε θέλετε για να "
 "συνεχίσετε ακριβώς από εκεί που μείνατε."
 
-#: core/views.py:1919
+#: core/views.py:1934
 msgid "That didn't match your account email — nothing was deleted."
 msgstr ""
 "Αυτό δεν ταίριαξε με το email του λογαριασμού σας — δεν διαγράφηκε τίποτα."
 
-#: core/views.py:1955
+#: core/views.py:1970
 msgid "Your account has been deleted."
 msgstr "Ο λογαριασμός σας διαγράφηκε."

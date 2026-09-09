@@ -1883,6 +1883,21 @@ def my_profile_view(request):
         'stats':         get_user_stats(user),
         'user_initials': get_initials(user),
         'user_display':  get_display_name(user),
+    })
+
+
+@login_required
+def site_settings_view(request):
+    """Appearance (dark mode), language, and note font live here rather than
+    scattered across the sidebar and the profile page — this is the one
+    place to change how Rememory looks and reads for you. The controls
+    themselves post to the same set_theme/set_language/set_font endpoints
+    the old locations used; nothing about how a change is saved changed,
+    only where the control lives."""
+    profile = request.user.profile
+    return render(request, 'core/site_settings.html', {
+        'user_initials': get_initials(request.user),
+        'user_display':  get_display_name(request.user),
         'font_choices':  FONT_CHOICES,
         'current_font':  profile.note_font,
     })
