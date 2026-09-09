@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-09 20:23+0000\n"
+"POT-Creation-Date: 2026-09-09 20:27+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1287,9 +1287,10 @@ msgstr "Ξεχάσατε τον κωδικό;"
 msgid "New around here?"
 msgstr "Καινούριος/α εδώ;"
 
-#: core/templates/core/login.html:152 core/templates/core/register.html:109
-msgid "Start a board"
-msgstr "Ξεκινήστε έναν πίνακα"
+#: core/templates/core/login.html:152
+#| msgid "Create a new board"
+msgid "Create your own board"
+msgstr "Δημιουργήστε τον δικό σας πίνακα"
 
 #: core/templates/core/login.html:153 core/templates/core/register.html:160
 msgid "Privacy"
@@ -1590,6 +1591,10 @@ msgstr "Rememory – Δημιουργία λογαριασμού"
 #: core/templates/core/register.html:108
 msgid "First time here"
 msgstr "Πρώτη φορά εδώ"
+
+#: core/templates/core/register.html:109
+msgid "Start a board"
+msgstr "Ξεκινήστε έναν πίνακα"
 
 #: core/templates/core/register.html:110
 msgid "Save the memories worth keeping, with the people who were there."
