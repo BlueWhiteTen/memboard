@@ -1,0 +1,92 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+{% block title %}Rememory – Terms of Service{% endblock %}
+
+{% block extra_styles %}
+.page-header { padding:1.75rem 2.5rem 1.25rem; border-bottom:1px solid var(--border); background:var(--warm-white); display:flex; align-items:center; gap:0.75rem; }
+.back-btn { display:flex; align-items:center; gap:0.3rem; font-size:0.85rem; color:var(--ink-light); text-decoration:none; padding:0.3rem 0.6rem; border-radius:0; transition:background 0.12s; }
+.back-btn:hover { background:var(--amber-pale); color:var(--ink); }
+.back-btn svg { width:13px; height:13px; }
+.page-header h2 { font-family:'Spectral', serif; font-size:1.35rem; font-weight:600; color:var(--ink); }
+
+.legal-content { padding:2rem 2.5rem; max-width:720px; }
+.legal-content .updated { font-size:0.82rem; color:var(--ink-muted); font-family:'IBM Plex Mono', monospace; margin-bottom:1.25rem; }
+.legal-content .disclaimer {
+    background:var(--amber-pale); border:1px solid var(--amber); padding:1rem 1.25rem;
+    font-size:0.85rem; color:var(--ink-light); margin-bottom:2rem; line-height:1.55;
+}
+.legal-content h3 { font-family:'Spectral', serif; font-size:1.15rem; font-weight:700; color:var(--ink); margin:1.75rem 0 0.65rem; }
+.legal-content h3:first-of-type { margin-top:0; }
+.legal-content p { font-size:0.92rem; color:var(--ink-light); line-height:1.65; margin-bottom:0.85rem; }
+.legal-content ul { margin:0 0 0.85rem 1.2rem; }
+.legal-content li { font-size:0.92rem; color:var(--ink-light); line-height:1.65; margin-bottom:0.35rem; }
+.legal-content a { color:var(--amber); }
+.legal-content strong { color:var(--ink); }
+.todo { background:rgba(177,74,58,0.12); color:#7A2418; padding:0.05rem 0.35rem; font-family:'IBM Plex Mono', monospace; font-size:0.85em; }
+
+@media(max-width:680px){ .page-header,.legal-content{padding:1.25rem;} }
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <a href="{% url 'home' %}" class="back-btn">
+        <svg viewBox="0 0 13 13" fill="none"><path d="M8.5 2L4 6.5l4.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        {% trans "Back" %}
+    </a>
+    <h2>Terms of Service</h2>
+</div>
+
+<div class="legal-content">
+    <div class="updated">Last updated: <span class="todo">[DATE — not yet set]</span></div>
+
+    <p>These terms cover your use of Rememory, a shared memory-keeping app for creating boards, inviting friends, and posting photos, videos, voice notes, and written memories together.</p>
+
+    <div class="disclaimer"><strong>This draft is a starting point, not legal advice.</strong> Have it reviewed by someone qualified in your jurisdiction before publishing it, especially the liability and content-license sections below.</div>
+
+    <h3>1. Your account</h3>
+    <p>You need an account to use Rememory. You're responsible for keeping your login credentials secure and for what happens under your account. You must be at least 13 (or the minimum age in your country, if higher) to create one.</p>
+
+    <h3>2. Your content</h3>
+    <p>You keep ownership of everything you post — photos, videos, voice notes, written memories, comments. By posting content to a board, you give the other members of that board permission to view it, react to it, and comment on it, consistent with the board's privacy setting and your own sharing choices (see our <a href="{% url 'privacy_policy' %}">Privacy Policy</a>).</p>
+    <p>You give Rememory the limited permission needed to store, process, and display your content back to you and to the people you've shared it with — for example, compressing a photo so it loads quickly, or including it in an export you request. We don't use your content for advertising, and we don't claim ownership of it.</p>
+    <p>You're responsible for what you post. Don't post anything you don't have the right to share, or anything that infringes someone else's copyright or other rights.</p>
+
+    <h3>3. Shared boards</h3>
+    <p>Rememory is built around boards you share with other people, so a few things follow from that:</p>
+    <ul>
+        <li>A board's <strong>owner</strong> can change its privacy setting, manage members and admins, and delete the board.</li>
+        <li>Anyone you invite to a board can see what's already there, consistent with the board's settings, once they join.</li>
+        <li>If you leave a board, or are removed from one, memories you posted to it may remain, since other members' memories and activity are woven together with yours on a shared board. Deleting your own memories is always your choice (see Section 5).</li>
+        <li>Turning on a <strong>public share link</strong> for a board or a single memory makes it viewable, without login, by anyone with that link, until you turn it off.</li>
+    </ul>
+    <p>Be thoughtful about who you invite and what you set to public — Rememory can't control what someone does with content after they've viewed or downloaded it.</p>
+
+    <h3>4. Acceptable use</h3>
+    <p>Don't use Rememory to:</p>
+    <ul>
+        <li>Post content that's illegal, harassing, hateful, or sexually exploitative of a minor.</li>
+        <li>Impersonate someone else, or post content about another person without a reasonable basis for believing they'd be okay with it appearing on a shared board.</li>
+        <li>Upload malware, attempt to breach the security of the service, or scrape or bulk-download content that isn't yours.</li>
+        <li>Use the service in a way that places excessive load on it (for example, automated or scripted use outside normal app usage).</li>
+    </ul>
+    <p>If you see content or behavior that violates these terms, you can report it in the app, or contact us directly (see Section 10).</p>
+
+    <h3>5. Deleting content</h3>
+    <p>Deleting a memory moves it to a recycle bin for 30 days, after which it's permanently removed — this gives you a window to undo an accidental deletion. You can also delete your account entirely; see our <a href="{% url 'privacy_policy' %}">Privacy Policy</a> for what that removes and how long it takes.</p>
+
+    <h3>6. Our right to act on content</h3>
+    <p>We can remove content or suspend an account that violates these terms, or that we're required to act on for legal reasons. We'll try to tell you why when we do, except where we're legally restricted from doing so.</p>
+
+    <h3>7. Service availability</h3>
+    <p>Rememory is provided as-is. We aim to keep it running reliably, but we don't guarantee uninterrupted access, and we may need to modify or temporarily suspend features for maintenance, security, or improvements. We'll try to give notice of any change that meaningfully affects how you use the service.</p>
+
+    <h3>8. Limitation of liability</h3>
+    <p>To the extent permitted by law, Rememory and its operators aren't liable for indirect, incidental, or consequential damages arising from your use of the service, including loss of content. We take reasonable steps to protect your data (see our <a href="{% url 'privacy_policy' %}">Privacy Policy</a>), but you're encouraged to keep your own copies of anything irreplaceable — Rememory is a place to share memories, not a sole backup for them.</p>
+
+    <h3>9. Changes to these terms</h3>
+    <p>If we make a material change to these terms, we'll post the update here and, where practical, let you know directly. Continuing to use Rememory after a change takes effect means you accept the updated terms.</p>
+
+    <h3>10. Contact</h3>
+    <p>Questions about these terms: <strong><span class="todo">[CONTACT EMAIL — not yet set]</span></strong></p>
+</div>
+{% endblock %}

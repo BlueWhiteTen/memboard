@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-09 19:53+0000\n"
+"POT-Creation-Date: 2026-09-09 20:03+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -444,7 +444,9 @@ msgstr "Νέα ομάδα"
 #: core/templates/core/create_group.html:77
 #: core/templates/core/friend_group_detail.html:33
 #: core/templates/core/friend_profile.html:47
+#: core/templates/core/privacy_policy.html:34
 #: core/templates/core/report_problem.html:35
+#: core/templates/core/terms_of_service.html:34
 msgid "Back"
 msgstr "Πίσω"
 
@@ -1231,27 +1233,27 @@ msgstr ""
 msgid "Rememory – Sign in"
 msgstr "Rememory – Σύνδεση"
 
-#: core/templates/core/login.html:120 core/templates/core/register.html:100
+#: core/templates/core/login.html:123 core/templates/core/register.html:103
 msgid "est. wherever you last were"
 msgstr "εκεί που μείνατε τελευταία φορά"
 
-#: core/templates/core/login.html:121
+#: core/templates/core/login.html:124
 #: core/templates/core/password_reset.html:32
-#: core/templates/core/register.html:101
+#: core/templates/core/register.html:104
 msgid "Rememory"
 msgstr "Rememory"
 
-#: core/templates/core/login.html:125
+#: core/templates/core/login.html:128
 msgid "Good to see you again"
 msgstr "Χαιρόμαστε που σας ξαναβλέπουμε"
 
-#: core/templates/core/login.html:126
+#: core/templates/core/login.html:129
 #: core/templates/core/password_reset_complete.html:5
-#: core/templates/core/register.html:156
+#: core/templates/core/register.html:159
 msgid "Sign in"
 msgstr "Σύνδεση"
 
-#: core/templates/core/login.html:128
+#: core/templates/core/login.html:131
 msgid ""
 "Too many login attempts from your network. Please wait a few minutes and try"
 " again."
@@ -1259,35 +1261,43 @@ msgstr ""
 "Πάρα πολλές προσπάθειες σύνδεσης από το δίκτυό σας. Περιμένετε λίγα λεπτά "
 "και δοκιμάστε ξανά."
 
-#: core/templates/core/login.html:135
+#: core/templates/core/login.html:138
 #: core/templates/core/password_reset.html:41
-#: core/templates/core/register.html:135
+#: core/templates/core/register.html:138
 msgid "Email address"
 msgstr "Διεύθυνση email"
 
-#: core/templates/core/login.html:136 core/templates/core/register.html:137
+#: core/templates/core/login.html:139 core/templates/core/register.html:140
 msgid "you@email.com"
 msgstr "you@email.com"
 
-#: core/templates/core/login.html:140 core/templates/core/register.html:142
+#: core/templates/core/login.html:143 core/templates/core/register.html:145
 msgid "Password"
 msgstr "Κωδικός πρόσβασης"
 
-#: core/templates/core/login.html:143
+#: core/templates/core/login.html:146
 msgid "Chart my way in"
 msgstr "Είσοδος"
 
-#: core/templates/core/login.html:146
+#: core/templates/core/login.html:149
 msgid "Forgot password?"
 msgstr "Ξεχάσατε τον κωδικό;"
 
-#: core/templates/core/login.html:149
+#: core/templates/core/login.html:152
 msgid "New around here?"
 msgstr "Καινούριος/α εδώ;"
 
-#: core/templates/core/login.html:149 core/templates/core/register.html:106
+#: core/templates/core/login.html:152 core/templates/core/register.html:109
 msgid "Start a board"
 msgstr "Ξεκινήστε έναν πίνακα"
+
+#: core/templates/core/login.html:153 core/templates/core/register.html:160
+msgid "Privacy"
+msgstr "Απόρρητο"
+
+#: core/templates/core/login.html:153 core/templates/core/register.html:160
+msgid "Terms"
+msgstr "Όροι"
 
 #: core/templates/core/my_profile.html:64
 msgid "My Profile"
@@ -1498,7 +1508,7 @@ msgid "New password"
 msgstr "Νέος κωδικός"
 
 #: core/templates/core/password_reset_confirm.html:10
-#: core/templates/core/register.html:148
+#: core/templates/core/register.html:151
 msgid "Confirm password"
 msgstr "Επιβεβαίωση κωδικού"
 
@@ -1567,42 +1577,42 @@ msgstr "Από τον πίνακα «%(group.name)s»"
 msgid "Rememory – Create Account"
 msgstr "Rememory – Δημιουργία λογαριασμού"
 
-#: core/templates/core/register.html:105
+#: core/templates/core/register.html:108
 msgid "First time here"
 msgstr "Πρώτη φορά εδώ"
 
-#: core/templates/core/register.html:107
+#: core/templates/core/register.html:110
 msgid "Save the memories worth keeping, with the people who were there."
 msgstr ""
 "Αποθηκεύστε τις αναμνήσεις που αξίζει να κρατήσετε, με τους ανθρώπους που "
 "ήταν εκεί."
 
-#: core/templates/core/register.html:110
+#: core/templates/core/register.html:113
 msgid ""
 "Too many signup attempts from your network. Please wait a bit and try again."
 msgstr ""
 "Πάρα πολλές προσπάθειες εγγραφής από το δίκτυό σας. Περιμένετε λίγο και "
 "δοκιμάστε ξανά."
 
-#: core/templates/core/register.html:112
+#: core/templates/core/register.html:115
 msgid "You were invited to join a board. Sign up to accept!"
 msgstr ""
 "Έχετε προσκληθεί να συμμετάσχετε σε έναν πίνακα. Εγγραφείτε για να "
 "αποδεχτείτε!"
 
-#: core/templates/core/register.html:121
+#: core/templates/core/register.html:124
 msgid "First name"
 msgstr "Όνομα"
 
-#: core/templates/core/register.html:127
+#: core/templates/core/register.html:130
 msgid "Last name"
 msgstr "Επώνυμο"
 
-#: core/templates/core/register.html:153
+#: core/templates/core/register.html:156
 msgid "Create account"
 msgstr "Δημιουργία λογαριασμού"
 
-#: core/templates/core/register.html:156
+#: core/templates/core/register.html:159
 msgid "Already have an account?"
 msgstr "Έχετε ήδη λογαριασμό;"
 
@@ -1709,7 +1719,15 @@ msgstr ""
 " Χωρίς διαφημίσεις, χωρίς πώληση δεδομένων — μόνο οι αναμνήσεις σας, με τους"
 " δικούς σας όρους."
 
-#: core/views.py:145 core/views.py:160 core/views.py:1196
+#: core/templates/core/site_settings.html:77
+msgid "Privacy Policy"
+msgstr "Πολιτική Απορρήτου"
+
+#: core/templates/core/site_settings.html:79
+msgid "Terms of Service"
+msgstr "Όροι Χρήσης"
+
+#: core/views.py:145 core/views.py:160 core/views.py:1207
 #, python-format
 msgid "%(owner)s shared the board \"%(board)s\" with you"
 msgstr "Ο/Η %(owner)s μοιράστηκε τον πίνακα «%(board)s» μαζί σας"
@@ -1735,170 +1753,170 @@ msgstr "Καλώς ήρθατε στο Rememory, %(name)s!"
 msgid "Welcome back — your account is active again."
 msgstr "Καλώς ήρθατε ξανά — ο λογαριασμός σας είναι ενεργός και πάλι."
 
-#: core/views.py:409
+#: core/views.py:420
 msgid "Couldn't send your report just now — please try again in a moment."
 msgstr ""
 "Δεν ήταν δυνατή η αποστολή της αναφοράς σας αυτή τη στιγμή — δοκιμάστε ξανά "
 "σε λίγο."
 
-#: core/views.py:449
+#: core/views.py:460
 #, python-format
 msgid "%(actor)s created the board"
 msgstr "Ο/Η %(actor)s δημιούργησε τον πίνακα"
 
-#: core/views.py:450
+#: core/views.py:461
 #, python-format
 msgid "Board \"%(board)s\" created!"
 msgstr "Ο πίνακας «%(board)s» δημιουργήθηκε!"
 
-#: core/views.py:465 core/views.py:1234 core/views.py:1412 core/views.py:1464
+#: core/views.py:476 core/views.py:1245 core/views.py:1423 core/views.py:1475
 msgid "You're not a member of that board."
 msgstr "Δεν είστε μέλος αυτού του πίνακα."
 
-#: core/views.py:654
+#: core/views.py:665
 #, python-format
 msgid "%(actor)s updated the board cover"
 msgstr "Ο/Η %(actor)s ενημέρωσε το εξώφυλλο του πίνακα"
 
-#: core/views.py:782
+#: core/views.py:793
 msgid "Board settings updated."
 msgstr "Οι ρυθμίσεις του πίνακα ενημερώθηκαν."
 
-#: core/views.py:869 core/views.py:941 core/views.py:964
+#: core/views.py:880 core/views.py:952 core/views.py:975
 #, python-format
 msgid "%(actor)s invited you to join \"%(board)s\""
 msgstr "Ο/Η %(actor)s σας προσκάλεσε στο «%(board)s»"
 
-#: core/views.py:886 core/views.py:1775
+#: core/views.py:897 core/views.py:1786
 #, python-format
 msgid "%(actor)s sent you a friend request"
 msgstr "Ο/Η %(actor)s σας έστειλε αίτημα φιλίας"
 
-#: core/views.py:984 core/views.py:1084
+#: core/views.py:995 core/views.py:1095
 #, python-format
 msgid "%(actor)s joined the board"
 msgstr "Ο/Η %(actor)s συμμετέχει πλέον στον πίνακα"
 
-#: core/views.py:985
+#: core/views.py:996
 #, python-format
 msgid "You've joined \"%(board)s\"!"
 msgstr "Συμμετέχετε πλέον στο «%(board)s»!"
 
-#: core/views.py:1040
+#: core/views.py:1051
 msgid "You don't have permission to delete this board."
 msgstr "Δεν έχετε δικαίωμα να διαγράψετε αυτόν τον πίνακα."
 
-#: core/views.py:1045
+#: core/views.py:1056
 #, python-format
 msgid "Board \"%(board)s\" deleted."
 msgstr "Ο πίνακας «%(board)s» διαγράφηκε."
 
-#: core/views.py:1056
+#: core/views.py:1067
 msgid "You don't have permission to request to join that board."
 msgstr "Δεν έχετε δικαίωμα να ζητήσετε συμμετοχή σε αυτόν τον πίνακα."
 
-#: core/views.py:1062
+#: core/views.py:1073
 #, python-format
 msgid "%(actor)s asked to join \"%(board)s\""
 msgstr "Ο/Η %(actor)s ζήτησε να συμμετάσχει στο «%(board)s»"
 
-#: core/views.py:1067
+#: core/views.py:1078
 #, python-format
 msgid "Request sent — %(owner)s will need to approve it."
 msgstr "Το αίτημα στάλθηκε — ο/η %(owner)s θα χρειαστεί να το εγκρίνει."
 
-#: core/views.py:1087
+#: core/views.py:1098
 #, python-format
 msgid "%(actor)s approved your request to join \"%(board)s\""
 msgstr "Ο/Η %(actor)s ενέκρινε το αίτημά σας συμμετοχής στο «%(board)s»"
 
-#: core/views.py:1092
+#: core/views.py:1103
 #, python-format
 msgid "%(name)s added to the board!"
 msgstr "Ο/Η %(name)s προστέθηκε στον πίνακα!"
 
-#: core/views.py:1120
+#: core/views.py:1131
 #, python-format
 msgid "%(actor)s made you an admin of \"%(board)s\""
 msgstr "Ο/Η %(actor)s σάς έκανε διαχειριστή του «%(board)s»"
 
-#: core/views.py:1152
+#: core/views.py:1163
 #, python-format
 msgid "\"%(name)s\" created — add friends to it below."
 msgstr "Το «%(name)s» δημιουργήθηκε — προσθέστε φίλους παρακάτω."
 
-#: core/views.py:1201
+#: core/views.py:1212
 #, python-format
 msgid "\"%(name)s\" updated."
 msgstr "Το «%(name)s» ενημερώθηκε."
 
-#: core/views.py:1224
+#: core/views.py:1235
 #, python-format
 msgid "\"%(name)s\" deleted."
 msgstr "Το «%(name)s» διαγράφηκε."
 
-#: core/views.py:1250
+#: core/views.py:1261
 #, python-format
 msgid "%(actor)s tagged you in a memory on \"%(board)s\""
 msgstr "Ο/Η %(actor)s σας επισήμανε σε μια ανάμνηση στο «%(board)s»"
 
-#: core/views.py:1256
+#: core/views.py:1267
 #, python-format
 msgid "%(actor)s added a memory: %(summary)s"
 msgstr "Ο/Η %(actor)s πρόσθεσε μια ανάμνηση: %(summary)s"
 
-#: core/views.py:1261
+#: core/views.py:1272
 msgid "Memory saved!"
 msgstr "Η ανάμνηση αποθηκεύτηκε!"
 
-#: core/views.py:1288
+#: core/views.py:1299
 msgid "You don't have permission to edit that memory."
 msgstr "Δεν έχετε δικαίωμα να επεξεργαστείτε αυτή την ανάμνηση."
 
-#: core/views.py:1300
+#: core/views.py:1311
 #, python-format
 msgid "%(actor)s edited a memory: %(summary)s"
 msgstr "Ο/Η %(actor)s επεξεργάστηκε μια ανάμνηση: %(summary)s"
 
-#: core/views.py:1305
+#: core/views.py:1316
 msgid "Memory updated!"
 msgstr "Η ανάμνηση ενημερώθηκε!"
 
-#: core/views.py:1318
+#: core/views.py:1329
 msgid "You don't have permission to delete that memory."
 msgstr "Δεν έχετε δικαίωμα να διαγράψετε αυτή την ανάμνηση."
 
-#: core/views.py:1322
+#: core/views.py:1333
 #, python-format
 msgid "%(actor)s deleted a memory: %(summary)s"
 msgstr "Ο/Η %(actor)s διέγραψε μια ανάμνηση: %(summary)s"
 
-#: core/views.py:1329
+#: core/views.py:1340
 msgid "Memory moved to the recycle bin — it'll be kept for 30 days."
 msgstr ""
 "Η ανάμνηση μετακινήθηκε στον κάδο ανακύκλωσης — θα διατηρηθεί για 30 ημέρες."
 
-#: core/views.py:1342
+#: core/views.py:1353
 msgid "You don't have permission to restore that memory."
 msgstr "Δεν έχετε δικαίωμα να επαναφέρετε αυτή την ανάμνηση."
 
-#: core/views.py:1349
+#: core/views.py:1360
 #, python-format
 msgid "%(actor)s restored a memory from the recycle bin"
 msgstr "Ο/Η %(actor)s επανέφερε μια ανάμνηση από τον κάδο ανακύκλωσης"
 
-#: core/views.py:1352
+#: core/views.py:1363
 msgid "Memory restored!"
 msgstr "Η ανάμνηση επαναφέρθηκε!"
 
-#: core/views.py:1378
+#: core/views.py:1389
 #, python-format
 msgid "%(actor)s deleted %(count)d memory at once"
 msgid_plural "%(actor)s deleted %(count)d memories at once"
 msgstr[0] "Ο/Η %(actor)s διέγραψε %(count)d ανάμνηση ταυτόχρονα"
 msgstr[1] "Ο/Η %(actor)s διέγραψε %(count)d αναμνήσεις ταυτόχρονα"
 
-#: core/views.py:1462
+#: core/views.py:1473
 msgid ""
 "Board owners can't leave — delete the board instead, or transfer ownership "
 "first."
@@ -1906,58 +1924,58 @@ msgstr ""
 "Οι ιδιοκτήτες πίνακα δεν μπορούν να αποχωρήσουν — διαγράψτε τον πίνακα ή "
 "μεταβιβάστε πρώτα την ιδιοκτησία."
 
-#: core/views.py:1468
+#: core/views.py:1479
 #, python-format
 msgid "%(actor)s left the board"
 msgstr "Ο/Η %(actor)s αποχώρησε από τον πίνακα"
 
-#: core/views.py:1469
+#: core/views.py:1480
 #, python-format
 msgid "You left \"%(board)s\"."
 msgstr "Αποχωρήσατε από το «%(board)s»."
 
-#: core/views.py:1484
+#: core/views.py:1495
 #, python-format
 msgid "%(actor)s pinned a memory"
 msgstr "Ο/Η %(actor)s καρφίτσωσε μια ανάμνηση"
 
-#: core/views.py:1486
+#: core/views.py:1497
 #, python-format
 msgid "%(actor)s unpinned a memory"
 msgstr "Ο/Η %(actor)s ξεκαρφίτσωσε μια ανάμνηση"
 
-#: core/views.py:1490
+#: core/views.py:1501
 #, python-format
 msgid "%(actor)s pinned your memory in \"%(board)s\""
 msgstr "Ο/Η %(actor)s καρφίτσωσε την ανάμνησή σας στο «%(board)s»"
 
-#: core/views.py:1555
+#: core/views.py:1566
 #, python-format
 msgid "%(actor)s reacted %(emoji)s to your memory in \"%(board)s\""
 msgstr ""
 "Ο/Η %(actor)s αντέδρασε με %(emoji)s στην ανάμνησή σας στο «%(board)s»"
 
-#: core/views.py:1561
+#: core/views.py:1572
 #, python-format
 msgid "%(actor)s reacted %(emoji)s to a memory"
 msgstr "Ο/Η %(actor)s αντέδρασε με %(emoji)s σε μια ανάμνηση"
 
-#: core/views.py:1583
+#: core/views.py:1594
 #, python-format
 msgid "%(actor)s commented on a memory"
 msgstr "Ο/Η %(actor)s σχολίασε μια ανάμνηση"
 
-#: core/views.py:1588
+#: core/views.py:1599
 #, python-format
 msgid "%(actor)s commented on your memory in \"%(board)s\""
 msgstr "Ο/Η %(actor)s σχολίασε την ανάμνησή σας στο «%(board)s»"
 
-#: core/views.py:1777
+#: core/views.py:1788
 #, python-format
 msgid "Friend request sent to %(name)s!"
 msgstr "Το αίτημα φιλίας στάλθηκε στον/στην %(name)s!"
 
-#: core/views.py:1785
+#: core/views.py:1796
 #, python-format
 msgid ""
 "%(email)s isn't on Rememory yet — we've emailed them an invite. You'll be "
@@ -1966,25 +1984,25 @@ msgstr ""
 "Ο/Η %(email)s δεν είναι ακόμα στο Rememory — του/της στείλαμε πρόσκληση με "
 "email. Θα γίνετε φίλοι αυτόματα μόλις εγγραφεί."
 
-#: core/views.py:1790
+#: core/views.py:1801
 #, python-format
 msgid "Failed to send email: %(err)s"
 msgstr "Αποτυχία αποστολής email: %(err)s"
 
-#: core/views.py:1805
+#: core/views.py:1816
 #, python-format
 msgid "You're now friends with %(name)s!"
 msgstr "Είστε πλέον φίλοι με τον/την %(name)s!"
 
-#: core/views.py:1839
+#: core/views.py:1850
 msgid "You don't share a board or friendship with that person."
 msgstr "Δεν μοιράζεστε πίνακα ή φιλία με αυτό το άτομο."
 
-#: core/views.py:1875
+#: core/views.py:1886
 msgid "Profile updated."
 msgstr "Το προφίλ ενημερώθηκε."
 
-#: core/views.py:1917
+#: core/views.py:1928
 msgid ""
 "Your account is paused. Log back in any time to pick up right where you left"
 " off."
@@ -1992,11 +2010,11 @@ msgstr ""
 "Ο λογαριασμός σας είναι σε παύση. Συνδεθείτε ξανά όποτε θέλετε για να "
 "συνεχίσετε ακριβώς από εκεί που μείνατε."
 
-#: core/views.py:1934
+#: core/views.py:1945
 msgid "That didn't match your account email — nothing was deleted."
 msgstr ""
 "Αυτό δεν ταίριαξε με το email του λογαριασμού σας — δεν διαγράφηκε τίποτα."
 
-#: core/views.py:1970
+#: core/views.py:1981
 msgid "Your account has been deleted."
 msgstr "Ο λογαριασμός σας διαγράφηκε."

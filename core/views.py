@@ -395,6 +395,17 @@ def notifications_view(request):
     })
 
 
+def privacy_policy_view(request):
+    """Public — reachable signed in or out, since a prospective user should
+    be able to read this before creating an account."""
+    return render(request, 'core/privacy_policy.html')
+
+
+def terms_of_service_view(request):
+    """Public — see privacy_policy_view."""
+    return render(request, 'core/terms_of_service.html')
+
+
 @login_required
 def report_problem_view(request):
     sent = False

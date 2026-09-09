@@ -13,6 +13,10 @@ urlpatterns = [
     # Report a problem
     path('report-problem/', views.report_problem_view, name='report_problem'),
 
+    # Legal
+    path('privacy/', views.privacy_policy_view,    name='privacy_policy'),
+    path('terms/',   views.terms_of_service_view,  name='terms_of_service'),
+
     # Notifications
     path('notifications/',               views.notifications_view,    name='notifications'),
     path('notifications/<int:pk>/read/', views.mark_notif_read_view,  name='mark_notif_read'),

@@ -1,0 +1,98 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+{% block title %}Rememory – Privacy Policy{% endblock %}
+
+{% block extra_styles %}
+.page-header { padding:1.75rem 2.5rem 1.25rem; border-bottom:1px solid var(--border); background:var(--warm-white); display:flex; align-items:center; gap:0.75rem; }
+.back-btn { display:flex; align-items:center; gap:0.3rem; font-size:0.85rem; color:var(--ink-light); text-decoration:none; padding:0.3rem 0.6rem; border-radius:0; transition:background 0.12s; }
+.back-btn:hover { background:var(--amber-pale); color:var(--ink); }
+.back-btn svg { width:13px; height:13px; }
+.page-header h2 { font-family:'Spectral', serif; font-size:1.35rem; font-weight:600; color:var(--ink); }
+
+.legal-content { padding:2rem 2.5rem; max-width:720px; }
+.legal-content .updated { font-size:0.82rem; color:var(--ink-muted); font-family:'IBM Plex Mono', monospace; margin-bottom:1.25rem; }
+.legal-content .disclaimer {
+    background:var(--amber-pale); border:1px solid var(--amber); padding:1rem 1.25rem;
+    font-size:0.85rem; color:var(--ink-light); margin-bottom:2rem; line-height:1.55;
+}
+.legal-content h3 { font-family:'Spectral', serif; font-size:1.15rem; font-weight:700; color:var(--ink); margin:1.75rem 0 0.65rem; }
+.legal-content h3:first-of-type { margin-top:0; }
+.legal-content p { font-size:0.92rem; color:var(--ink-light); line-height:1.65; margin-bottom:0.85rem; }
+.legal-content ul { margin:0 0 0.85rem 1.2rem; }
+.legal-content li { font-size:0.92rem; color:var(--ink-light); line-height:1.65; margin-bottom:0.35rem; }
+.legal-content a { color:var(--amber); }
+.legal-content strong { color:var(--ink); }
+.todo { background:rgba(177,74,58,0.12); color:#7A2418; padding:0.05rem 0.35rem; font-family:'IBM Plex Mono', monospace; font-size:0.85em; }
+
+@media(max-width:680px){ .page-header,.legal-content{padding:1.25rem;} }
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <a href="{% url 'home' %}" class="back-btn">
+        <svg viewBox="0 0 13 13" fill="none"><path d="M8.5 2L4 6.5l4.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        {% trans "Back" %}
+    </a>
+    <h2>Privacy Policy</h2>
+</div>
+
+<div class="legal-content">
+    <div class="updated">Last updated: <span class="todo">[DATE — not yet set]</span></div>
+
+    <p>This policy explains what Rememory collects, why, and what control you have over it. Rememory is a shared memory-keeping app — people create boards, invite friends, and post photos, videos, voice notes, and written memories together.</p>
+
+    <div class="disclaimer"><strong>This draft is a starting point, not legal advice.</strong> Before publishing it, have it reviewed by someone qualified in your jurisdiction — requirements differ depending on where your users are (the EU's GDPR and California's CCPA in particular add obligations this draft doesn't fully cover, like a formal Data Protection Officer or specific response-time guarantees).</div>
+
+    <h3>1. What we collect</h3>
+    <p><strong>Account information.</strong> Your email address and password (stored as a secure hash, never in plain text). Optionally: a display name, a short bio, your location, and birthday, if you choose to add them to your profile.</p>
+    <p><strong>Content you create.</strong> Photos, videos, voice notes, and written memories you post to boards; comments and reactions on other people's memories; the location you attach to a memory, if you add one.</p>
+    <p><strong>Your connections.</strong> Who you're friends with on Rememory, which boards you belong to, and who you've invited.</p>
+    <p><strong>Activity.</strong> A log of actions on boards you belong to (who added a memory, changed a cover photo, joined the board, and so on) — this powers the activity feed and the "since your last visit" summary, and is visible to other members of that board.</p>
+    <p><strong>Technical information.</strong> Standard web server logs (IP address, browser type, timestamps) kept for security and abuse prevention. If you enable notifications, a push subscription token tied to your device.</p>
+
+    <h3>2. What we don't collect</h3>
+    <p>We don't run advertising trackers, and we don't sell or rent your data to anyone. We don't read the content of your memories for any purpose other than operating the features you're using (like generating an "on this day" reminder from your own memory dates).</p>
+
+    <h3>3. How your content is shared</h3>
+    <p>Rememory is built around boards you share with specific people:</p>
+    <ul>
+        <li>A <strong>private</strong> board is visible only to its members.</li>
+        <li>A board set to <strong>members only</strong>, <strong>a specific friend group</strong>, or <strong>all my friends</strong> is visible to that audience, as you configure it.</li>
+        <li>If you turn on a <strong>public share link</strong> for a board or a single memory, anyone with that link can view it without logging in. This is opt-in and off by default — turning it off again revokes access immediately.</li>
+    </ul>
+    <p>Other members of a board you belong to can see what you post there, including your name/initials, your comments, and reactions.</p>
+
+    <h3>4. Third parties we use to run the service</h3>
+    <ul>
+        <li><strong>Resend</strong> — sends transactional email (invites, password resets) on our behalf. They process the recipient address and message content solely to deliver that email.</li>
+        <li><strong>Cloudflare R2 / our hosting provider</strong> — stores uploaded photos, videos, and voice notes.</li>
+        <li><strong>OpenStreetMap / Nominatim</strong> — if you attach a location to a memory, the place name you type is sent to this service to look up coordinates.</li>
+    </ul>
+    <p>We don't share your data with these providers for any purpose beyond the specific function listed.</p>
+
+    <h3>5. How long we keep things</h3>
+    <ul>
+        <li>Deleted memories are held in a 30-day recycle bin before being permanently removed, so you can undo an accidental deletion.</li>
+        <li>If you delete your account (see our <a href="{% url 'terms_of_service' %}">Terms of Service</a> for how), we remove your profile and personal content immediately, except where content you posted remains on a shared board that other members still own.</li>
+    </ul>
+
+    <h3>6. Your rights</h3>
+    <p>You can, at any time:</p>
+    <ul>
+        <li>Download or review the memories and content you've posted.</li>
+        <li>Correct your profile information.</li>
+        <li>Delete individual memories, or your entire account.</li>
+        <li>Ask us what data we hold about you, or ask us to delete it, by contacting <span class="todo">[CONTACT EMAIL — not yet set]</span>.</li>
+    </ul>
+    <p>If you're in the EU/UK or California, you may have additional rights under GDPR or CCPA — contact us and we'll do our best to accommodate the request even where this policy doesn't spell out a formal process yet.</p>
+
+    <h3>7. Children</h3>
+    <p>Rememory isn't directed at children under 13 (or the minimum age in your country, if higher), and we don't knowingly collect data from them. If you believe a child has created an account, contact us and we'll remove it.</p>
+
+    <h3>8. Changes to this policy</h3>
+    <p>If we make a material change to this policy, we'll post the update here and, where practical, let you know directly (e.g. by email).</p>
+
+    <h3>9. Contact</h3>
+    <p>Questions about this policy, or a request relating to your data: <strong><span class="todo">[CONTACT EMAIL — not yet set]</span></strong></p>
+</div>
+{% endblock %}
