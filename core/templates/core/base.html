@@ -1,7 +1,7 @@
 {% load static %}
 {% load i18n %}
 <!DOCTYPE html>
-<html lang="en" {% if user_theme == 'dark' %}data-theme="dark"{% elif user_theme == 'light' %}data-theme="light"{% endif %}>
+<html lang="{{ LANGUAGE_CODE }}" {% if user_theme == 'dark' %}data-theme="dark"{% elif user_theme == 'light' %}data-theme="light"{% endif %}>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

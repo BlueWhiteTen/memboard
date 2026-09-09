@@ -1,7 +1,7 @@
 {% load static %}
 {% load i18n %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+        html{font-size:110%;}
         :root{
             --ground:#EAE2CD; --paper:#FAF6EA; --ink:#241F18; --ink-soft:#6B5F48; --page-ink:#241F18;
             --gold:#8C6A2F; --border-strong:#241F18; --grid-op:0.5; --star-op:0.4;
