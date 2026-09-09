@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-09 20:03+0000\n"
+"POT-Creation-Date: 2026-09-09 20:23+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1545,8 +1545,8 @@ msgstr ""
 msgid "The link expires in 24 hours."
 msgstr "Ο σύνδεσμος λήγει σε 24 ώρες."
 
-#: core/templates/core/public_board.html:66
-#: core/templates/core/public_memory.html:62
+#: core/templates/core/public_board.html:69
+#: core/templates/core/public_memory.html:65
 msgid ""
 "You're viewing a public, read-only share link — no account needed. Editing, "
 "comments and reactions aren't available here."
@@ -1555,20 +1555,30 @@ msgstr ""
 "απαιτείται λογαριασμός. Η επεξεργασία, τα σχόλια και οι αντιδράσεις δεν "
 "είναι διαθέσιμα εδώ."
 
-#: core/templates/core/public_board.html:86
+#: core/templates/core/public_board.html:89
 msgid "No memories to show yet."
 msgstr "Δεν υπάρχουν αναμνήσεις προς εμφάνιση ακόμα."
 
-#: core/templates/core/public_board.html:89
-#: core/templates/core/public_memory.html:83
+#: core/templates/core/public_board.html:92
+#: core/templates/core/public_memory.html:86
 msgid "Shared from Rememory"
 msgstr "Κοινοποιήθηκε από το Rememory"
+
+#: core/templates/core/public_board.html:94
+#: core/templates/core/public_memory.html:88
+#, python-format
+msgid ""
+"Have an account? <a href=\"%(login_url)s\">Log in</a> to see this on the "
+"website."
+msgstr ""
+"Έχετε λογαριασμό; <a href=\"%(login_url)s\">Συνδεθείτε</a> για να το δείτε "
+"στον ιστότοπο."
 
 #: core/templates/core/public_memory.html:8
 msgid "A memory"
 msgstr "Μια ανάμνηση"
 
-#: core/templates/core/public_memory.html:81
+#: core/templates/core/public_memory.html:84
 #, python-format
 msgid "From the board \"%(group.name)s\""
 msgstr "Από τον πίνακα «%(group.name)s»"

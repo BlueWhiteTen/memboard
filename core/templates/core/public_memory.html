@@ -55,6 +55,9 @@ body {
 .tag-chip { font-size: 0.72rem; background: var(--cream); border: 1px solid var(--border); padding: 0.15rem 0.5rem; }
 .board-link { display: inline-block; margin-top: 0.5rem; font-size: 0.78rem; color: var(--ink-muted); }
 .footer-note { text-align: center; margin-top: 3rem; font-size: 0.75rem; color: var(--ink-muted); }
+.login-note { text-align: center; margin-top: 0.4rem; font-size: 0.75rem; color: var(--ink-muted); }
+.login-note a { color: var(--amber); font-weight: 600; text-decoration: none; }
+.login-note a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -81,6 +84,8 @@ body {
         <div class="board-link">{% blocktrans %}From the board "{{ group.name }}"{% endblocktrans %}</div>
     </div>
     <div class="footer-note">{% trans "Shared from Rememory" %}</div>
+    {% url 'login' as login_url %}
+    <div class="login-note">{% blocktrans %}Have an account? <a href="{{ login_url }}">Log in</a> to see this on the website.{% endblocktrans %}</div>
 </div>
 </body>
 </html>
