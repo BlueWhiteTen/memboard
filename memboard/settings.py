@@ -32,6 +32,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'core.middleware.ProfileLanguageMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -49,6 +51,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.i18n',
                 'core.context_processors.sidebar_context',
             ],
         },
@@ -80,6 +83,14 @@ LANGUAGE_CODE = 'en-us'
 TIME_ZONE     = 'UTC'
 USE_I18N      = True
 USE_TZ        = True
+
+# Languages Rememory has translations for — add a new (code, "Native name")
+# pair here once its locale/<code>/LC_MESSAGES/django.po is translated.
+LANGUAGES = [
+    ('en', 'English'),
+    ('el', 'Ελληνικά'),
+]
+LOCALE_PATHS = [BASE_DIR / 'locale']
 
 # Static files
 STATIC_URL  = '/static/'

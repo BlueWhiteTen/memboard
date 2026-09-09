@@ -30,6 +30,12 @@
             --amber-pale: rgba(140, 106, 47, 0.14);
             --coral: #B14A3A;
             --yellow: #D4AF6A;
+            /* Cycling background colours for friend-avatar chips only
+               (home.html .friend-chip :nth-child rules) — kept as their own
+               tokens, not reused elsewhere, so their dark-mode values can be
+               tuned just for that low-contrast case. */
+            --avatar-pink: #FFD8CF;
+            --avatar-green: #DFF5DA;
             --border: rgba(36, 31, 24, 0.16);
             --border-strong: #241F18;
             --sidebar-w: 240px;
@@ -58,6 +64,11 @@
                 --amber-pale: rgba(212, 175, 106, 0.14);
                 --coral: #E0836E;
                 --yellow: #D4AF6A;
+                /* Dark, tinted rather than the light-mode pastel — a light
+                   pastel background under the theme's light ink text is
+                   how these ended up unreadable in dark mode. */
+                --avatar-pink: rgba(224, 131, 110, 0.18);
+                --avatar-green: rgba(95, 184, 91, 0.22);
                 --border: rgba(246, 231, 189, 0.14);
                 --border-strong: #F6E7BD;
                 --shadow-ink: 3px 3px 0 rgba(0,0,0,0.7);
@@ -76,6 +87,8 @@
             --amber-pale: rgba(212, 175, 106, 0.14);
             --coral: #E0836E;
             --yellow: #D4AF6A;
+            --avatar-pink: rgba(224, 131, 110, 0.18);
+            --avatar-green: rgba(95, 184, 91, 0.22);
             --border: rgba(246, 231, 189, 0.14);
             --border-strong: #F6E7BD;
             --shadow-ink: 3px 3px 0 rgba(0,0,0,0.7);

@@ -85,6 +85,7 @@ urlpatterns = [
     # API / settings
     path('api/set-font/',           views.set_font_view,              name='set_font'),
     path('api/set-theme/',          views.set_theme_view,             name='set_theme'),
+    path('api/set-language/',       views.set_language_view,          name='set_language'),
     path('api/lookup-user/',        views.lookup_user_view,           name='lookup_user'),
     path('api/push-subscribe/',     views.save_push_subscription_view, name='push_subscribe'),
     path('api/set-board-sort/',     views.set_board_sort_view,        name='set_board_sort'),

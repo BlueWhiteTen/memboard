@@ -132,6 +132,13 @@ ACCOUNT_STATUS_CHOICES = [
     ('deleted',  'Deleted'),
 ]
 
+# Keep in sync with settings.LANGUAGES — that list drives Django's own
+# translation machinery, this one drives the profile field/switcher.
+LANGUAGE_CHOICES = [
+    ('en', 'English'),
+    ('el', 'Ελληνικά'),
+]
+
 PROFILE_VISIBILITY_CHOICES = [
     ('friends', 'Visible to friends'),
     ('private', 'Only me'),
@@ -216,6 +223,11 @@ class UserProfile(models.Model):
     # get_display_name()/get_initials() in views.py for how that anonymized
     # display is applied everywhere.
     account_status = models.CharField(max_length=10, choices=ACCOUNT_STATUS_CHOICES, default='active')
+
+    # Which language the site is shown in for this user — read by
+    # core.middleware.ProfileLanguageMiddleware on every request so it's
+    # remembered on every device they log into, same as theme/note_font.
+    language = models.CharField(max_length=10, choices=LANGUAGE_CHOICES, default='en')
 
     # Personal info shown on the profile page — visible to friends or kept
     # private, controlled by info_visibility (one toggle for the whole bundle).

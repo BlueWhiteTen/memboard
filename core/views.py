@@ -24,6 +24,7 @@ from .models import (
     FriendGroup, BoardJoinRequest, BoardOrder,
     FONT_CHOICES, REACTION_CHOICES, COLOUR_CHOICES, THEME_CHOICES, PRIVACY_CHOICES,
     MEMORY_DELETE_PERMISSION_CHOICES, BOARD_DELETE_PERMISSION_CHOICES, BOARD_SORT_CHOICES,
+    LANGUAGE_CHOICES,
 )
 from .forms import (
     RegisterForm, EmailAuthenticationForm, GroupForm, GroupCoverForm,
@@ -685,6 +686,26 @@ def set_theme_view(request):
             profile.theme = theme
             profile.save(update_fields=['theme'])
             return JsonResponse({'ok': True})
+    return JsonResponse({'ok': False}, status=400)
+
+
+def set_language_view(request):
+    """Works signed-out too (login/register pages have a switcher of their
+    own). This Django version's language detection is cookie-based only (no
+    session support), so the cookie is what actually changes the active
+    language going forward; the profile is additionally updated (so the
+    choice is remembered on other devices too) when someone's signed in."""
+    if request.method == 'POST':
+        lang  = request.POST.get('language', 'en')
+        valid = [l[0] for l in LANGUAGE_CHOICES]
+        if lang in valid:
+            if request.user.is_authenticated:
+                profile, _ = UserProfile.objects.get_or_create(user=request.user)
+                profile.language = lang
+                profile.save(update_fields=['language'])
+            response = JsonResponse({'ok': True})
+            response.set_cookie(settings.LANGUAGE_COOKIE_NAME, lang)
+            return response
     return JsonResponse({'ok': False}, status=400)
 
 
