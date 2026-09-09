@@ -1,10 +1,11 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rememory – Create Account</title>
+    <title>{% trans "Rememory – Create Account" %}</title>
     <link rel="icon" type="image/png" sizes="192x192" href="{% static 'core/icon-192.png' %}">
     <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -66,9 +67,22 @@
         .signup-note{ text-align:center; margin-top:1.5rem; font-size:0.78rem; color:var(--ink-soft); }
         .signup-note a{ color:var(--gold); font-weight:600; text-decoration:none; }
         .signup-note a:hover{ text-decoration:underline; }
+
+        .lang-switch-corner{ position:fixed; top:1rem; right:1rem; z-index:10; }
+        .lang-switch-corner select{
+            border:1.5px solid var(--border-strong); border-radius:0; background:var(--paper); color:var(--ink);
+            font-family:'IBM Plex Mono',monospace; font-size:0.72rem; padding:0.3rem 0.4rem; cursor:pointer;
+        }
     </style>
 </head>
 <body>
+    <div class="lang-switch-corner">
+        <select onchange="setLanguage(this.value)">
+            {% for code, name in language_choices %}
+            <option value="{{ code }}" {% if LANGUAGE_CODE == code %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+        </select>
+    </div>
     <svg class="stars" width="100%" height="100%" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice">
         <g fill="var(--page-ink)" style="opacity:var(--star-op)">
             <circle cx="80" cy="60" r="1.4"/><circle cx="170" cy="140" r="1"/><circle cx="260" cy="80" r="1.6"/>
@@ -83,19 +97,19 @@
 
     <div class="wrap">
         <div class="brand">
-            <div class="brand-eyebrow">est. wherever you last were</div>
-            <h1>Rememory</h1>
+            <div class="brand-eyebrow">{% trans "est. wherever you last were" %}</div>
+            <h1>{% trans "Rememory" %}</h1>
         </div>
         <div class="taped card">
             <span class="tape"></span>
-            <div class="card-eyebrow">First time here</div>
-            <h2>Start a board</h2>
-            <p class="sub">Save the memories worth keeping, with the people who were there.</p>
+            <div class="card-eyebrow">{% trans "First time here" %}</div>
+            <h2>{% trans "Start a board" %}</h2>
+            <p class="sub">{% trans "Save the memories worth keeping, with the people who were there." %}</p>
 
             {% if rate_limited %}
-            <div class="field-error" style="margin-bottom:1rem;">Too many signup attempts from your network. Please wait a bit and try again.</div>
+            <div class="field-error" style="margin-bottom:1rem;">{% trans "Too many signup attempts from your network. Please wait a bit and try again." %}</div>
             {% elif invite_token %}
-            <div class="invite-banner">You were invited to join a board. Sign up to accept!</div>
+            <div class="invite-banner">{% trans "You were invited to join a board. Sign up to accept!" %}</div>
             {% endif %}
 
             <form method="post">
@@ -104,13 +118,13 @@
 
                 <div class="row2">
                     <div class="field">
-                        <label for="id_first_name">First name</label>
+                        <label for="id_first_name">{% trans "First name" %}</label>
                         <input type="text" id="id_first_name" name="first_name"
                                placeholder="" value="{{ form.first_name.value|default:'' }}" required>
                         {% if form.first_name.errors %}<div class="field-error">{{ form.first_name.errors.0 }}</div>{% endif %}
                     </div>
                     <div class="field">
-                        <label for="id_last_name">Last name</label>
+                        <label for="id_last_name">{% trans "Last name" %}</label>
                         <input type="text" id="id_last_name" name="last_name"
                                placeholder="" value="{{ form.last_name.value|default:'' }}" required>
                         {% if form.last_name.errors %}<div class="field-error">{{ form.last_name.errors.0 }}</div>{% endif %}
@@ -118,28 +132,37 @@
                 </div>
 
                 <div class="field">
-                    <label for="id_email">Email address</label>
+                    <label for="id_email">{% trans "Email address" %}</label>
                     <input type="email" id="id_email" name="email"
-                           placeholder="you@email.com" value="{{ form.email.value|default:'' }}" required autocomplete="email">
+                           placeholder="{% trans 'you@email.com' %}" value="{{ form.email.value|default:'' }}" required autocomplete="email">
                     {% if form.email.errors %}<div class="field-error">{{ form.email.errors.0 }}</div>{% endif %}
                 </div>
 
                 <div class="field">
-                    <label for="id_password1">Password</label>
+                    <label for="id_password1">{% trans "Password" %}</label>
                     <input type="password" id="id_password1" name="password1" placeholder="••••••••" autocomplete="new-password">
                     {% if form.password1.errors %}<div class="field-error">{{ form.password1.errors.0 }}</div>{% endif %}
                 </div>
 
                 <div class="field">
-                    <label for="id_password2">Confirm password</label>
+                    <label for="id_password2">{% trans "Confirm password" %}</label>
                     <input type="password" id="id_password2" name="password2" placeholder="••••••••" autocomplete="new-password">
                     {% if form.password2.errors %}<div class="field-error">{{ form.password2.errors.0 }}</div>{% endif %}
                 </div>
 
-                <button type="submit" class="btn">Create account</button>
+                <button type="submit" class="btn">{% trans "Create account" %}</button>
             </form>
         </div>
-        <div class="signup-note">Already have an account? <a href="{% url 'login' %}">Sign in</a></div>
+        <div class="signup-note">{% trans "Already have an account?" %} <a href="{% url 'login' %}">{% trans "Sign in" %}</a></div>
     </div>
+    <script>
+    function setLanguage(lang) {
+        fetch("{% url 'set_language' %}", {
+            method: 'POST',
+            headers: {'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'language=' + encodeURIComponent(lang),
+        }).then(() => window.location.reload());
+    }
+    </script>
 </body>
 </html>

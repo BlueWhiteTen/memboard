@@ -1,4 +1,5 @@
 {% extends 'core/base.html' %}
+{% load i18n %}
 {% block title %}Rememory – My Profile{% endblock %}
 
 {% block extra_styles %}
@@ -65,8 +66,8 @@
 {% block content %}
 <div class="page-header">
     <div>
-        <h2>My Profile</h2>
-        <p>Your info and stats, as friends see them</p>
+        <h2>{% trans "My Profile" %}</h2>
+        <p>{% trans "Your info and stats, as friends see them" %}</p>
     </div>
 </div>
 
@@ -79,38 +80,38 @@
         </div>
     </div>
 
-    <div class="section-title">Your stats</div>
+    <div class="section-title">{% trans "Your stats" %}</div>
     <div class="gauges">
-        <div class="gauge"><b>{{ stats.memories_created }}</b><span>Memories created</span></div>
-        <div class="gauge"><b>{{ stats.boards_owned }}</b><span>Boards owned</span></div>
-        <div class="gauge"><b>{{ stats.boards_joined }}</b><span>Boards joined</span></div>
+        <div class="gauge"><b>{{ stats.memories_created }}</b><span>{% trans "Memories created" %}</span></div>
+        <div class="gauge"><b>{{ stats.boards_owned }}</b><span>{% trans "Boards owned" %}</span></div>
+        <div class="gauge"><b>{{ stats.boards_joined }}</b><span>{% trans "Boards joined" %}</span></div>
     </div>
 
-    <div class="section-title">Personal info</div>
+    <div class="section-title">{% trans "Personal info" %}</div>
     <div class="info-card">
-        <p class="hint">Shown on your profile when a friend looks you up — or keep it to yourself.</p>
+        <p class="hint">{% trans "Shown on your profile when a friend looks you up — or keep it to yourself." %}</p>
         <form method="post">
             {% csrf_token %}
             <div class="form-group">
-                <label class="form-label" for="id_bio">About you <span style="font-weight:400;opacity:0.6;text-transform:none;">(optional)</span></label>
+                <label class="form-label" for="id_bio">{% trans "About you" %} <span style="font-weight:400;opacity:0.6;text-transform:none;">({% trans "optional" %})</span></label>
                 <input type="text" name="bio" id="id_bio" class="form-input" maxlength="200"
-                       placeholder="A short line about you…" value="{{ form.bio.value|default:'' }}">
+                       placeholder="{% trans "A short line about you…" %}" value="{{ form.bio.value|default:'' }}">
                 {% if form.bio.errors %}<div class="field-error">{{ form.bio.errors.0 }}</div>{% endif %}
             </div>
             <div class="form-group">
-                <label class="form-label" for="id_location">Location <span style="font-weight:400;opacity:0.6;text-transform:none;">(optional)</span></label>
+                <label class="form-label" for="id_location">{% trans "Location" %} <span style="font-weight:400;opacity:0.6;text-transform:none;">({% trans "optional" %})</span></label>
                 <input type="text" name="location" id="id_location" class="form-input"
-                       placeholder="e.g. Oxford, UK" value="{{ form.location.value|default:'' }}">
+                       placeholder="{% trans "e.g. Oxford, UK" %}" value="{{ form.location.value|default:'' }}">
                 {% if form.location.errors %}<div class="field-error">{{ form.location.errors.0 }}</div>{% endif %}
             </div>
             <div class="form-group">
-                <label class="form-label" for="id_birthday">Birthday <span style="font-weight:400;opacity:0.6;text-transform:none;">(optional)</span></label>
+                <label class="form-label" for="id_birthday">{% trans "Birthday" %} <span style="font-weight:400;opacity:0.6;text-transform:none;">({% trans "optional" %})</span></label>
                 <input type="date" name="birthday" id="id_birthday" class="form-input"
                        value="{{ form.birthday.value|default:'' }}">
                 {% if form.birthday.errors %}<div class="field-error">{{ form.birthday.errors.0 }}</div>{% endif %}
             </div>
             <div class="form-group">
-                <label class="form-label">Who can see this info?</label>
+                <label class="form-label">{% trans "Who can see this info?" %}</label>
                 <div class="visibility-grid">
                     {% for value, label in form.info_visibility.field.choices %}
                     <div class="vis-option">
@@ -121,13 +122,13 @@
                     {% endfor %}
                 </div>
             </div>
-            <button type="submit" class="btn btn-primary">Save changes</button>
+            <button type="submit" class="btn btn-primary">{% trans "Save changes" %}</button>
         </form>
     </div>
 
-    <div class="section-title">Note font</div>
+    <div class="section-title">{% trans "Note font" %}</div>
     <div class="info-card">
-        <p class="hint">The font your memory notes are written in, on every board you belong to. This only affects board content — not the rest of the site.</p>
+        <p class="hint">{% blocktrans %}The font your memory notes are written in, on every board you belong to. This only affects board content — not the rest of the site.{% endblocktrans %}</p>
         <div class="font-picker">
             {% for key, label in font_choices %}
             <button type="button" class="font-btn {% if current_font == key %}active{% endif %}" onclick="setNoteFont('{{ key }}', this)"
@@ -136,38 +137,38 @@
         </div>
     </div>
 
-    <div class="section-title">Account</div>
+    <div class="section-title">{% trans "Account" %}</div>
     <div class="danger-card">
         <div class="danger-row">
             <div>
-                <h4>Disable my account</h4>
-                <p>Closes your account for a while — you're logged out and your name is hidden from friends and boards. Log back in any time and everything picks up exactly where it was.</p>
+                <h4>{% trans "Disable my account" %}</h4>
+                <p>{% blocktrans %}Closes your account for a while — you're logged out and your name is hidden from friends and boards. Log back in any time and everything picks up exactly where it was.{% endblocktrans %}</p>
             </div>
             <form method="post" action="{% url 'disable_account' %}" onsubmit="return confirm('Disable your account? You can log back in any time to re-enable it.');">
                 {% csrf_token %}
-                <button type="submit" class="btn-danger">Disable account</button>
+                <button type="submit" class="btn-danger">{% trans "Disable account" %}</button>
             </form>
         </div>
         <div class="danger-row">
             <div>
-                <h4>Delete my account</h4>
-                <p>Permanent. Boards you own are deleted entirely. Your name is removed everywhere else, and you can't log back in.</p>
+                <h4>{% trans "Delete my account" %}</h4>
+                <p>{% trans "Permanent. Boards you own are deleted entirely. Your name is removed everywhere else, and you can't log back in." %}</p>
             </div>
-            <button type="button" class="btn-danger solid" onclick="document.getElementById('delete-modal').classList.add('open')">Delete account</button>
+            <button type="button" class="btn-danger solid" onclick="document.getElementById('delete-modal').classList.add('open')">{% trans "Delete account" %}</button>
         </div>
     </div>
 </div>
 
 <div class="confirm-modal" id="delete-modal">
     <div class="confirm-box">
-        <h4>Delete your account?</h4>
-        <p>This can't be undone. Boards you own will be deleted along with everything on them. To confirm, type your email address below.</p>
+        <h4>{% trans "Delete your account?" %}</h4>
+        <p>{% trans "This can't be undone. Boards you own will be deleted along with everything on them. To confirm, type your email address below." %}</p>
         <form method="post" action="{% url 'delete_account' %}">
             {% csrf_token %}
             <input type="email" name="confirm_email" class="form-input" placeholder="{{ user.email }}" autocomplete="off" required>
             <div class="confirm-actions">
-                <button type="button" class="btn-plain" onclick="document.getElementById('delete-modal').classList.remove('open')">Cancel</button>
-                <button type="submit" class="btn-danger solid">Permanently delete</button>
+                <button type="button" class="btn-plain" onclick="document.getElementById('delete-modal').classList.remove('open')">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn-danger solid">{% trans "Permanently delete" %}</button>
             </div>
         </form>
     </div>

@@ -1,5 +1,6 @@
 {% extends 'core/base.html' %}
-{% block title %}Rememory – On This Day{% endblock %}
+{% load i18n %}
+{% block title %}Rememory – {% trans "On This Day" %}{% endblock %}
 
 {% block extra_styles %}
 .page-header{padding:2rem 2.5rem 1.25rem;border-bottom:1px solid var(--border);background:var(--warm-white);display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
@@ -22,12 +23,12 @@
 
 {% block content %}
 <div class="page-header">
-    <h2>On this day</h2>
+    <h2>{% trans "On this day" %}</h2>
     <div class="date-nav">
-        <a href="?month={{ prev_month }}&day={{ prev_day }}" title="Previous day">‹</a>
+        <a href="?month={{ prev_month }}&day={{ prev_day }}" title="{% trans 'Previous day' %}">‹</a>
         <span>{{ display_date }}</span>
-        <a href="?month={{ next_month }}&day={{ next_day }}" title="Next day">›</a>
-        {% if not is_today %}<a href="{% url 'on_this_day' %}" class="today-link">Jump to today</a>{% endif %}
+        <a href="?month={{ next_month }}&day={{ next_day }}" title="{% trans 'Next day' %}">›</a>
+        {% if not is_today %}<a href="{% url 'on_this_day' %}" class="today-link">{% trans "Jump to today" %}</a>{% endif %}
     </div>
 </div>
 
@@ -40,7 +41,7 @@
             <div>
                 <div class="otd-year-badge">{{ m.on_this_day_year }} · {{ m.group.name }}</div>
                 <div class="otd-content">{{ m.title|default:m.content|truncatechars:140 }}</div>
-                <div class="otd-meta">by {{ m.creator_display }}</div>
+                <div class="otd-meta">{% blocktrans with creator=m.creator_display %}by {{ creator }}{% endblocktrans %}</div>
             </div>
         </div>
         {% endfor %}
@@ -48,8 +49,8 @@
     {% else %}
     <div class="empty-state">
         <div class="empty-icon">📅</div>
-        <p style="font-weight:500;">No memories from {{ display_date }} in past years</p>
-        <p style="font-size:0.85rem;color:var(--ink-muted);margin-top:0.35rem;">Browse other days with the arrows above.</p>
+        <p style="font-weight:500;">{% blocktrans %}No memories from {{ display_date }} in past years{% endblocktrans %}</p>
+        <p style="font-size:0.85rem;color:var(--ink-muted);margin-top:0.35rem;">{% trans "Browse other days with the arrows above." %}</p>
     </div>
     {% endif %}
 </div>

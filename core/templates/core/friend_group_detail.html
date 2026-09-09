@@ -1,4 +1,5 @@
 {% extends 'core/base.html' %}
+{% load i18n %}
 {% block title %}Rememory – {{ friend_group.name }}{% endblock %}
 
 {% block extra_styles %}
@@ -29,13 +30,13 @@
     <div class="header-left">
         <a href="{% url 'friends' %}" class="back-btn">
             <svg viewBox="0 0 13 13" fill="none"><path d="M8.5 2L4 6.5l4.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Back
+            {% trans "Back" %}
         </a>
         <h2>{{ friend_group.name }}</h2>
     </div>
     <form method="post" action="{% url 'delete_friend_group' friend_group.pk %}" onsubmit="return confirm('Delete \'{{ friend_group.name }}\'? Any board privacy set to this group will fall back to \'only members\'.');">
         {% csrf_token %}
-        <button type="submit" class="btn-danger">Delete group</button>
+        <button type="submit" class="btn-danger">{% trans "Delete group" %}</button>
     </form>
 </div>
 
@@ -43,12 +44,12 @@
     <form method="post">
         {% csrf_token %}
         <div class="form-group">
-            <label class="form-label" for="id_name">Group name</label>
+            <label class="form-label" for="id_name">{% trans "Group name" %}</label>
             <input type="text" class="form-input" id="id_name" name="name" value="{{ friend_group.name }}" required>
         </div>
 
         <div class="form-group">
-            <label class="form-label">Members</label>
+            <label class="form-label">{% trans "Members" %}</label>
             {% if friends %}
             <div class="friend-picker" id="friendPicker">
                 {% for friend in friends %}
@@ -61,12 +62,13 @@
                 {% endfor %}
             </div>
             {% else %}
-            <p class="no-friends-msg">You don't have any friends yet. <a href="{% url 'friends' %}" style="color:var(--amber);">Add some friends</a> first.</p>
+            {% url 'friends' as friends_url %}
+            <p class="no-friends-msg">{% blocktrans %}You don't have any friends yet. <a href="{{ friends_url }}" style="color:var(--amber);">Add some friends</a> first.{% endblocktrans %}</p>
             {% endif %}
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn-primary btn-save">Save changes</button>
+            <button type="submit" class="btn-primary btn-save">{% trans "Save changes" %}</button>
         </div>
     </form>
 </div>

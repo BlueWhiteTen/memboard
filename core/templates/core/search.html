@@ -1,5 +1,6 @@
 {% extends 'core/base.html' %}
-{% block title %}Search – Rememory{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Search" %} – Rememory{% endblock %}
 
 {% block extra_styles %}
 .page-header { padding:2rem 2.5rem 1.25rem; border-bottom:1px solid var(--border); background:var(--warm-white); }
@@ -20,19 +21,19 @@
 
 {% block content %}
 <div class="page-header">
-    <h2>Search memories</h2>
+    <h2>{% trans "Search memories" %}</h2>
 </div>
 <div class="page-content">
     <form action="{% url 'search' %}" method="get">
         <div class="search-bar">
-            <input type="text" name="q" class="search-input" placeholder="Search by title, content, or location…" value="{{ query }}" autofocus>
-            <button type="submit" class="search-submit">Search</button>
+            <input type="text" name="q" class="search-input" placeholder="{% trans 'Search by title, content, or location…' %}" value="{{ query }}" autofocus>
+            <button type="submit" class="search-submit">{% trans "Search" %}</button>
         </div>
     </form>
 
     {% if query %}
         {% if memories %}
-        <p style="font-size:0.875rem;color:var(--ink-muted);margin-bottom:1rem;">{{ memories.count }} result{{ memories.count|pluralize }} for "<strong>{{ query }}</strong>"</p>
+        <p style="font-size:0.875rem;color:var(--ink-muted);margin-bottom:1rem;">{% blocktrans count counter=memories.count %}{{ counter }} result for "<strong>{{ query }}</strong>"{% plural %}{{ counter }} results for "<strong>{{ query }}</strong>"{% endblocktrans %}</p>
         <div class="results-grid">
             {% for m in memories %}
             <a href="{% url 'group_detail' m.group.pk %}" class="result-card">
@@ -53,13 +54,13 @@
         {% else %}
         <div style="text-align:center;padding:3rem;color:var(--ink-muted);">
             <div style="font-size:2.5rem;margin-bottom:0.75rem;">🔍</div>
-            <p>No memories found for "<strong>{{ query }}</strong>"</p>
+            <p>{% blocktrans %}No memories found for "<strong>{{ query }}</strong>"{% endblocktrans %}</p>
         </div>
         {% endif %}
     {% else %}
     <div style="text-align:center;padding:3rem;color:var(--ink-muted);">
         <div style="font-size:2.5rem;margin-bottom:0.75rem;">🔍</div>
-        <p>Search across all your boards and memories</p>
+        <p>{% trans "Search across all your boards and memories" %}</p>
     </div>
     {% endif %}
 </div>

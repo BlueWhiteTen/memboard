@@ -1,5 +1,6 @@
 {% extends 'core/base.html' %}
-{% block title %}Rememory – My Boards{% endblock %}
+{% load i18n %}
+{% block title %}Rememory – {% trans "My Boards" %}{% endblock %}
 
 {% block extra_styles %}
 .page-content { padding: 2.2rem 2.6rem 4rem; max-width: 1600px; }
@@ -117,40 +118,40 @@
 
 {% if pending_requests %}
 <div class="pending-banner">
-    ⏰ You have {{ pending_requests.count }} pending friend request{{ pending_requests.count|pluralize }}.
-    <a href="{% url 'friends' %}">Review →</a>
+    ⏰ {% blocktrans count counter=pending_requests.count %}You have {{ counter }} pending friend request.{% plural %}You have {{ counter }} pending friend requests.{% endblocktrans %}
+    <a href="{% url 'friends' %}">{% trans "Review →" %}</a>
 </div>
 {% endif %}
 
 <div class="page-content">
     <div class="masthead">
         <div>
-            <div class="mh-title">Your Boards</div>
-            <div class="mh-sub">All the places your memories live</div>
+            <div class="mh-title">{% trans "Your Boards" %}</div>
+            <div class="mh-sub">{% trans "All the places your memories live" %}</div>
         </div>
         <a href="{% url 'create_group' %}" class="btn btn-primary">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            New board
+            {% trans "New board" %}
         </a>
     </div>
 
     <div class="gauges">
-        <div class="gauge"><b>{{ user_groups|length }}</b><span>Boards</span></div>
-        <div class="gauge"><b>{{ friends|length }}</b><span>Friends</span></div>
-        <div class="gauge"><b>{{ total_memories }}</b><span>Memories</span></div>
-        <a href="{% url 'notifications' %}" class="gauge"><b>{{ unread_notifs }}</b><span>Notifications</span></a>
+        <div class="gauge"><b>{{ user_groups|length }}</b><span>{% trans "Boards" %}</span></div>
+        <div class="gauge"><b>{{ friends|length }}</b><span>{% trans "Friends" %}</span></div>
+        <div class="gauge"><b>{{ total_memories }}</b><span>{% trans "Memories" %}</span></div>
+        <a href="{% url 'notifications' %}" class="gauge"><b>{{ unread_notifs }}</b><span>{% trans "Notifications" %}</span></a>
     </div>
 
     {% if shared_with_me %}
-    <div class="section-title"><span>Shared with me</span></div>
+    <div class="section-title"><span>{% trans "Shared with me" %}</span></div>
     <div class="shared-list">
         {% for g in shared_with_me %}
         <div class="shared-item">
-            <span>{{ g.name }} <span class="owner">by {{ g.owner.first_name|default:g.owner.username }}</span></span>
+            <span>{{ g.name }} <span class="owner">{% blocktrans with owner_name=g.owner.first_name|default:g.owner.username %}by {{ owner_name }}{% endblocktrans %}</span></span>
             <form method="post" action="{% url 'request_join_board' g.pk %}">
                 {% csrf_token %}
                 <button type="submit" class="btn-request" {% if g.already_requested %}disabled{% endif %}>
-                    {% if g.already_requested %}Request sent{% else %}Request to join{% endif %}
+                    {% if g.already_requested %}{% trans "Request sent" %}{% else %}{% trans "Request to join" %}{% endif %}
                 </button>
             </form>
         </div>
@@ -161,14 +162,14 @@
     <div class="home-layout">
         <div class="home-main">
             <div class="section-title">
-                <span>Boards</span>
+                <span>{% trans "Boards" %}</span>
                 <div style="display:flex;align-items:center;gap:0.85rem;">
                     <select id="board-sort-select" class="board-sort-select" onchange="setBoardSort(this.value)">
                         {% for val, label in board_sort_choices %}
                         <option value="{{ val }}" {% if val == board_sort_mode %}selected{% endif %}>{{ label }}</option>
                         {% endfor %}
                     </select>
-                    <a href="{% url 'annual_recap' %}" class="see">View {{ "now"|date:"Y" }} recap →</a>
+                    <a href="{% url 'annual_recap' %}" class="see">{% blocktrans with year="now"|date:"Y" %}View {{ year }} recap →{% endblocktrans %}</a>
                 </div>
             </div>
 
@@ -180,7 +181,7 @@
                    ondragstart="boardDragStart(event)" ondragover="boardDragOver(event)" ondragend="boardDragEnd(event)">
                     <button type="button" class="pin-btn{% if group.pinned %} pinned{% endif %}"
                             onclick="event.preventDefault(); event.stopPropagation(); toggleBoardPin({{ group.pk }}, this)"
-                            title="{% if group.pinned %}Unpin{% else %}Pin to top{% endif %}">📌</button>
+                            title="{% if group.pinned %}{% trans 'Unpin' %}{% else %}{% trans 'Pin to top' %}{% endif %}">📌</button>
                     <div class="tape"></div>
                     {% if group.cover_photo %}
                     <div class="flyer-photo" style="background-image:url('{{ group.cover_photo.url }}');background-position:center {{ group.cover_focal_y }}%;"></div>
@@ -192,10 +193,11 @@
                             <h3>{{ group.name }}</h3>
                             <span class="badge">{{ group.get_privacy_display }}</span>
                         </div>
-                        <div class="desc">{{ group.description|default:"No description yet." }}</div>
+                        {% trans "No description yet." as no_description_yet %}
+                        <div class="desc">{{ group.description|default:no_description_yet }}</div>
                         <div class="row">
-                            <span class="m">{{ group.members.count }} member{{ group.members.count|pluralize }}</span>
-                            <span class="m">{{ group.memory_count }} memor{{ group.memory_count|pluralize:"y,ies" }}</span>
+                            <span class="m">{% blocktrans count counter=group.members.count %}{{ counter }} member{% plural %}{{ counter }} members{% endblocktrans %}</span>
+                            <span class="m">{% blocktrans count counter=group.memory_count %}{{ counter }} memory{% plural %}{{ counter }} memories{% endblocktrans %}</span>
                         </div>
                     </div>
                 </a>
@@ -203,9 +205,9 @@
             </div>
             {% else %}
             <div class="empty-state">
-                <h3>No boards yet</h3>
-                <p>Create your first group board and start collecting memories together.</p>
-                <a href="{% url 'create_group' %}" class="btn btn-primary">Create first board</a>
+                <h3>{% trans "No boards yet" %}</h3>
+                <p>{% trans "Create your first group board and start collecting memories together." %}</p>
+                <a href="{% url 'create_group' %}" class="btn btn-primary">{% trans "Create first board" %}</a>
             </div>
             {% endif %}
         </div>
@@ -213,8 +215,8 @@
         {% if on_this_day %}
         <div class="home-side">
             <div class="section-title">
-                <span>On this day</span>
-                <a href="{% url 'on_this_day' %}" class="see">See more →</a>
+                <span>{% trans "On this day" %}</span>
+                <a href="{% url 'on_this_day' %}" class="see">{% trans "See more →" %}</a>
             </div>
             <div class="otd-stack">
                 {% for m in on_this_day %}
@@ -232,24 +234,24 @@
     {% if not friends %}
     <div class="onboard-card">
         <div>
-            <h3>New here? Start with a friend</h3>
-            <p>Boards can hold memories on their own, but Rememory really comes alive when you share them. Add your first friend to start collaborating.</p>
+            <h3>{% trans "New here? Start with a friend" %}</h3>
+            <p>{% trans "Boards can hold memories on their own, but Rememory really comes alive when you share them. Add your first friend to start collaborating." %}</p>
         </div>
-        <a href="{% url 'friends' %}" class="btn btn-primary">Add a friend</a>
+        <a href="{% url 'friends' %}" class="btn btn-primary">{% trans "Add a friend" %}</a>
     </div>
     {% endif %}
 
-    <div class="section-title">Your friends</div>
+    <div class="section-title">{% trans "Your friends" %}</div>
     <div class="friends-row">
         {% for friend in friends %}
-        <a href="{% url 'friend_profile' friend.pk %}" class="friend-chip" title="{{ friend.display_name }}{% if friend.shared_boards %} · {{ friend.shared_boards }} board{{ friend.shared_boards|pluralize }}{% endif %}">
+        <a href="{% url 'friend_profile' friend.pk %}" class="friend-chip" title="{{ friend.display_name }}{% if friend.shared_boards %} · {% blocktrans count counter=friend.shared_boards %}{{ counter }} board{% plural %}{{ counter }} boards{% endblocktrans %}{% endif %}">
             <span class="fav">{{ friend.initials }}</span>
         </a>
         {% endfor %}
-        <a href="{% url 'friends' %}" class="add-friend-link">+ Add friend</a>
+        <a href="{% url 'friends' %}" class="add-friend-link">+ {% trans "Add friend" %}</a>
     </div>
 
-    <div class="section-title">Since your last visit</div>
+    <div class="section-title">{% trans "Since your last visit" %}</div>
     {% if since_last_visit %}
     <div class="activity-log">
         {% for log in since_last_visit %}
@@ -257,14 +259,14 @@
             <div class="activity-avatar">{% if log.actor %}{{ log.actor.initials }}{% else %}?{% endif %}</div>
             <div>
                 <div class="activity-text">{{ log.description }} — <a href="{% url 'group_detail' log.group.pk %}" style="color:var(--amber);text-decoration:none;">{{ log.group.name }}</a></div>
-                <div class="activity-time">{{ log.created_at|timesince }} ago</div>
+                <div class="activity-time">{% blocktrans with time_ago=log.created_at|timesince %}{{ time_ago }} ago{% endblocktrans %}</div>
             </div>
         </div>
         {% endfor %}
     </div>
     {% else %}
-    <div class="since-visit-empty">Nothing new since you were last here. Invite a friend to help relive these memories together →
-        <a href="{% url 'friends' %}">Add a friend</a>
+    <div class="since-visit-empty">{% trans "Nothing new since you were last here. Invite a friend to help relive these memories together →" %}
+        <a href="{% url 'friends' %}">{% trans "Add a friend" %}</a>
     </div>
     {% endif %}
 </div>

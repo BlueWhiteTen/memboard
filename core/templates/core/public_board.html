@@ -1,3 +1,4 @@
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -62,7 +63,7 @@ body {
 </head>
 <body>
 <div class="wrap">
-    <div class="banner">👀 You're viewing a public, read-only share link — no account needed. Editing, comments and reactions aren't available here.</div>
+    <div class="banner">👀 {% trans "You're viewing a public, read-only share link — no account needed. Editing, comments and reactions aren't available here." %}</div>
     <h1 class="board-title">{{ group.name }}</h1>
     {% if group.description %}<p class="board-sub">{{ group.description }}</p>{% endif %}
 
@@ -82,10 +83,10 @@ body {
         {% endfor %}
     </div>
     {% else %}
-    <div class="empty">No memories to show yet.</div>
+    <div class="empty">{% trans "No memories to show yet." %}</div>
     {% endif %}
 
-    <div class="footer-note">Shared from Rememory</div>
+    <div class="footer-note">{% trans "Shared from Rememory" %}</div>
 </div>
 </body>
 </html>

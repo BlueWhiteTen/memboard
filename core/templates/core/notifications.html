@@ -1,5 +1,6 @@
 {% extends 'core/base.html' %}
-{% block title %}Notifications – Rememory{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Notifications" %} – Rememory{% endblock %}
 
 {% block extra_styles %}
 .page-header { padding:2rem 2.5rem 1.25rem; border-bottom:1px solid var(--border); background:var(--warm-white); }
@@ -18,7 +19,7 @@
 
 {% block content %}
 <div class="page-header">
-    <h2>Notifications</h2>
+    <h2>{% trans "Notifications" %}</h2>
 </div>
 <div class="page-content">
     {% if notifs %}
@@ -30,30 +31,30 @@
             </div>
             <div class="notif-body">
                 <div class="notif-text">{{ n.text }}</div>
-                <div class="notif-time">{{ n.created_at|timesince }} ago</div>
+                <div class="notif-time">{% blocktrans with time_ago=n.created_at|timesince %}{{ time_ago }} ago{% endblocktrans %}</div>
                 {% if n.notif_type == 'board_invite_pending' %}
                     {% if n.pending_invite_pk %}
                     <div style="display:flex;gap:0.5rem;margin-top:0.4rem;">
                         <form method="post" action="{% url 'accept_board_invite' n.pending_invite_pk %}">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-primary btn-sm">Accept</button>
+                            <button type="submit" class="btn btn-primary btn-sm">{% trans "Accept" %}</button>
                         </form>
                         <form method="post" action="{% url 'decline_board_invite' n.pending_invite_pk %}">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-ghost btn-sm">Decline</button>
+                            <button type="submit" class="btn btn-ghost btn-sm">{% trans "Decline" %}</button>
                         </form>
                     </div>
                     {% else %}
-                    <span class="notif-link" style="color:var(--ink-muted);">This invite is no longer pending.</span>
+                    <span class="notif-link" style="color:var(--ink-muted);">{% trans "This invite is no longer pending." %}</span>
                     {% endif %}
                 {% elif n.memory %}
-                <a href="{% url 'group_detail' n.memory.group.pk %}" class="notif-link">View memory →</a>
+                <a href="{% url 'group_detail' n.memory.group.pk %}" class="notif-link">{% trans "View memory →" %}</a>
                 {% elif n.group %}
-                <a href="{% url 'group_detail' n.group.pk %}" class="notif-link">View board →</a>
+                <a href="{% url 'group_detail' n.group.pk %}" class="notif-link">{% trans "View board →" %}</a>
                 {% elif n.notif_type == 'friend_req' %}
-                <a href="{% url 'friends' %}" class="notif-link">View friend requests →</a>
+                <a href="{% url 'friends' %}" class="notif-link">{% trans "View friend requests →" %}</a>
                 {% elif n.notif_type == 'on_this_day' %}
-                <a href="{% url 'on_this_day' %}" class="notif-link">See memories →</a>
+                <a href="{% url 'on_this_day' %}" class="notif-link">{% trans "See memories →" %}</a>
                 {% endif %}
             </div>
             <span class="notif-type-icon">
@@ -65,8 +66,8 @@
     {% else %}
     <div style="text-align:center;padding:4rem 2rem;color:var(--ink-muted);">
         <div style="font-size:3rem;margin-bottom:1rem;">🔔</div>
-        <p>No notifications yet.</p>
-        <p style="font-size:0.875rem;margin-top:0.35rem;">They'll show up here when people react to or comment on your memories.</p>
+        <p>{% trans "No notifications yet." %}</p>
+        <p style="font-size:0.875rem;margin-top:0.35rem;">{% trans "They'll show up here when people react to or comment on your memories." %}</p>
     </div>
     {% endif %}
 </div>

@@ -1,4 +1,5 @@
 {% extends 'core/base.html' %}
+{% load i18n %}
 {% block title %}Rememory – {{ friend_display }}{% endblock %}
 {% block nav_friends %}active{% endblock %}
 
@@ -43,7 +44,7 @@
 <div class="page-header">
     <a href="{% url 'friends' %}" class="back-btn">
         <svg viewBox="0 0 13 13" fill="none"><path d="M8.5 2L4 6.5l4.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Back
+        {% trans "Back" %}
     </a>
 </div>
 
@@ -52,41 +53,41 @@
         <div class="profile-av">{{ friend_initials }}</div>
         <div>
             <div class="profile-name">{{ friend_display }}</div>
-            {% if friends_since %}<div class="profile-sub">Friends since {{ friends_since|date:"j M Y" }}</div>{% endif %}
+            {% if friends_since %}<div class="profile-sub">{% blocktrans with since=friends_since|date:"j M Y" %}Friends since {{ since }}{% endblocktrans %}</div>{% endif %}
         </div>
     </div>
 
-    <div class="section-title">Stats</div>
+    <div class="section-title">{% trans "Stats" %}</div>
     <div class="gauges">
-        <div class="gauge"><b>{{ friend_stats.memories_created }}</b><span>Memories created</span></div>
-        <div class="gauge"><b>{{ friend_stats.boards_owned }}</b><span>Boards owned</span></div>
-        <div class="gauge"><b>{{ friend_stats.boards_joined }}</b><span>Boards joined</span></div>
+        <div class="gauge"><b>{{ friend_stats.memories_created }}</b><span>{% trans "Memories created" %}</span></div>
+        <div class="gauge"><b>{{ friend_stats.boards_owned }}</b><span>{% trans "Boards owned" %}</span></div>
+        <div class="gauge"><b>{{ friend_stats.boards_joined }}</b><span>{% trans "Boards joined" %}</span></div>
     </div>
 
     {% if show_info %}
-    <div class="section-title">About</div>
+    <div class="section-title">{% trans "About" %}</div>
     <div class="info-card">
-        {% if friend_profile.bio %}<div class="info-row"><span class="k">Bio</span><span>{{ friend_profile.bio }}</span></div>{% endif %}
-        {% if friend_profile.location %}<div class="info-row"><span class="k">Location</span><span>{{ friend_profile.location }}</span></div>{% endif %}
-        {% if friend_profile.birthday %}<div class="info-row"><span class="k">Birthday</span><span>{{ friend_profile.birthday|date:"j F" }}</span></div>{% endif %}
+        {% if friend_profile.bio %}<div class="info-row"><span class="k">{% trans "Bio" %}</span><span>{{ friend_profile.bio }}</span></div>{% endif %}
+        {% if friend_profile.location %}<div class="info-row"><span class="k">{% trans "Location" %}</span><span>{{ friend_profile.location }}</span></div>{% endif %}
+        {% if friend_profile.birthday %}<div class="info-row"><span class="k">{% trans "Birthday" %}</span><span>{{ friend_profile.birthday|date:"j F" }}</span></div>{% endif %}
     </div>
     {% endif %}
 
-    <div class="section-title">Boards you share ({{ shared_boards.count }})</div>
+    <div class="section-title">{% blocktrans with n=shared_boards.count %}Boards you share ({{ n }}){% endblocktrans %}</div>
     {% if shared_boards %}
     <div class="boards-grid">
         {% for board in shared_boards %}
         <a href="{% url 'group_detail' board.pk %}" class="mini-board-card">
             <div class="mini-board-name">{{ board.name }}</div>
-            <div class="mini-board-meta">{{ board.memory_count }} memor{{ board.memory_count|pluralize:"y,ies" }}</div>
+            <div class="mini-board-meta">{% blocktrans count counter=board.memory_count %}{{ counter }} memory{% plural %}{{ counter }} memories{% endblocktrans %}</div>
         </a>
         {% endfor %}
     </div>
     {% else %}
-    <p class="empty-msg" style="margin-bottom:2.25rem;">No boards in common yet.</p>
+    <p class="empty-msg" style="margin-bottom:2.25rem;">{% trans "No boards in common yet." %}</p>
     {% endif %}
 
-    <div class="section-title">Mutual friends ({{ mutual_friends|length }})</div>
+    <div class="section-title">{% blocktrans with n=mutual_friends|length %}Mutual friends ({{ n }}){% endblocktrans %}</div>
     {% if mutual_friends %}
     <div class="mutual-row">
         {% for m in mutual_friends %}
@@ -97,7 +98,7 @@
         {% endfor %}
     </div>
     {% else %}
-    <p class="empty-msg">No mutual friends yet.</p>
+    <p class="empty-msg">{% trans "No mutual friends yet." %}</p>
     {% endif %}
 </div>
 {% endblock %}

@@ -1,8 +1,9 @@
+{% load i18n %}
 <form method="post" action="{% url 'edit_memory' memory.pk %}" enctype="multipart/form-data">
     {% csrf_token %}
     {% include 'core/_memory_form.html' with group=group all_members=all_members memory=memory tagged_ids=tagged_ids extra_photos=extra_photos prefix='edit' %}
     <div style="display:flex;gap:0.5rem;margin-top:1.25rem;">
-        <button type="submit" class="btn btn-primary" style="flex:1;">Save changes</button>
-        <button type="button" class="btn btn-ghost" onclick="document.getElementById('edit-memory-modal').classList.remove('open')">Cancel</button>
+        <button type="submit" class="btn btn-primary" style="flex:1;">{% trans "Save changes" %}</button>
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('edit-memory-modal').classList.remove('open')">{% trans "Cancel" %}</button>
     </div>
 </form>

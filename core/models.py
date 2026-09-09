@@ -4,6 +4,10 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+# lazy, not gettext() — these CHOICES lists are built once at import/migration
+# time, before any request (and its language) exists, so the translation has
+# to happen lazily, at the point each label is actually displayed.
+from django.utils.translation import gettext_lazy as _
 
 
 # ── Friends ───────────────────────────────────────────────────────────────────
@@ -79,47 +83,47 @@ FONT_CHOICES = [
 ]
 
 PRIVACY_CHOICES = [
-    ('private',      'Just me'),
-    ('members',      'Only members'),
-    ('friend_group', 'A specific friend group'),
-    ('all_friends',  'All my friends'),
+    ('private',      _('Just me')),
+    ('members',      _('Only members')),
+    ('friend_group', _('A specific friend group')),
+    ('all_friends',  _('All my friends')),
 ]
 
 COLOUR_CHOICES = [
-    ('yellow',   'Yellow'),
-    ('green',    'Green'),
-    ('blue',     'Blue'),
-    ('pink',     'Pink'),
-    ('lavender', 'Lavender'),
-    ('peach',    'Peach'),
+    ('yellow',   _('Yellow')),
+    ('green',    _('Green')),
+    ('blue',     _('Blue')),
+    ('pink',     _('Pink')),
+    ('lavender', _('Lavender')),
+    ('peach',    _('Peach')),
 ]
 
 EDIT_PERMISSION_CHOICES = [
-    ('only_me',     'Only me'),
-    ('tagged',      'Me & tagged friends'),
-    ('all_members', 'All board members'),
+    ('only_me',     _('Only me')),
+    ('tagged',      _('Me & tagged friends')),
+    ('all_members', _('All board members')),
 ]
 
 MEMORY_DELETE_PERMISSION_CHOICES = [
-    ('creator_only', 'Only the person who added it'),
-    ('all_members',  'Any board member'),
+    ('creator_only', _('Only the person who added it')),
+    ('all_members',  _('Any board member')),
 ]
 
 BOARD_DELETE_PERMISSION_CHOICES = [
-    ('owner_only',  'Only the board owner'),
-    ('all_members', 'Any board member'),
+    ('owner_only',  _('Only the board owner')),
+    ('all_members', _('Any board member')),
 ]
 
 THEME_CHOICES = [
-    ('system', 'Match system'),
-    ('light',  'Light'),
-    ('dark',   'Dark'),
+    ('system', _('Match system')),
+    ('light',  _('Light')),
+    ('dark',   _('Dark')),
 ]
 
 BOARD_SORT_CHOICES = [
-    ('recent',       'Most recently updated'),
-    ('alphabetical', 'Alphabetical'),
-    ('custom',       'Custom'),
+    ('recent',       _('Most recently updated')),
+    ('alphabetical', _('Alphabetical')),
+    ('custom',       _('Custom')),
 ]
 
 # 'active' is the normal state. 'disabled' is a reversible pause the user
@@ -140,8 +144,8 @@ LANGUAGE_CHOICES = [
 ]
 
 PROFILE_VISIBILITY_CHOICES = [
-    ('friends', 'Visible to friends'),
-    ('private', 'Only me'),
+    ('friends', _('Visible to friends')),
+    ('private', _('Only me')),
 ]
 
 FONT_CSS = {
@@ -153,16 +157,16 @@ FONT_CSS = {
 }
 
 REACTION_CHOICES = [
-    ('😊',  'Smile'),
-    ('❤️',  'Heart'),
-    ('😂',  'Laugh'),
-    ('😮',  'Wow'),
-    ('😢',  'Sad'),
-    ('🔥',  'Fire'),
-    ('🎉',  'Party'),
-    ('👍',  'Thumbs up'),
-    ('😍',  'Love it'),
-    ('😆',  'Haha'),
+    ('😊',  _('Smile')),
+    ('❤️',  _('Heart')),
+    ('😂',  _('Laugh')),
+    ('😮',  _('Wow')),
+    ('😢',  _('Sad')),
+    ('🔥',  _('Fire')),
+    ('🎉',  _('Party')),
+    ('👍',  _('Thumbs up')),
+    ('😍',  _('Love it')),
+    ('😆',  _('Haha')),
 ]
 
 NOTIFICATION_TYPES = [

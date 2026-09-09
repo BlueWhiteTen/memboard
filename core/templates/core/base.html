@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="en" {% if user_theme == 'dark' %}data-theme="dark"{% elif user_theme == 'light' %}data-theme="light"{% endif %}>
 <head>
@@ -276,6 +277,16 @@
         .theme-switch input:checked + .theme-slider { background: var(--amber); }
         .theme-switch input:checked + .theme-slider::before { transform: translateX(16px); }
 
+        .language-row {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 0.75rem; font-size: 0.8rem; color: var(--ink-light);
+        }
+        .language-select {
+            border: 1.5px solid var(--border-strong); border-radius: 0;
+            background: var(--warm-white); color: var(--ink);
+            font-family: inherit; font-size: 0.75rem; padding: 0.2rem 0.35rem;
+        }
+
         /* ── Main ── */
         .main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; min-width: 0; }
 
@@ -363,61 +374,61 @@
             </div>
             <span class="sidebar-logo-text">Rememory</span>
         </div>
-        <div class="sidebar-logo-tagline">for things worth remembering</div>
+        <div class="sidebar-logo-tagline">{% trans "for things worth remembering" %}</div>
     </a>
 
     <div class="sidebar-search">
         <form action="{% url 'search' %}" method="get">
-            <input type="text" name="q" placeholder="Search memories…" value="{{ request.GET.q|default:'' }}">
+            <input type="text" name="q" placeholder="{% trans 'Search memories…' %}" value="{{ request.GET.q|default:'' }}">
             <button type="submit">🔍</button>
         </form>
     </div>
 
     <nav class="sidebar-nav">
-        <p class="nav-section-label">Navigation</p>
+        <p class="nav-section-label">{% trans "Navigation" %}</p>
         <a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            Home
+            {% trans "Home" %}
         </a>
         <a href="{% url 'friends' %}" class="nav-link {% if request.resolver_match.url_name == 'friends' or 'friend_group' in request.resolver_match.url_name %}active{% endif %}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            Friends
+            {% trans "Friends" %}
             {% if pending_requests|length > 0 %}<span class="nav-badge">{{ pending_requests|length }}</span>{% endif %}
         </a>
         <a href="{% url 'notifications' %}" class="nav-link {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            Notifications
+            {% trans "Notifications" %}
             {% if unread_notifs > 0 %}<span class="nav-badge">{{ unread_notifs }}</span>{% endif %}
         </a>
         <a href="{% url 'search' %}" class="nav-link {% if request.resolver_match.url_name == 'search' %}active{% endif %}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            Search
+            {% trans "Search" %}
         </a>
         <a href="{% url 'on_this_day' %}" class="nav-link {% if request.resolver_match.url_name == 'on_this_day' %}active{% endif %}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            On This Day
+            {% trans "On This Day" %}
         </a>
         <a href="{% url 'annual_recap' %}" class="nav-link {% if 'recap' in request.resolver_match.url_name %}active{% endif %}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            Annual Recap
+            {% trans "Annual Recap" %}
         </a>
 
-        <p class="nav-section-label">My Boards</p>
+        <p class="nav-section-label">{% trans "My Boards" %}</p>
         {% for g in sidebar_groups %}
         <a href="{% url 'group_detail' g.pk %}" class="nav-link {% if request.resolver_match.kwargs.pk == g.pk %}active{% endif %}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
             {{ g.name|truncatechars:22 }}
         </a>
         {% empty %}
-        <p style="font-size:0.78rem;color:var(--ink-muted);padding:0.25rem 0.5rem;">No boards yet</p>
+        <p style="font-size:0.78rem;color:var(--ink-muted);padding:0.25rem 0.5rem;">{% trans "No boards yet" %}</p>
         {% endfor %}
         {% if sidebar_groups_count > 10 %}
-        <a href="{% url 'home' %}" class="nav-link" style="color:var(--ink-muted);font-size:0.78rem;">See all boards ({{ sidebar_groups_count }})</a>
+        <a href="{% url 'home' %}" class="nav-link" style="color:var(--ink-muted);font-size:0.78rem;">{% blocktrans %}See all boards ({{ sidebar_groups_count }}){% endblocktrans %}</a>
         {% endif %}
 
         <a href="{% url 'create_group' %}" class="nav-link" style="margin-top:0.5rem;color:var(--amber);">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            New Board
+            {% trans "New Board" %}
         </a>
     </nav>
 
@@ -427,17 +438,25 @@
             <span class="user-name">{{ user_display }}</span>
         </a>
         <div class="theme-toggle-row">
-            <span>🌙 Dark mode</span>
+            <span>🌙 {% trans "Dark mode" %}</span>
             <label class="theme-switch">
                 <input type="checkbox" id="theme-toggle" {% if user_theme == 'dark' %}checked{% endif %} onchange="setTheme(this.checked ? 'dark' : 'light')">
                 <span class="theme-slider"></span>
             </label>
         </div>
+        <div class="language-row">
+            <span>🌐 {% trans "Language" %}</span>
+            <select class="language-select" onchange="setLanguage(this.value)">
+                {% for code, name in language_choices %}
+                <option value="{{ code }}" {% if LANGUAGE_CODE == code %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
         <form class="logout-form" method="post" action="{% url 'logout' %}">
             {% csrf_token %}
-            <button type="submit">Sign out</button>
+            <button type="submit">{% trans "Sign out" %}</button>
         </form>
-        <a href="{% url 'report_problem' %}" class="report-problem-link">Report a problem</a>
+        <a href="{% url 'report_problem' %}" class="report-problem-link">{% trans "Report a problem" %}</a>
     </div>
 </aside>
 {% endif %}
@@ -482,6 +501,17 @@ function setTheme(theme) {
         toggle.checked = window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
 })();
+
+// Language switcher — unlike the theme, the whole page has to be re-rendered
+// server-side in the new language, so this reloads after the cookie/profile
+// is updated rather than toggling anything client-side.
+function setLanguage(lang) {
+    fetch("{% url 'set_language' %}", {
+        method: 'POST',
+        headers: {'X-CSRFToken': THEME_CSRF, 'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'language=' + encodeURIComponent(lang),
+    }).then(() => window.location.reload());
+}
 </script>
 {% endif %}
 {% block extra_scripts %}{% endblock %}

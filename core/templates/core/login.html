@@ -1,10 +1,11 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rememory – Sign in</title>
+    <title>{% trans "Rememory – Sign in" %}</title>
     <link rel="icon" type="image/png" sizes="192x192" href="{% static 'core/icon-192.png' %}">
     <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -75,9 +76,22 @@
         .signup-note{ text-align:center; margin-top:1.5rem; font-size:0.78rem; color:var(--ink-soft); }
         .signup-note a{ color:var(--gold); font-weight:600; text-decoration:none; }
         .signup-note a:hover{ text-decoration:underline; }
+
+        .lang-switch-corner{ position:fixed; top:1rem; right:1rem; z-index:10; }
+        .lang-switch-corner select{
+            border:1.5px solid var(--border-strong); border-radius:0; background:var(--paper); color:var(--ink);
+            font-family:'IBM Plex Mono',monospace; font-size:0.72rem; padding:0.3rem 0.4rem; cursor:pointer;
+        }
     </style>
 </head>
 <body>
+    <div class="lang-switch-corner">
+        <select onchange="setLanguage(this.value)">
+            {% for code, name in language_choices %}
+            <option value="{{ code }}" {% if LANGUAGE_CODE == code %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+        </select>
+    </div>
     <svg class="stars" width="100%" height="100%" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
         <g fill="var(--page-ink)" style="opacity:var(--star-op)">
             <circle cx="80" cy="60" r="1.4"/><circle cx="170" cy="140" r="1"/><circle cx="260" cy="80" r="1.6"/>
@@ -103,36 +117,45 @@
 
     <div class="wrap">
         <div class="brand">
-            <div class="brand-eyebrow">est. wherever you last were</div>
-            <h1>Rememory</h1>
+            <div class="brand-eyebrow">{% trans "est. wherever you last were" %}</div>
+            <h1>{% trans "Rememory" %}</h1>
         </div>
         <div class="taped card">
             <span class="tape"></span>
-            <div class="card-eyebrow">Good to see you again</div>
-            <h2>Sign in</h2>
+            <div class="card-eyebrow">{% trans "Good to see you again" %}</div>
+            <h2>{% trans "Sign in" %}</h2>
             {% if rate_limited %}
-            <div class="error-msg">Too many login attempts from your network. Please wait a few minutes and try again.</div>
+            <div class="error-msg">{% trans "Too many login attempts from your network. Please wait a few minutes and try again." %}</div>
             {% elif form.non_field_errors %}
             <div class="error-msg">{{ form.non_field_errors.0 }}</div>
             {% endif %}
             <form method="post">
                 {% csrf_token %}
                 <div class="field">
-                    <label for="id_email">Email address</label>
-                    <input type="email" id="id_email" name="email" placeholder="you@email.com"
+                    <label for="id_email">{% trans "Email address" %}</label>
+                    <input type="email" id="id_email" name="email" placeholder="{% trans 'you@email.com' %}"
                            value="{{ form.email.value|default:'' }}" autocomplete="email">
                 </div>
                 <div class="field">
-                    <label for="id_password">Password</label>
+                    <label for="id_password">{% trans "Password" %}</label>
                     <input type="password" id="id_password" name="password" placeholder="••••••••" autocomplete="current-password">
                 </div>
-                <button type="submit" class="btn">Chart my way in</button>
+                <button type="submit" class="btn">{% trans "Chart my way in" %}</button>
             </form>
             <div class="links-row">
-                <a href="{% url 'password_reset' %}">Forgot password?</a>
+                <a href="{% url 'password_reset' %}">{% trans "Forgot password?" %}</a>
             </div>
         </div>
-        <div class="signup-note">New around here? <a href="{% url 'register' %}">Start a board</a></div>
+        <div class="signup-note">{% trans "New around here?" %} <a href="{% url 'register' %}">{% trans "Start a board" %}</a></div>
     </div>
+    <script>
+    function setLanguage(lang) {
+        fetch("{% url 'set_language' %}", {
+            method: 'POST',
+            headers: {'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'language=' + encodeURIComponent(lang),
+        }).then(() => window.location.reload());
+    }
+    </script>
 </body>
 </html>

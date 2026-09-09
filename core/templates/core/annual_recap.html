@@ -1,5 +1,6 @@
 {% extends 'core/base.html' %}
-{% block title %}{{ year }} Recap – Rememory{% endblock %}
+{% load i18n %}
+{% block title %}{% blocktrans %}{{ year }} Recap{% endblocktrans %} – Rememory{% endblock %}
 
 {% block extra_styles %}
 .recap-hero { background:var(--ink); color:var(--warm-white); padding:3rem 2.5rem; position:relative; overflow:hidden; border-bottom:4px solid var(--border-strong); }
@@ -51,9 +52,9 @@
 
 {% block content %}
 <div class="recap-hero">
-    <div class="recap-year">Your year in memories</div>
-    <div class="recap-title">{{ year }} Recap ✨</div>
-    <div class="recap-subtitle">{% if total %}{{ total }} memor{{ total|pluralize:"y,ies" }} across {{ boards_used }} board{{ boards_used|pluralize }}{% else %}No memories this year — start creating!{% endif %}</div>
+    <div class="recap-year">{% trans "Your year in memories" %}</div>
+    <div class="recap-title">{% blocktrans %}{{ year }} Recap{% endblocktrans %} ✨</div>
+    <div class="recap-subtitle">{% if total %}{% blocktrans count counter=boards_used asvar boards_text %}{{ counter }} board{% plural %}{{ counter }} boards{% endblocktrans %}{% blocktrans count counter=total %}{{ counter }} memory across {{ boards_text }}{% plural %}{{ counter }} memories across {{ boards_text }}{% endblocktrans %}{% else %}{% trans "No memories this year — start creating!" %}{% endif %}</div>
     <div class="year-nav">
         <a href="{% url 'annual_recap_year' prev_year %}" class="year-btn">← {{ prev_year }}</a>
         {% if next_year %}<a href="{% url 'annual_recap_year' next_year %}" class="year-btn">{{ next_year }} →</a>{% endif %}
@@ -66,30 +67,30 @@
     <div class="stats-grid">
         <div class="recap-stat">
             <div class="recap-stat-num">{{ total }}</div>
-            <div class="recap-stat-label">Memories</div>
+            <div class="recap-stat-label">{% trans "Memories" %}</div>
         </div>
         <div class="recap-stat">
             <div class="recap-stat-num">{{ boards_used }}</div>
-            <div class="recap-stat-label">Boards</div>
+            <div class="recap-stat-label">{% trans "Boards" %}</div>
         </div>
         <div class="recap-stat">
             <div class="recap-stat-num">{{ total_photos }}</div>
-            <div class="recap-stat-label">Photos</div>
+            <div class="recap-stat-label">{% trans "Photos" %}</div>
         </div>
         <div class="recap-stat">
             <div class="recap-stat-num">{% if top_reactions %}{{ top_reactions.0.1 }}{% else %}0{% endif %}</div>
-            <div class="recap-stat-label">Top reactions</div>
+            <div class="recap-stat-label">{% trans "Top reactions" %}</div>
         </div>
     </div>
 
     <!-- Monthly chart -->
-    <div class="section-heading">Memories by month</div>
+    <div class="section-heading">{% trans "Memories by month" %}</div>
     {% with max_val=by_month.values|dictsort:0|last %}
     <div class="month-chart">
         {% for month, count in by_month.items %}
         <div class="month-bar-wrap">
             {% if count > 0 %}
-            <div class="month-bar" style="height:{% widthratio count 1 1 %}%" title="{{ count }} memories"></div>
+            <div class="month-bar" style="height:{% widthratio count 1 1 %}%" title="{% blocktrans %}{{ count }} memories{% endblocktrans %}"></div>
             {% else %}
             <div class="month-bar" style="height:4px;opacity:0.2;"></div>
             {% endif %}
@@ -101,7 +102,7 @@
 
     <!-- Top reactions -->
     {% if top_reactions %}
-    <div class="section-heading">Most-used reactions</div>
+    <div class="section-heading">{% trans "Most-used reactions" %}</div>
     <div class="reaction-row">
         {% for emoji, count in top_reactions %}
         <div class="reaction-chip">
@@ -114,7 +115,7 @@
 
     <!-- Top boards -->
     {% if top_boards %}
-    <div class="section-heading">Most active boards</div>
+    <div class="section-heading">{% trans "Most active boards" %}</div>
     {% with max_count=top_boards.0.count %}
     <div class="boards-list">
         {% for b in top_boards %}
@@ -123,7 +124,7 @@
             <div class="board-count-bar">
                 <div class="board-count-fill" style="width:{% widthratio b.count max_count 100 %}%"></div>
             </div>
-            <span class="board-recap-num">{{ b.count }} memor{{ b.count|pluralize:"y,ies" }}</span>
+            <span class="board-recap-num">{% blocktrans count counter=b.count %}{{ counter }} memory{% plural %}{{ counter }} memories{% endblocktrans %}</span>
         </a>
         {% endfor %}
     </div>
@@ -132,7 +133,7 @@
 
     <!-- Pinned highlights -->
     {% if pinned %}
-    <div class="section-heading">📌 Pinned highlights</div>
+    <div class="section-heading">📌 {% trans "Pinned highlights" %}</div>
     <div class="pinned-grid">
         {% for m in pinned %}
         <div class="pinned-card" style="background:var(--note-{{ m.colour }});">
@@ -148,9 +149,9 @@
 {% else %}
 <div class="empty-year">
     <div style="font-size:3rem;margin-bottom:1rem;">📭</div>
-    <p style="font-size:1rem;font-weight:500;">No memories in {{ year }}</p>
-    <p style="font-size:0.875rem;margin-top:0.35rem;">Try a different year, or start creating memories!</p>
-    <a href="{% url 'home' %}" class="btn btn-primary" style="display:inline-flex;margin-top:1.5rem;">Go to boards</a>
+    <p style="font-size:1rem;font-weight:500;">{% blocktrans %}No memories in {{ year }}{% endblocktrans %}</p>
+    <p style="font-size:0.875rem;margin-top:0.35rem;">{% trans "Try a different year, or start creating memories!" %}</p>
+    <a href="{% url 'home' %}" class="btn btn-primary" style="display:inline-flex;margin-top:1.5rem;">{% trans "Go to boards" %}</a>
 </div>
 {% endif %}
 {% endblock %}

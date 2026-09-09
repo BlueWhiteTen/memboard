@@ -7,6 +7,7 @@ from django.db.models import Count, Q, Max
 from django.db.models.functions import Coalesce
 from django.http import JsonResponse, HttpResponseForbidden, Http404, HttpResponse
 from django.utils import timezone
+from django.utils.translation import gettext as _, ngettext
 from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
 from django import forms as django_forms
@@ -141,7 +142,9 @@ def notify_newly_visible_users(group, old_privacy, old_visible_to_group_id):
             continue
         create_notification(
             u, group.owner, 'board_visible',
-            f'{get_display_name(group.owner)} shared the board "{group.name}" with you',
+            _('%(owner)s shared the board "%(board)s" with you') % {
+                'owner': get_display_name(group.owner), 'board': group.name,
+            },
             group=group,
         )
 
@@ -154,7 +157,9 @@ def notify_boards_visible_after_friendship(user_a, user_b):
         for board in boards:
             create_notification(
                 viewer, owner, 'board_visible',
-                f'{get_display_name(owner)} shared the board "{board.name}" with you',
+                _('%(owner)s shared the board "%(board)s" with you') % {
+                    'owner': get_display_name(owner), 'board': board.name,
+                },
                 group=board,
             )
 
@@ -181,7 +186,7 @@ def register_view(request):
                 invite.group.members.add(user)
                 invite.accepted = True
                 invite.save()
-                messages.success(request, f'You\'ve been added to "{invite.group.name}"!')
+                messages.success(request, _('You\'ve been added to "%(board)s"!') % {'board': invite.group.name})
             except GroupInvite.DoesNotExist:
                 pass
         if user.email:
@@ -196,10 +201,12 @@ def register_view(request):
                 notify_boards_visible_after_friendship(finv.from_user, user)
                 create_notification(
                     finv.from_user, user, 'friend_req',
-                    f'{get_display_name(user)} accepted your friend invite and joined Rememory!',
+                    _('%(name)s accepted your friend invite and joined Rememory!') % {
+                        'name': get_display_name(user),
+                    },
                 )
         login(request, user)
-        messages.success(request, f"Welcome to Rememory, {user.first_name}!")
+        messages.success(request, _("Welcome to Rememory, %(name)s!") % {'name': user.first_name})
         return redirect('home')
     return render(request, 'core/register.html', {'form': form, 'invite_token': invite_token})
 
@@ -213,7 +220,7 @@ def login_view(request):
     form = EmailAuthenticationForm(request, data=request.POST or None)
     if request.method == 'POST' and form.is_valid():
         user = form.get_user()
-        profile, _ = UserProfile.objects.get_or_create(user=user)
+        profile, _created = UserProfile.objects.get_or_create(user=user)
         was_disabled = profile.account_status == 'disabled'
         if was_disabled:
             # Logging in is how a disabled account re-enables itself —
@@ -223,7 +230,7 @@ def login_view(request):
             profile.save(update_fields=['account_status'])
         login(request, user)
         if was_disabled:
-            messages.success(request, "Welcome back — your account is active again.")
+            messages.success(request, _("Welcome back — your account is active again."))
             return redirect('home')
         return redirect(request.GET.get('next', 'home'))
     return render(request, 'core/login.html', {'form': form})
@@ -240,7 +247,7 @@ def logout_view(request):
 @login_required
 def home_view(request):
     user = request.user
-    profile, _ = UserProfile.objects.get_or_create(user=user)
+    profile, _created = UserProfile.objects.get_or_create(user=user)
 
     user_groups = list(
         Group.objects.filter(members=user)
@@ -399,7 +406,7 @@ def report_problem_view(request):
                 sent = True
                 form = ReportProblemForm()
             else:
-                messages.error(request, "Couldn't send your report just now — please try again in a moment.")
+                messages.error(request, _("Couldn't send your report just now — please try again in a moment."))
     else:
         form = ReportProblemForm()
     return render(request, 'core/report_problem.html', {
@@ -438,8 +445,9 @@ def create_group_view(request):
                         group.members.add(friend)
                 except User.DoesNotExist:
                     pass
-            log_activity(group, user, 'member_join', f'{get_display_name(user)} created the board')
-            messages.success(request, f'Board "{group.name}" created!')
+            log_activity(group, user, 'member_join',
+                         _('%(actor)s created the board') % {'actor': get_display_name(user)})
+            messages.success(request, _('Board "%(board)s" created!') % {'board': group.name})
             return redirect('group_detail', pk=group.pk)
     else:
         form = GroupForm(owner=user)
@@ -454,7 +462,7 @@ def create_group_view(request):
 def group_detail_view(request, pk):
     group = get_object_or_404(Group, pk=pk)
     if request.user not in group.members.all():
-        messages.error(request, "You're not a member of that board.")
+        messages.error(request, _("You're not a member of that board."))
         return redirect('home')
 
     user = request.user
@@ -563,7 +571,7 @@ def group_detail_view(request, pk):
             a.actor.initials     = get_initials(a.actor)
             a.actor.display_name = get_display_name(a.actor)
 
-    profile, _ = UserProfile.objects.get_or_create(user=user)
+    profile, _created = UserProfile.objects.get_or_create(user=user)
 
     is_owner   = group.owner == user
     is_admin   = group.is_admin(user)
@@ -643,7 +651,7 @@ def update_cover_view(request, pk):
             group.cover_focal_y = 50
             group.save(update_fields=['cover_focal_y'])
             log_activity(group, request.user, 'cover_changed',
-                         f'{get_display_name(request.user)} updated the board cover')
+                         _('%(actor)s updated the board cover') % {'actor': get_display_name(request.user)})
             return JsonResponse({'ok': True})
     return JsonResponse({'ok': False}, status=400)
 
@@ -669,7 +677,7 @@ def set_font_view(request):
         font  = request.POST.get('font', 'dm_sans')
         valid = [f[0] for f in FONT_CHOICES]
         if font in valid:
-            profile, _ = UserProfile.objects.get_or_create(user=request.user)
+            profile, _created = UserProfile.objects.get_or_create(user=request.user)
             profile.note_font = font
             profile.save()
             return JsonResponse({'ok': True})
@@ -682,7 +690,7 @@ def set_theme_view(request):
         theme = request.POST.get('theme', 'system')
         valid = [t[0] for t in THEME_CHOICES]
         if theme in valid:
-            profile, _ = UserProfile.objects.get_or_create(user=request.user)
+            profile, _created = UserProfile.objects.get_or_create(user=request.user)
             profile.theme = theme
             profile.save(update_fields=['theme'])
             return JsonResponse({'ok': True})
@@ -700,7 +708,7 @@ def set_language_view(request):
         valid = [l[0] for l in LANGUAGE_CHOICES]
         if lang in valid:
             if request.user.is_authenticated:
-                profile, _ = UserProfile.objects.get_or_create(user=request.user)
+                profile, _created = UserProfile.objects.get_or_create(user=request.user)
                 profile.language = lang
                 profile.save(update_fields=['language'])
             response = JsonResponse({'ok': True})
@@ -715,7 +723,7 @@ def set_board_sort_view(request):
         mode  = request.POST.get('mode', 'recent')
         valid = [m[0] for m in BOARD_SORT_CHOICES]
         if mode in valid:
-            profile, _ = UserProfile.objects.get_or_create(user=request.user)
+            profile, _created = UserProfile.objects.get_or_create(user=request.user)
             profile.board_sort_mode = mode
             profile.save(update_fields=['board_sort_mode'])
             return JsonResponse({'ok': True})
@@ -727,7 +735,7 @@ def toggle_board_pin_view(request, pk):
     group = get_object_or_404(Group, pk=pk, members=request.user)
     if request.method != 'POST':
         return JsonResponse({'ok': False}, status=400)
-    order, _ = BoardOrder.objects.get_or_create(user=request.user, group=group)
+    order, _created = BoardOrder.objects.get_or_create(user=request.user, group=group)
     order.pinned = not order.pinned
     order.save(update_fields=['pinned'])
     return JsonResponse({'ok': True, 'pinned': order.pinned})
@@ -755,7 +763,7 @@ def reorder_boards_view(request):
         BoardOrder.objects.update_or_create(
             user=request.user, group_id=group_id, defaults={'sort_order': i})
 
-    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    profile, _created = UserProfile.objects.get_or_create(user=request.user)
     profile.board_sort_mode = 'custom'
     profile.save(update_fields=['board_sort_mode'])
     return JsonResponse({'ok': True})
@@ -771,7 +779,7 @@ def update_board_settings_view(request, pk):
         if form.is_valid():
             form.save()
             notify_newly_visible_users(group, old_privacy, old_group_id)
-            messages.success(request, "Board settings updated.")
+            messages.success(request, _("Board settings updated."))
         else:
             for error in form.errors.values():
                 messages.error(request, error.as_text())
@@ -858,7 +866,9 @@ def invite_by_email_view(request, pk):
             group=group, invited_by=request.user, email=email, invited_user=existing)
         create_notification(
             existing, request.user, 'board_invite_pending',
-            f'{get_display_name(request.user)} invited you to join "{group.name}"',
+            _('%(actor)s invited you to join "%(board)s"') % {
+                'actor': get_display_name(request.user), 'board': group.name,
+            },
             group=group,
         )
         # Also offer to become friends, so they don't just end up in a
@@ -873,7 +883,7 @@ def invite_by_email_view(request, pk):
             FriendRequest.objects.create(from_user=request.user, to_user=existing)
             create_notification(
                 existing, request.user, 'friend_req',
-                f'{get_display_name(request.user)} sent you a friend request',
+                _('%(actor)s sent you a friend request') % {'actor': get_display_name(request.user)},
             )
         return JsonResponse({'ok': True, 'invite_pk': invite.pk, 'email': email, 'message': f'Invite sent to {get_display_name(existing)} — they\'ll need to accept it.'})
 
@@ -928,7 +938,9 @@ def invite_friend_group_view(request, pk, fg_pk):
             group=group, invited_by=request.user, email=member.email, invited_user=member)
         create_notification(
             member, request.user, 'board_invite_pending',
-            f'{get_display_name(request.user)} invited you to join "{group.name}"',
+            _('%(actor)s invited you to join "%(board)s"') % {
+                'actor': get_display_name(request.user), 'board': group.name,
+            },
             group=group,
         )
         invited.append({'pk': invite.pk, 'email': member.email})
@@ -949,7 +961,9 @@ def resend_invite_view(request, pk, invite_pk):
     if invite.invited_user:
         create_notification(
             invite.invited_user, request.user, 'board_invite_pending',
-            f'{get_display_name(request.user)} invited you to join "{group.name}"',
+            _('%(actor)s invited you to join "%(board)s"') % {
+                'actor': get_display_name(request.user), 'board': group.name,
+            },
             group=group,
         )
         return JsonResponse({'ok': True, 'message': f'Invite re-sent to {get_display_name(invite.invited_user)}.'})
@@ -967,8 +981,8 @@ def accept_board_invite_view(request, invite_pk):
     invite.save()
     invite.group.members.add(request.user)
     log_activity(invite.group, request.user, 'member_join',
-                 f'{get_display_name(request.user)} joined the board')
-    messages.success(request, f'You\'ve joined "{invite.group.name}"!')
+                 _('%(actor)s joined the board') % {'actor': get_display_name(request.user)})
+    messages.success(request, _('You\'ve joined "%(board)s"!') % {'board': invite.group.name})
     return redirect('group_detail', pk=invite.group.pk)
 
 
@@ -1023,12 +1037,12 @@ def lookup_user_view(request):
 def delete_group_view(request, pk):
     group = get_object_or_404(Group, pk=pk)
     if not group.user_can_delete_board(request.user):
-        messages.error(request, "You don't have permission to delete this board.")
+        messages.error(request, _("You don't have permission to delete this board."))
         return redirect('group_detail', pk=pk)
     if request.method == 'POST':
         name = group.name
         group.delete()
-        messages.success(request, f'Board "{name}" deleted.')
+        messages.success(request, _('Board "%(board)s" deleted.') % {'board': name})
     return redirect('home')
 
 
@@ -1039,16 +1053,20 @@ def request_join_board_view(request, pk):
         if group.is_member(request.user):
             messages.info(request, "You're already a member of that board.")
         elif not group.is_visible_to(request.user):
-            messages.error(request, "You don't have permission to request to join that board.")
+            messages.error(request, _("You don't have permission to request to join that board."))
         else:
-            _, created = BoardJoinRequest.objects.get_or_create(board=group, requester=request.user)
+            _jr, created = BoardJoinRequest.objects.get_or_create(board=group, requester=request.user)
             if created:
                 create_notification(
                     group.owner, request.user, 'join_request',
-                    f'{get_display_name(request.user)} asked to join "{group.name}"',
+                    _('%(actor)s asked to join "%(board)s"') % {
+                        'actor': get_display_name(request.user), 'board': group.name,
+                    },
                     group=group,
                 )
-                messages.success(request, f'Request sent — {get_display_name(group.owner)} will need to approve it.')
+                messages.success(request, _('Request sent — %(owner)s will need to approve it.') % {
+                    'owner': get_display_name(group.owner),
+                })
             else:
                 messages.info(request, "You already requested to join this board.")
     return redirect('home')
@@ -1062,13 +1080,16 @@ def approve_join_request_view(request, pk, req_id):
         requester = join_req.requester
         group.members.add(requester)
         join_req.delete()
-        log_activity(group, request.user, 'member_join', f'{get_display_name(requester)} joined the board')
+        log_activity(group, request.user, 'member_join',
+                     _('%(actor)s joined the board') % {'actor': get_display_name(requester)})
         create_notification(
             requester, request.user, 'join_approved',
-            f'{get_display_name(request.user)} approved your request to join "{group.name}"',
+            _('%(actor)s approved your request to join "%(board)s"') % {
+                'actor': get_display_name(request.user), 'board': group.name,
+            },
             group=group,
         )
-        messages.success(request, f'{get_display_name(requester)} added to the board!')
+        messages.success(request, _('%(name)s added to the board!') % {'name': get_display_name(requester)})
     return redirect('group_detail', pk=pk)
 
 
@@ -1096,7 +1117,9 @@ def make_admin_view(request, pk, user_id):
     group.admins.add(target)
     create_notification(
         target, request.user, 'board_invite',
-        f'{get_display_name(request.user)} made you an admin of "{group.name}"',
+        _('%(actor)s made you an admin of "%(board)s"') % {
+            'actor': get_display_name(request.user), 'board': group.name,
+        },
         group=group,
     )
     return JsonResponse({'ok': True, 'message': f'{get_display_name(target)} is now an admin.'})
@@ -1126,7 +1149,7 @@ def create_friend_group_view(request):
             except Exception:
                 form.add_error('name', 'You already have a group with that name.')
             else:
-                messages.success(request, f'"{fg.name}" created — add friends to it below.')
+                messages.success(request, _('"%(name)s" created — add friends to it below.') % {'name': fg.name})
                 return redirect('friend_group_detail', pk=fg.pk)
     else:
         form = FriendGroupForm()
@@ -1170,10 +1193,12 @@ def friend_group_detail_view(request, pk):
                 for board in visible_boards.exclude(members=newly_member):
                     create_notification(
                         newly_member, user, 'board_visible',
-                        f'{get_display_name(user)} shared the board "{board.name}" with you',
+                        _('%(owner)s shared the board "%(board)s" with you') % {
+                            'owner': get_display_name(user), 'board': board.name,
+                        },
                         group=board,
                     )
-        messages.success(request, f'"{fg.name}" updated.')
+        messages.success(request, _('"%(name)s" updated.') % {'name': fg.name})
         return redirect('friend_group_detail', pk=fg.pk)
 
     friends = annotate_users(list(Friendship.get_friends(user)))
@@ -1196,7 +1221,7 @@ def delete_friend_group_view(request, pk):
         # Boards that relied on this group for visibility fall back to "only members".
         Group.objects.filter(visible_to_group=fg).update(privacy='members', visible_to_group=None)
         fg.delete()
-        messages.success(request, f'"{name}" deleted.')
+        messages.success(request, _('"%(name)s" deleted.') % {'name': name})
     return redirect('friends')
 
 
@@ -1206,7 +1231,7 @@ def delete_friend_group_view(request, pk):
 def add_memory_view(request, pk):
     group = get_object_or_404(Group, pk=pk)
     if request.user not in group.members.all():
-        messages.error(request, "You're not a member of that board.")
+        messages.error(request, _("You're not a member of that board."))
         return redirect('home')
     if request.method == 'POST':
         form = MemoryForm(request.POST, request.FILES, group=group)
@@ -1222,13 +1247,18 @@ def add_memory_view(request, pk):
             for tagged_user in memory.tagged.all():
                 create_notification(
                     tagged_user, request.user, 'tag',
-                    f'{get_display_name(request.user)} tagged you in a memory on "{group.name}"',
+                    _('%(actor)s tagged you in a memory on "%(board)s"') % {
+                        'actor': get_display_name(request.user), 'board': group.name,
+                    },
                     memory=memory, group=group,
                 )
             log_activity(group, request.user, 'memory_add',
-                         f'{get_display_name(request.user)} added a memory: {memory.title or memory.content[:40]}',
+                         _('%(actor)s added a memory: %(summary)s') % {
+                             'actor': get_display_name(request.user),
+                             'summary': memory.title or memory.content[:40],
+                         },
                          memory=memory)
-            messages.success(request, "Memory saved!")
+            messages.success(request, _("Memory saved!"))
         else:
             for field, errors in form.errors.items():
                 for error in errors:
@@ -1255,7 +1285,7 @@ def edit_memory_view(request, pk):
         })
 
     if not memory.can_edit(request.user):
-        messages.error(request, "You don't have permission to edit that memory.")
+        messages.error(request, _("You don't have permission to edit that memory."))
         return redirect('group_detail', pk=memory.group.pk)
 
     form = EditMemoryForm(request.POST, request.FILES, instance=memory, group=memory.group)
@@ -1267,9 +1297,12 @@ def edit_memory_view(request, pk):
         for photo in form.cleaned_data.get('extra_photos', []):
             MemoryPhoto.objects.create(memory=memory, photo=photo)
         log_activity(memory.group, request.user, 'memory_edit',
-                     f'{get_display_name(request.user)} edited a memory: {memory.title or memory.content[:40]}',
+                     _('%(actor)s edited a memory: %(summary)s') % {
+                         'actor': get_display_name(request.user),
+                         'summary': memory.title or memory.content[:40],
+                     },
                      memory=memory)
-        messages.success(request, "Memory updated!")
+        messages.success(request, _("Memory updated!"))
     else:
         for field, errors in form.errors.items():
             for error in errors:
@@ -1282,15 +1315,18 @@ def delete_memory_view(request, pk):
     memory   = get_object_or_404(Memory, pk=pk, is_deleted=False)
     group_pk = memory.group.pk
     if not memory.can_delete(request.user):
-        messages.error(request, "You don't have permission to delete that memory.")
+        messages.error(request, _("You don't have permission to delete that memory."))
         return redirect('group_detail', pk=group_pk)
     if request.method == 'POST':
         log_activity(memory.group, request.user, 'memory_delete',
-                     f'{get_display_name(request.user)} deleted a memory: {memory.title or memory.content[:40]}')
+                     _('%(actor)s deleted a memory: %(summary)s') % {
+                         'actor': get_display_name(request.user),
+                         'summary': memory.title or memory.content[:40],
+                     })
         memory.is_deleted = True
         memory.deleted_at = timezone.now()
         memory.save(update_fields=['is_deleted', 'deleted_at'])
-        messages.success(request, "Memory moved to the recycle bin — it'll be kept for 30 days.")
+        messages.success(request, _("Memory moved to the recycle bin — it'll be kept for 30 days."))
     return redirect('group_detail', pk=group_pk)
 
 
@@ -1303,15 +1339,17 @@ def restore_memory_view(request, pk):
         and memory.group.members.filter(pk=request.user.pk).exists()
     )
     if not can_restore:
-        messages.error(request, "You don't have permission to restore that memory.")
+        messages.error(request, _("You don't have permission to restore that memory."))
         return redirect('group_detail', pk=group_pk)
     if request.method == 'POST':
         memory.is_deleted = False
         memory.deleted_at = None
         memory.save(update_fields=['is_deleted', 'deleted_at'])
         log_activity(memory.group, request.user, 'memory_add',
-                     f'{get_display_name(request.user)} restored a memory from the recycle bin')
-        messages.success(request, "Memory restored!")
+                     _('%(actor)s restored a memory from the recycle bin') % {
+                         'actor': get_display_name(request.user),
+                     })
+        messages.success(request, _("Memory restored!"))
     return redirect('group_detail', pk=group_pk)
 
 
@@ -1336,7 +1374,14 @@ def bulk_delete_memories_view(request, pk):
             deleted += 1
     if deleted:
         log_activity(group, request.user, 'memory_delete',
-                     f'{get_display_name(request.user)} deleted {deleted} memor{"y" if deleted == 1 else "ies"} at once')
+                     ngettext(
+                         '%(actor)s deleted %(count)d memory at once',
+                         '%(actor)s deleted %(count)d memories at once',
+                         deleted,
+                     ) % {
+                         'actor': get_display_name(request.user),
+                         'count': deleted,
+                     })
     skipped = len(ids) - deleted
     message = f'Moved {deleted} memor{"y" if deleted == 1 else "ies"} to the recycle bin.'
     if skipped:
@@ -1364,7 +1409,7 @@ def export_board_view(request, pk):
     of its photos, so people have an offline copy."""
     group = get_object_or_404(Group, pk=pk)
     if request.user not in group.members.all():
-        messages.error(request, "You're not a member of that board.")
+        messages.error(request, _("You're not a member of that board."))
         return redirect('group_detail', pk=pk)
 
     memories = (group.memories.filter(is_deleted=False)
@@ -1414,14 +1459,14 @@ def leave_board_view(request, pk):
     group = get_object_or_404(Group, pk=pk)
     if request.method == 'POST':
         if group.owner == request.user:
-            messages.error(request, "Board owners can't leave — delete the board instead, or transfer ownership first.")
+            messages.error(request, _("Board owners can't leave — delete the board instead, or transfer ownership first."))
         elif request.user not in group.members.all():
-            messages.error(request, "You're not a member of that board.")
+            messages.error(request, _("You're not a member of that board."))
         else:
             group.members.remove(request.user)
             log_activity(group, request.user, 'member_leave',
-                         f'{get_display_name(request.user)} left the board')
-            messages.success(request, f'You left "{group.name}".')
+                         _('%(actor)s left the board') % {'actor': get_display_name(request.user)})
+            messages.success(request, _('You left "%(board)s".') % {'board': group.name})
             return redirect('home')
     return redirect('group_detail', pk=pk)
 
@@ -1435,11 +1480,16 @@ def pin_memory_view(request, pk):
     memory.is_pinned = not memory.is_pinned
     memory.save(update_fields=['is_pinned'])
     action = 'memory_pin' if memory.is_pinned else 'memory_unpin'
-    desc   = f'{get_display_name(request.user)} {"pinned" if memory.is_pinned else "unpinned"} a memory'
+    if memory.is_pinned:
+        desc = _('%(actor)s pinned a memory') % {'actor': get_display_name(request.user)}
+    else:
+        desc = _('%(actor)s unpinned a memory') % {'actor': get_display_name(request.user)}
     log_activity(memory.group, request.user, action, desc, memory=memory)
     if memory.is_pinned and memory.creator != request.user:
         create_notification(memory.creator, request.user, 'pin',
-                            f'{get_display_name(request.user)} pinned your memory in "{memory.group.name}"',
+                            _('%(actor)s pinned your memory in "%(board)s"') % {
+                                'actor': get_display_name(request.user), 'board': memory.group.name,
+                            },
                             memory=memory, group=memory.group)
     return JsonResponse({'ok': True, 'pinned': memory.is_pinned})
 
@@ -1502,11 +1552,15 @@ def react_memory_view(request, pk):
         if memory.creator != request.user:
             create_notification(
                 memory.creator, request.user, 'reaction',
-                f'{get_display_name(request.user)} reacted {emoji} to your memory in "{memory.group.name}"',
+                _('%(actor)s reacted %(emoji)s to your memory in "%(board)s"') % {
+                    'actor': get_display_name(request.user), 'emoji': emoji, 'board': memory.group.name,
+                },
                 memory=memory, group=memory.group,
             )
         log_activity(memory.group, request.user, 'reaction_add',
-                     f'{get_display_name(request.user)} reacted {emoji} to a memory', memory=memory)
+                     _('%(actor)s reacted %(emoji)s to a memory') % {
+                         'actor': get_display_name(request.user), 'emoji': emoji,
+                     }, memory=memory)
 
     return JsonResponse({'ok': True, 'added': added, 'counts': memory.reaction_summary()})
 
@@ -1526,11 +1580,14 @@ def comments_view(request, pk):
             return JsonResponse({'ok': False, 'error': 'Empty comment'}, status=400)
         comment = Comment.objects.create(memory=memory, author=request.user, content=content)
         log_activity(memory.group, request.user, 'comment_add',
-                     f'{get_display_name(request.user)} commented on a memory', memory=memory)
+                     _('%(actor)s commented on a memory') % {'actor': get_display_name(request.user)},
+                     memory=memory)
         if memory.creator != request.user:
             create_notification(
                 memory.creator, request.user, 'comment',
-                f'{get_display_name(request.user)} commented on your memory in "{memory.group.name}"',
+                _('%(actor)s commented on your memory in "%(board)s"') % {
+                    'actor': get_display_name(request.user), 'board': memory.group.name,
+                },
                 memory=memory, group=memory.group,
             )
         return JsonResponse({
@@ -1715,18 +1772,22 @@ def send_friend_request_view(request):
                     from_user=request.user, to_user=form._resolved_user)
                 create_notification(
                     form._resolved_user, request.user, 'friend_req',
-                    f'{get_display_name(request.user)} sent you a friend request',
+                    _('%(actor)s sent you a friend request') % {'actor': get_display_name(request.user)},
                 )
-                messages.success(request, f"Friend request sent to {get_display_name(form._resolved_user)}!")
+                messages.success(request, _("Friend request sent to %(name)s!") % {
+                    'name': get_display_name(form._resolved_user),
+                })
             else:
                 email  = form.cleaned_data['query'].strip().lower()
                 invite = FriendInvite.objects.create(from_user=request.user, email=email)
                 sent, err = send_friend_invite_email(request.user, email, invite.token)
                 if sent:
-                    messages.success(request, f"{email} isn't on Rememory yet — we've emailed them an invite. You'll be friends automatically once they sign up.")
+                    messages.success(request, _("%(email)s isn't on Rememory yet — we've emailed them an invite. You'll be friends automatically once they sign up.") % {
+                        'email': email,
+                    })
                 else:
                     invite.delete()
-                    messages.error(request, f"Failed to send email: {err}")
+                    messages.error(request, _("Failed to send email: %(err)s") % {'err': err})
         else:
             for error in form.errors.values():
                 messages.error(request, error.as_text())
@@ -1741,7 +1802,9 @@ def accept_friend_request_view(request, request_id):
         freq.save()
         Friendship.make_friends(freq.from_user, freq.to_user)
         notify_boards_visible_after_friendship(freq.from_user, freq.to_user)
-        messages.success(request, f"You're now friends with {get_display_name(freq.from_user)}!")
+        messages.success(request, _("You're now friends with %(name)s!") % {
+            'name': get_display_name(freq.from_user),
+        })
     return redirect('friends')
 
 
@@ -1773,7 +1836,7 @@ def friend_profile_view(request, user_id):
     # this is also the view opened by clicking a name in a board's Members
     # list, where the two people may not be friends yet.
     if not Friendship.are_friends(user, friend) and not shared_boards.exists():
-        messages.error(request, "You don't share a board or friendship with that person.")
+        messages.error(request, _("You don't share a board or friendship with that person."))
         return redirect('friends')
     mutual_ids     = set(Friendship.get_friends(user).values_list('pk', flat=True)) & \
                      set(Friendship.get_friends(friend).values_list('pk', flat=True))
@@ -1809,7 +1872,7 @@ def my_profile_view(request):
         form = ProfileForm(request.POST, instance=profile)
         if form.is_valid():
             form.save()
-            messages.success(request, "Profile updated.")
+            messages.success(request, _("Profile updated."))
             return redirect('my_profile')
     else:
         form = ProfileForm(instance=profile)
@@ -1832,11 +1895,11 @@ def disable_account_view(request):
     with nothing else touched. Boards, memories, friendships all stay
     exactly as they are; only the display name/initials are hidden
     everywhere (see get_display_name/get_initials) while paused."""
-    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    profile, _created = UserProfile.objects.get_or_create(user=request.user)
     profile.account_status = 'disabled'
     profile.save(update_fields=['account_status'])
     logout(request)
-    messages.success(request, "Your account is paused. Log back in any time to pick up right where you left off.")
+    messages.success(request, _("Your account is paused. Log back in any time to pick up right where you left off."))
     return redirect('login')
 
 
@@ -1853,7 +1916,7 @@ def delete_account_view(request):
     user = request.user
     confirm = request.POST.get('confirm_email', '').strip().lower()
     if confirm != (user.email or '').lower():
-        messages.error(request, "That didn't match your account email — nothing was deleted.")
+        messages.error(request, _("That didn't match your account email — nothing was deleted."))
         return redirect('my_profile')
 
     old_name = get_display_name(user)
@@ -1870,7 +1933,7 @@ def delete_account_view(request):
                 log.description = log.description.replace(old_name, 'A former member')
                 log.save(update_fields=['description'])
 
-    profile, _ = UserProfile.objects.get_or_create(user=user)
+    profile, _created = UserProfile.objects.get_or_create(user=user)
     profile.account_status = 'deleted'
     profile.bio            = ''
     profile.location        = ''
@@ -1889,7 +1952,7 @@ def delete_account_view(request):
     user.save()
 
     logout(request)
-    messages.success(request, "Your account has been deleted.")
+    messages.success(request, _("Your account has been deleted."))
     return redirect('login')
 
 
@@ -1934,7 +1997,7 @@ def manifest_view(request):
 @require_POST
 def save_push_subscription_view(request):
     data     = json.loads(request.body)
-    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    profile, _created = UserProfile.objects.get_or_create(user=request.user)
     profile.push_endpoint = data.get('endpoint', '')
     profile.push_p256dh   = data.get('keys', {}).get('p256dh', '')
     profile.push_auth     = data.get('keys', {}).get('auth', '')

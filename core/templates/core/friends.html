@@ -1,5 +1,6 @@
 {% extends 'core/base.html' %}
-{% block title %}Rememory – Friends{% endblock %}
+{% load i18n %}
+{% block title %}Rememory – {% trans "Friends" %}{% endblock %}
 {% block nav_friends %}active{% endblock %}
 
 {% block extra_styles %}
@@ -63,8 +64,8 @@
 {% block content %}
 <div class="page-header">
     <div>
-        <h2>Friends</h2>
-        <p>People you share memories with</p>
+        <h2>{% trans "Friends" %}</h2>
+        <p>{% trans "People you share memories with" %}</p>
     </div>
 </div>
 
@@ -72,20 +73,20 @@
 
     <!-- Add friend -->
     <div class="add-friend-card">
-        <h3>Add a friend</h3>
-        <p>Enter their email address.</p>
+        <h3>{% trans "Add a friend" %}</h3>
+        <p>{% trans "Enter their email address." %}</p>
         <form method="post" action="{% url 'send_friend_request' %}">
             {% csrf_token %}
             <div class="search-row">
-                <input type="email" name="query" placeholder="Their email address…" required autocomplete="off">
-                <button type="submit" class="btn-primary">Send request</button>
+                <input type="email" name="query" placeholder="{% trans 'Their email address…' %}" required autocomplete="off">
+                <button type="submit" class="btn-primary">{% trans "Send request" %}</button>
             </div>
         </form>
     </div>
 
     <!-- Incoming requests -->
     {% if pending_in %}
-    <div class="section-title">Incoming requests ({{ pending_in.count }})</div>
+    <div class="section-title">{% blocktrans with n=pending_in.count %}Incoming requests ({{ n }}){% endblocktrans %}</div>
     <div class="pending-list">
         {% for req in pending_in %}
         <div class="pending-card">
@@ -93,15 +94,15 @@
                 <div class="avatar av-{{ forloop.counter0 }}">{{ req.from_user.initials }}</div>
                 <div>
                     <div class="pending-name">{{ req.from_user.display_name }}</div>
-                    <div class="pending-sub">wants to be friends · {{ req.created_at|date:"j M" }}</div>
+                    <div class="pending-sub">{% blocktrans with created=req.created_at|date:"j M" %}wants to be friends · {{ created }}{% endblocktrans %}</div>
                 </div>
             </div>
             <div class="pending-actions">
                 <form method="post" action="{% url 'accept_friend_request' req.pk %}">
-                    {% csrf_token %}<button type="submit" class="btn-accept">Accept</button>
+                    {% csrf_token %}<button type="submit" class="btn-accept">{% trans "Accept" %}</button>
                 </form>
                 <form method="post" action="{% url 'decline_friend_request' req.pk %}">
-                    {% csrf_token %}<button type="submit" class="btn-decline">Decline</button>
+                    {% csrf_token %}<button type="submit" class="btn-decline">{% trans "Decline" %}</button>
                 </form>
             </div>
         </div>
@@ -111,7 +112,7 @@
 
     <!-- Outgoing requests -->
     {% if pending_out %}
-    <div class="section-title" style="margin-top:1.5rem;">Sent requests</div>
+    <div class="section-title" style="margin-top:1.5rem;">{% trans "Sent requests" %}</div>
     <div class="outgoing-list">
         {% for req in pending_out %}
         <div class="outgoing-item">
@@ -121,7 +122,7 @@
             </div>
             <div style="display:flex;align-items:center;gap:0.35rem;font-size:0.75rem;color:var(--ink-muted);">
                 <div class="status-dot"></div>
-                Pending · {{ req.created_at|date:"j M" }}
+                {% blocktrans with created=req.created_at|date:"j M" %}Pending · {{ created }}{% endblocktrans %}
             </div>
         </div>
         {% endfor %}
@@ -130,24 +131,25 @@
 
     <!-- Friend groups -->
     <div class="fg-section-header" style="margin-top:1.5rem;">
-        <div class="section-title" style="margin-bottom:0;">Groups ({{ friend_groups.count }})</div>
-        <a href="{% url 'create_friend_group' %}" class="fg-new-link">+ New group</a>
+        <div class="section-title" style="margin-bottom:0;">{% blocktrans with n=friend_groups.count %}Groups ({{ n }}){% endblocktrans %}</div>
+        <a href="{% url 'create_friend_group' %}" class="fg-new-link">+ {% trans "New group" %}</a>
     </div>
     {% if friend_groups %}
     <div class="fg-grid">
         {% for fg in friend_groups %}
         <a href="{% url 'friend_group_detail' fg.pk %}" class="fg-card">
             <div class="fg-name">{{ fg.name }}</div>
-            <div class="fg-count">{{ fg.member_count }} friend{{ fg.member_count|pluralize }}</div>
+            <div class="fg-count">{% blocktrans count counter=fg.member_count %}{{ counter }} friend{% plural %}{{ counter }} friends{% endblocktrans %}</div>
         </a>
         {% endfor %}
     </div>
     {% else %}
-    <div class="fg-empty">No groups yet — <a href="{% url 'create_friend_group' %}">create one</a> to cluster friends and control who sees a board.</div>
+    {% url 'create_friend_group' as create_fg_url %}
+    <div class="fg-empty">{% blocktrans %}No groups yet — <a href="{{ create_fg_url }}">create one</a> to cluster friends and control who sees a board.{% endblocktrans %}</div>
     {% endif %}
 
     <!-- Friends list -->
-    <div class="section-title" style="margin-top:1.5rem;">Your friends ({{ friends|length }})</div>
+    <div class="section-title" style="margin-top:1.5rem;">{% blocktrans with n=friends|length %}Your friends ({{ n }}){% endblocktrans %}</div>
     {% if friends %}
     <div class="friends-grid">
         {% for friend in friends %}
@@ -156,17 +158,17 @@
                 <div class="friend-big-av av-{{ forloop.counter0 }}">{{ friend.initials }}</div>
                 <div class="friend-name">{{ friend.display_name }}</div>
             </a>
-            {% if friend.shared_boards %}<div style="font-size:0.72rem;color:var(--ink-muted);margin-top:-0.5rem;margin-bottom:0.6rem;">{{ friend.shared_boards }} shared board{{ friend.shared_boards|pluralize }}</div>{% endif %}
+            {% if friend.shared_boards %}<div style="font-size:0.72rem;color:var(--ink-muted);margin-top:-0.5rem;margin-bottom:0.6rem;">{% blocktrans count counter=friend.shared_boards %}{{ counter }} shared board{% plural %}{{ counter }} shared boards{% endblocktrans %}</div>{% endif %}
             <form method="post" action="{% url 'remove_friend' friend.pk %}">
                 {% csrf_token %}
                 <button type="submit" class="btn-unfriend"
-                        onclick="return confirm('Remove {{ friend.display_name }} from friends?')">Remove</button>
+                        onclick="return confirm('Remove {{ friend.display_name }} from friends?')">{% trans "Remove" %}</button>
             </form>
         </div>
         {% endfor %}
     </div>
     {% else %}
-    <div class="empty-msg">No friends yet — send some requests above!</div>
+    <div class="empty-msg">{% trans "No friends yet — send some requests above!" %}</div>
     {% endif %}
 
 </div>

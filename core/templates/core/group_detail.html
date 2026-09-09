@@ -1,4 +1,5 @@
 {% extends 'core/base.html' %}
+{% load i18n %}
 {% block title %}{{ group.name }} – Rememory{% endblock %}
 
 {% block extra_styles %}
@@ -338,15 +339,15 @@
 <div class="board-header">
     <div class="board-cover">
         {% if group.cover_photo %}
-        <img id="board-cover-img" src="{{ group.cover_photo.url }}" alt="Board cover" style="cursor:zoom-in;object-position:center {{ group.cover_focal_y }}%;" onclick="openLightbox('{{ group.cover_photo.url }}')">
+        <img id="board-cover-img" src="{{ group.cover_photo.url }}" alt="{% trans "Board cover" %}" style="cursor:zoom-in;object-position:center {{ group.cover_focal_y }}%;" onclick="openLightbox('{{ group.cover_photo.url }}')">
         {% endif %}
         {% if group.owner == request.user %}
         <button class="cover-upload-btn" onclick="document.getElementById('cover-input').click()">
-            📷 Change cover
+            📷 {% trans "Change cover" %}
         </button>
         {% if group.cover_photo %}
         <button class="cover-reposition-btn" onclick="openRepositionModal()">
-            ↕️ Reposition
+            ↕️ {% trans "Reposition" %}
         </button>
         {% endif %}
         <form id="cover-form" method="post" action="{% url 'update_cover' group.pk %}" enctype="multipart/form-data" style="display:none;" onsubmit="return false;">
@@ -358,25 +359,25 @@
     <div class="board-header-inner">
         <div>
             <div class="board-title">{{ group.name }}</div>
-            <div class="board-meta">{{ group.get_privacy_display }} · {{ group.members.count }} member{{ group.members.count|pluralize }} · {{ memories.count }} memor{{ memories.count|pluralize:"y,ies" }}</div>
+            <div class="board-meta">{{ group.get_privacy_display }} · {% blocktrans count counter=group.members.count %}{{ counter }} member{% plural %}{{ counter }} members{% endblocktrans %} · {% blocktrans count counter=memories.count %}{{ counter }} memory{% plural %}{{ counter }} memories{% endblocktrans %}</div>
             {% if group.description %}<div class="board-meta" style="margin-top:0.3rem;color:var(--ink-light);">{{ group.description }}</div>{% endif %}
         </div>
         <div class="board-actions">
             {% if group.owner == request.user %}
-            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('invite-modal').classList.add('open')">+ Add member</button>
-            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('settings-modal').classList.add('open')">Settings</button>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('invite-modal').classList.add('open')">+ {% trans "Add member" %}</button>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('settings-modal').classList.add('open')">{% trans "Settings" %}</button>
             {% endif %}
         </div>
     </div>
 
     <!-- Tabs -->
     <div class="board-tabs">
-        <button class="tab-btn active" data-tab="memories" onclick="switchTab('memories')">📋 Memories</button>
-        <button class="tab-btn" data-tab="map" onclick="switchTab('map')">🗺 Map</button>
-        <button class="tab-btn" data-tab="members" onclick="switchTab('members')">👥 Members</button>
+        <button class="tab-btn active" data-tab="memories" onclick="switchTab('memories')">📋 {% trans "Memories" %}</button>
+        <button class="tab-btn" data-tab="map" onclick="switchTab('map')">🗺 {% trans "Map" %}</button>
+        <button class="tab-btn" data-tab="members" onclick="switchTab('members')">👥 {% trans "Members" %}</button>
         {# Activity tab hidden for now (removed from nav, code kept for later) — see #tab-activity below #}
         {# <button class="tab-btn" data-tab="activity" onclick="switchTab('activity')">📜 Activity</button> #}
-        <button class="tab-btn tab-btn-trash" data-tab="trash" onclick="switchTab('trash')">🗑 Trash{% if trashed_memories %} ({{ trashed_memories|length }}){% endif %}</button>
+        <button class="tab-btn tab-btn-trash" data-tab="trash" onclick="switchTab('trash')">🗑 {% trans "Trash" %}{% if trashed_memories %} ({{ trashed_memories|length }}){% endif %}</button>
     </div>
 </div>
 
@@ -387,20 +388,20 @@
         <!-- Big add-memory button + sort/surprise/filter/select controls -->
         <div class="board-toolbar">
             <button class="add-memory-cta" onclick="document.getElementById('add-memory-modal').classList.add('open')">
-                <span class="plus-icon">+</span> Add a memory
+                <span class="plus-icon">+</span> {% trans "Add a memory" %}
             </button>
             {% if memories or filters_active %}
             <label class="sort-label">
-                Sort:
+                {% trans "Sort:" %}
                 <select class="sort-select" onchange="changeSort(this.value)">
-                    <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest first</option>
-                    <option value="oldest" {% if current_sort == 'oldest' %}selected{% endif %}>Oldest first</option>
-                    <option value="alphabetical" {% if current_sort == 'alphabetical' %}selected{% endif %}>Alphabetical (A–Z)</option>
+                    <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>{% trans "Newest first" %}</option>
+                    <option value="oldest" {% if current_sort == 'oldest' %}selected{% endif %}>{% trans "Oldest first" %}</option>
+                    <option value="alphabetical" {% if current_sort == 'alphabetical' %}selected{% endif %}>{% trans "Alphabetical (A–Z)" %}</option>
                 </select>
             </label>
             {% endif %}
-            <button type="button" class="toolbar-btn" onclick="surpriseMe()">🎲 Surprise me</button>
-            <a class="toolbar-btn" href="{% url 'export_board' group.pk %}" style="display:none;">⬇️ Export board</a>
+            <button type="button" class="toolbar-btn" onclick="surpriseMe()">🎲 {% trans "Surprise me" %}</button>
+            <a class="toolbar-btn" href="{% url 'export_board' group.pk %}" style="display:none;">⬇️ {% trans "Export board" %}</a>
 
             <div class="toolbar-right">
                 <form method="get" class="board-search-form" style="display:flex;align-items:center;">
@@ -409,18 +410,18 @@
                     {% if filter_colour %}<input type="hidden" name="colour" value="{{ filter_colour }}">{% endif %}
                     {% if filter_from %}<input type="hidden" name="date_from" value="{{ filter_from }}">{% endif %}
                     {% if filter_to %}<input type="hidden" name="date_to" value="{{ filter_to }}">{% endif %}
-                    <input type="search" name="q" value="{{ search_query }}" placeholder="🔎 Search this board…" class="form-input board-search-input">
+                    <input type="search" name="q" value="{{ search_query }}" placeholder="{% trans "🔎 Search this board…" %}" class="form-input board-search-input">
                 </form>
-                <button type="button" class="toolbar-btn {% if filters_active %}toolbar-btn-active{% endif %}" onclick="toggleFilterPanel()">🔍 Filters{% if filters_active %} •{% endif %}</button>
-                <button type="button" class="toolbar-btn" id="select-mode-btn" onclick="toggleSelectMode()">☑️ Select</button>
+                <button type="button" class="toolbar-btn {% if filters_active %}toolbar-btn-active{% endif %}" onclick="toggleFilterPanel()">🔍 {% trans "Filters" %}{% if filters_active %} •{% endif %}</button>
+                <button type="button" class="toolbar-btn" id="select-mode-btn" onclick="toggleSelectMode()">☑️ {% trans "Select" %}</button>
             </div>
         </div>
 
         <!-- Bulk actions bar (shown while in select mode) -->
         <div id="bulk-actions-bar" style="display:none;align-items:center;gap:0.6rem;margin-bottom:1rem;padding:0.5rem 0.75rem;background:var(--amber-pale);border:1px solid var(--amber);">
-            <span id="bulk-selected-count" style="font-size:0.82rem;">0 selected</span>
-            <button type="button" class="btn btn-ghost btn-sm" style="color:#c0392b;border-color:rgba(192,57,43,0.3);" onclick="bulkDeleteSelected()">🗑 Delete selected</button>
-            <button type="button" class="btn btn-ghost btn-sm" onclick="toggleSelectMode()">Cancel</button>
+            <span id="bulk-selected-count" style="font-size:0.82rem;">{% trans "0 selected" %}</span>
+            <button type="button" class="btn btn-ghost btn-sm" style="color:#c0392b;border-color:rgba(192,57,43,0.3);" onclick="bulkDeleteSelected()">🗑 {% trans "Delete selected" %}</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="toggleSelectMode()">{% trans "Cancel" %}</button>
         </div>
 
         <!-- Filters (toggled via the 🔍 Filters button above) -->
@@ -428,34 +429,34 @@
             <input type="hidden" name="sort" value="{{ current_sort }}">
             {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
             <label class="filter-field">
-                <span class="filter-label">Person</span>
+                <span class="filter-label">{% trans "Person" %}</span>
                 <select name="person" class="form-input" style="padding:0.35rem 0.5rem;font-size:0.82rem;">
-                    <option value="">Anyone</option>
+                    <option value="">{% trans "Anyone" %}</option>
                     {% for member in all_members %}
                     <option value="{{ member.pk }}" {% if filter_person == member.pk|stringformat:"s" %}selected{% endif %}>{{ member.display_name }}</option>
                     {% endfor %}
                 </select>
             </label>
             <label class="filter-field">
-                <span class="filter-label">Colour</span>
+                <span class="filter-label">{% trans "Colour" %}</span>
                 <select name="colour" class="form-input" style="padding:0.35rem 0.5rem;font-size:0.82rem;">
-                    <option value="">Any colour</option>
+                    <option value="">{% trans "Any colour" %}</option>
                     {% for value, label in colour_choices %}
                     <option value="{{ value }}" {% if filter_colour == value %}selected{% endif %}>{{ label }}</option>
                     {% endfor %}
                 </select>
             </label>
             <label class="filter-field">
-                <span class="filter-label">From</span>
+                <span class="filter-label">{% trans "From" %}</span>
                 <input type="date" name="date_from" class="form-input" style="padding:0.35rem 0.5rem;font-size:0.82rem;" value="{{ filter_from }}">
             </label>
             <label class="filter-field">
-                <span class="filter-label">To</span>
+                <span class="filter-label">{% trans "To" %}</span>
                 <input type="date" name="date_to" class="form-input" style="padding:0.35rem 0.5rem;font-size:0.82rem;" value="{{ filter_to }}">
             </label>
-            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <button type="submit" class="btn btn-primary btn-sm">{% trans "Filter" %}</button>
             {% if filters_active %}
-            <a href="?sort={{ current_sort }}" class="btn btn-ghost btn-sm">Clear filters</a>
+            <a href="?sort={{ current_sort }}" class="btn btn-ghost btn-sm">{% trans "Clear filters" %}</a>
             {% endif %}
         </form>
 
@@ -474,13 +475,13 @@
                  data-colour="{{ memory.colour }}"
                  onclick="openMemoryView({{ memory.pk }}, event)">
                 {% if memory.colour %}<span class="memory-tape" style="background: var(--note-{{ memory.colour }});" title="{{ memory.colour|title }}"></span>{% endif %}
-                <input type="checkbox" class="select-checkbox" onclick="event.stopPropagation(); toggleMemorySelect({{ memory.pk }}, this)" title="Select this memory">
+                <input type="checkbox" class="select-checkbox" onclick="event.stopPropagation(); toggleMemorySelect({{ memory.pk }}, this)" title="{% trans "Select this memory" %}">
                 {% if memory.video or memory.voice_note %}
-                <span class="media-badge" title="{% if memory.video %}Has a video clip{% endif %}{% if memory.video and memory.voice_note %} & {% endif %}{% if memory.voice_note %}Has a voice note{% endif %}">
+                <span class="media-badge" title="{% if memory.video %}{% trans "Has a video clip" %}{% endif %}{% if memory.video and memory.voice_note %} & {% endif %}{% if memory.voice_note %}{% trans "Has a voice note" %}{% endif %}">
                     {% if memory.video %}🎬{% endif %}{% if memory.voice_note %}🎙{% endif %}
                 </span>
                 {% endif %}
-                {% if memory.is_pinned %}<span class="pin-badge" title="Pinned">📌</span>{% endif %}
+                {% if memory.is_pinned %}<span class="pin-badge" title="{% trans "Pinned" %}">📌</span>{% endif %}
                 {% if memory.card_photo_url %}
                 <div class="memory-photo-col">
                     <img src="{{ memory.card_photo_url }}" alt="" class="memory-photo">
@@ -491,7 +492,7 @@
                     {% if memory.title %}<div class="memory-title">{{ memory.title }}</div>{% endif %}
                     <div class="memory-content card-content-clamp">{{ memory.content }}</div>
                     {% if memory.is_long_content %}
-                    <button type="button" class="see-more-btn" onclick="event.stopPropagation(); openMemoryView({{ memory.pk }}, null)">See more</button>
+                    <button type="button" class="see-more-btn" onclick="event.stopPropagation(); openMemoryView({{ memory.pk }}, null)">{% trans "See more" %}</button>
                     {% endif %}
 
                     <div class="memory-meta">
@@ -519,7 +520,7 @@
                         </button>
                         {% endfor %}
                         <div style="position:relative;">
-                            <button class="add-reaction-btn" onclick="togglePicker({{ memory.pk }}, this)" title="Add reaction">😊</button>
+                            <button class="add-reaction-btn" onclick="togglePicker({{ memory.pk }}, this)" title="{% trans "Add reaction" %}">😊</button>
                             <div class="reaction-picker" id="picker-{{ memory.pk }}">
                                 {% for emoji, label in reaction_choices %}
                                 <button class="rp-btn" title="{{ label }}" onclick="toggleReaction({{ memory.pk }}, '{{ emoji }}', null); this.closest('.reaction-picker').classList.remove('open')">{{ emoji }}</button>
@@ -531,13 +532,13 @@
                     <!-- Actions row -->
                     <div class="memory-actions">
                         <button class="comment-toggle-btn" onclick="toggleComments({{ memory.pk }}, this)">
-                            💬 Comment <span class="comment-count">{{ memory.comment_count }}</span>
+                            💬 {% trans "Comment" %} <span class="comment-count">{{ memory.comment_count }}</span>
                         </button>
-                        <button class="mem-action-btn {% if memory.is_pinned %}pin-active{% endif %}" onclick="pinMemory({{ memory.pk }}, this)" title="{% if memory.is_pinned %}Unpin{% else %}Pin{% endif %}">
-                            📌 {% if memory.is_pinned %}Pinned{% else %}Pin{% endif %}
+                        <button class="mem-action-btn {% if memory.is_pinned %}pin-active{% endif %}" onclick="pinMemory({{ memory.pk }}, this)" title="{% if memory.is_pinned %}{% trans "Unpin" %}{% else %}{% trans "Pin" %}{% endif %}">
+                            📌 {% if memory.is_pinned %}{% trans "Pinned" %}{% else %}{% trans "Pin" %}{% endif %}
                         </button>
                         {% if memory.user_can_edit %}
-                        <button class="mem-action-btn" onclick="openEditModal({{ memory.pk }})">✏️ Edit</button>
+                        <button class="mem-action-btn" onclick="openEditModal({{ memory.pk }})">✏️ {% trans "Edit" %}</button>
                         {% endif %}
                         {% if memory.user_can_delete %}
                         <button class="mem-action-btn danger" onclick="if(confirm('Delete this memory?')) deleteMemory({{ memory.pk }})">🗑</button>
@@ -550,10 +551,10 @@
                             <!-- loaded dynamically -->
                         </div>
                         <div class="comment-form">
-                            <input type="text" class="comment-input" placeholder="Write a comment…"
+                            <input type="text" class="comment-input" placeholder="{% trans "Write a comment…" %}"
                                    id="comment-input-{{ memory.pk }}"
                                    onkeydown="if(event.key==='Enter'){submitComment({{ memory.pk }})}">
-                            <button class="comment-submit" onclick="submitComment({{ memory.pk }})">Send</button>
+                            <button class="comment-submit" onclick="submitComment({{ memory.pk }})">{% trans "Send" %}</button>
                         </div>
                     </div>
                 </div>
@@ -565,11 +566,11 @@
         <div style="text-align:center;padding:4rem 2rem;color:var(--ink-muted);">
             <div style="font-size:3rem;margin-bottom:1rem;">📋</div>
             {% if filters_active %}
-            <p style="font-size:1rem;font-weight:500;">No memories match{% if search_query %} "{{ search_query }}"{% else %} those filters{% endif %}</p>
-            <p style="font-size:0.875rem;margin-top:0.35rem;">Try a different search term, person, colour, or date range.</p>
+            <p style="font-size:1rem;font-weight:500;">{% trans "No memories match" %}{% if search_query %} "{{ search_query }}"{% else %} {% trans "those filters" %}{% endif %}</p>
+            <p style="font-size:0.875rem;margin-top:0.35rem;">{% trans "Try a different search term, person, colour, or date range." %}</p>
             {% else %}
-            <p style="font-size:1rem;font-weight:500;">No memories yet</p>
-            <p style="font-size:0.875rem;margin-top:0.35rem;">Click + to add the first one!</p>
+            <p style="font-size:1rem;font-weight:500;">{% trans "No memories yet" %}</p>
+            <p style="font-size:0.875rem;margin-top:0.35rem;">{% trans "Click + to add the first one!" %}</p>
             {% endif %}
         </div>
         {% endif %}
@@ -579,10 +580,10 @@
 <!-- Tab: Map -->
 <div id="tab-map" class="tab-panel">
     <div class="board-content">
-        <p style="font-size:0.875rem;color:var(--ink-muted);margin-bottom:1rem;">Memories with locations pinned on the map.</p>
+        <p style="font-size:0.875rem;color:var(--ink-muted);margin-bottom:1rem;">{% trans "Memories with locations pinned on the map." %}</p>
         <div id="board-map"></div>
         {% if not map_memories or map_memories == '[]' %}
-        <p style="font-size:0.875rem;color:var(--ink-muted);margin-top:1rem;">No memories with locations yet. Add a location when creating a memory!</p>
+        <p style="font-size:0.875rem;color:var(--ink-muted);margin-top:1rem;">{% trans "No memories with locations yet. Add a location when creating a memory!" %}</p>
         {% endif %}
     </div>
 </div>
@@ -590,7 +591,7 @@
 <!-- Tab: Members -->
 <div id="tab-members" class="tab-panel">
     <div class="board-content">
-        <p class="section-label" style="font-size:0.72rem;font-weight:500;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:1rem;">Board members</p>
+        <p class="section-label" style="font-size:0.72rem;font-weight:500;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:1rem;">{% trans "Board members" %}</p>
         <div class="members-grid">
             {% for member in all_members %}
             <div class="member-card">
@@ -599,13 +600,13 @@
                     <div class="member-av-lg">{{ member.initials }}</div>
                     <div>
                         <div class="member-name">{{ member.display_name }}</div>
-                        <div class="member-role">{% if member == group.owner %}Owner{% elif member.is_board_admin %}Admin{% else %}Member{% endif %}</div>
+                        <div class="member-role">{% if member == group.owner %}{% trans "Owner" %}{% elif member.is_board_admin %}{% trans "Admin" %}{% else %}{% trans "Member" %}{% endif %}</div>
                     </div>
                 </a>
                 {% if is_owner and member != group.owner %}
                 <button type="button" class="btn btn-ghost btn-sm" style="font-size:0.68rem;padding:0.2rem 0.5rem;"
                         onclick="{% if member.is_board_admin %}removeAdmin({{ member.pk }}, this){% else %}makeAdmin({{ member.pk }}, this){% endif %}">
-                    {% if member.is_board_admin %}Remove admin{% else %}Make admin{% endif %}
+                    {% if member.is_board_admin %}{% trans "Remove admin" %}{% else %}{% trans "Make admin" %}{% endif %}
                 </button>
                 {% endif %}
             </div>
@@ -613,22 +614,22 @@
         </div>
         {% if can_manage %}
         <div style="margin-top:1.5rem;margin-bottom:1rem;padding:0.75rem 0.9rem;border:1px solid var(--border);background:var(--warm-white);">
-            <p class="section-label" style="font-size:0.72rem;font-weight:500;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem;">🔗 Public share link</p>
-            <p style="font-size:0.8rem;color:var(--ink-muted);margin-bottom:0.6rem;">Anyone with this link can view (but not edit) this board's memories — no account needed.</p>
+            <p class="section-label" style="font-size:0.72rem;font-weight:500;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem;">🔗 {% trans "Public share link" %}</p>
+            <p style="font-size:0.8rem;color:var(--ink-muted);margin-bottom:0.6rem;">{% trans "Anyone with this link can view (but not edit) this board's memories — no account needed." %}</p>
             <div id="board-share-off" style="display:{% if group.share_token %}none{% else %}block{% endif %};">
-                <button type="button" class="btn btn-ghost btn-sm" onclick="toggleBoardShare(true)">Turn on share link</button>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="toggleBoardShare(true)">{% trans "Turn on share link" %}</button>
             </div>
             <div id="board-share-on" style="display:{% if group.share_token %}flex{% else %}none{% endif %};align-items:center;gap:0.5rem;flex-wrap:wrap;">
                 <input type="text" id="board-share-url" class="form-input" readonly
                        style="flex:1;min-width:220px;font-size:0.78rem;padding:0.35rem 0.5rem;"
                        value="{% if group.share_token %}{{ request.scheme }}://{{ request.get_host }}{% url 'public_board' group.share_token %}{% endif %}">
-                <button type="button" class="btn btn-ghost btn-sm" onclick="copyBoardShareUrl()">Copy</button>
-                <button type="button" class="btn btn-ghost btn-sm" style="color:#c0392b;border-color:rgba(192,57,43,0.3);" onclick="toggleBoardShare(false)">Turn off</button>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="copyBoardShareUrl()">{% trans "Copy" %}</button>
+                <button type="button" class="btn btn-ghost btn-sm" style="color:#c0392b;border-color:rgba(192,57,43,0.3);" onclick="toggleBoardShare(false)">{% trans "Turn off" %}</button>
             </div>
         </div>
         {% if join_requests %}
         <div style="margin-top:1.5rem;margin-bottom:1rem;">
-            <p class="section-label" style="font-size:0.72rem;font-weight:500;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.75rem;">Pending join requests</p>
+            <p class="section-label" style="font-size:0.72rem;font-weight:500;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.75rem;">{% trans "Pending join requests" %}</p>
             {% for jr in join_requests %}
             <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;background:var(--amber-pale);border:1px solid var(--amber);border-radius:0;padding:0.65rem 0.9rem;margin-bottom:0.5rem;">
                 <div style="display:flex;align-items:center;gap:0.6rem;">
@@ -637,10 +638,10 @@
                 </div>
                 <div style="display:flex;gap:0.4rem;">
                     <form method="post" action="{% url 'approve_join_request' group.pk jr.pk %}">
-                        {% csrf_token %}<button type="submit" class="btn btn-primary btn-sm">Approve</button>
+                        {% csrf_token %}<button type="submit" class="btn btn-primary btn-sm">{% trans "Approve" %}</button>
                     </form>
                     <form method="post" action="{% url 'decline_join_request' group.pk jr.pk %}">
-                        {% csrf_token %}<button type="submit" class="btn btn-ghost btn-sm">Decline</button>
+                        {% csrf_token %}<button type="submit" class="btn btn-ghost btn-sm">{% trans "Decline" %}</button>
                     </form>
                 </div>
             </div>
@@ -648,19 +649,19 @@
         </div>
         {% endif %}
         <div style="margin-top:1rem;">
-            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('invite-modal').classList.add('open')">+ Add member</button>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('invite-modal').classList.add('open')">+ {% trans "Add member" %}</button>
         </div>
         {% endif %}
         {% if group.owner != request.user %}
         <div style="margin-top:1.5rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
             <form method="post" action="{% url 'leave_board' group.pk %}" onsubmit="return confirm('Leave \'{{ group.name }}\'? You can be added back later by the board owner.');">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-ghost btn-sm" style="color:#c0392b;border-color:rgba(192,57,43,0.3);">🚪 Leave board</button>
+                <button type="submit" class="btn btn-ghost btn-sm" style="color:#c0392b;border-color:rgba(192,57,43,0.3);">🚪 {% trans "Leave board" %}</button>
             </form>
             {% if can_delete_board %}
             <form method="post" action="{% url 'delete_group' group.pk %}" onsubmit="return confirm('Delete board \'{{ group.name }}\'? This cannot be undone.');">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-ghost btn-sm" style="color:#c0392b;border-color:rgba(192,57,43,0.3);">🗑 Delete board</button>
+                <button type="submit" class="btn btn-ghost btn-sm" style="color:#c0392b;border-color:rgba(192,57,43,0.3);">🗑 {% trans "Delete board" %}</button>
             </form>
             {% endif %}
         </div>
@@ -678,7 +679,7 @@
                 <div class="activity-avatar">{% if log.actor %}{{ log.actor.initials }}{% else %}?{% endif %}</div>
                 <div>
                     <div class="activity-text">{{ log.description }}</div>
-                    <div class="activity-time">{{ log.created_at|timesince }} ago</div>
+                    <div class="activity-time">{{ log.created_at|timesince }} {% trans "ago" %}</div>
                 </div>
             </div>
             {% endfor %}
@@ -686,8 +687,8 @@
         {% else %}
         <div style="text-align:center;padding:3rem 2rem;color:var(--ink-muted);">
             <div style="font-size:2.5rem;margin-bottom:0.75rem;">📜</div>
-            <p style="font-size:1rem;font-weight:500;">Nothing here yet</p>
-            <p style="font-size:0.85rem;margin-top:0.3rem;">Adding memories, reacting, and commenting will show up here as board activity.</p>
+            <p style="font-size:1rem;font-weight:500;">{% trans "Nothing here yet" %}</p>
+            <p style="font-size:0.85rem;margin-top:0.3rem;">{% trans "Adding memories, reacting, and commenting will show up here as board activity." %}</p>
         </div>
         {% endif %}
     </div>
@@ -696,32 +697,32 @@
 <!-- Tab: Trash -->
 <div id="tab-trash" class="tab-panel">
     <div class="board-content">
-        <p style="font-size:0.875rem;color:var(--ink-muted);margin-bottom:1rem;">Memories you deleted are kept here for 30 days before being permanently removed. Only you can see and restore your own deleted memories.</p>
+        <p style="font-size:0.875rem;color:var(--ink-muted);margin-bottom:1rem;">{% trans "Memories you deleted are kept here for 30 days before being permanently removed. Only you can see and restore your own deleted memories." %}</p>
         {% if trashed_memories %}
         {% for memory in trashed_memories %}
         <div class="trash-item">
             {% if memory.photo %}<img src="{{ memory.photo.url }}" class="trash-thumb" alt="">{% else %}<div class="trash-thumb"></div>{% endif %}
             <div class="trash-content">
                 <div class="trash-title">{{ memory.title|default:memory.content|truncatechars:60 }}</div>
-                <div class="trash-meta">Deleted {{ memory.deleted_at|timesince }} ago · {{ memory.days_left_in_trash }} day{{ memory.days_left_in_trash|pluralize }} left</div>
+                <div class="trash-meta">{% trans "Deleted" %} {{ memory.deleted_at|timesince }} {% trans "ago" %} · {% blocktrans count counter=memory.days_left_in_trash %}{{ counter }} day left{% plural %}{{ counter }} days left{% endblocktrans %}</div>
             </div>
             <form method="post" action="{% url 'restore_memory' memory.pk %}">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-ghost btn-sm">↩ Restore</button>
+                <button type="submit" class="btn btn-ghost btn-sm">↩ {% trans "Restore" %}</button>
             </form>
         </div>
         {% endfor %}
         {% else %}
         <div style="text-align:center;padding:4rem 2rem;color:var(--ink-muted);">
             <div style="font-size:3rem;margin-bottom:1rem;">🗑</div>
-            <p style="font-size:1rem;font-weight:500;">Recycle bin is empty</p>
+            <p style="font-size:1rem;font-weight:500;">{% trans "Recycle bin is empty" %}</p>
         </div>
         {% endif %}
     </div>
 </div>
 
 <!-- FAB: Add memory -->
-<button class="add-memory-fab" onclick="document.getElementById('add-memory-modal').classList.add('open')" title="Add memory">+</button>
+<button class="add-memory-fab" onclick="document.getElementById('add-memory-modal').classList.add('open')" title="{% trans "Add memory" %}">+</button>
 
 <!-- ── Modals ── -->
 
@@ -729,15 +730,15 @@
 <div class="modal-overlay" id="add-memory-modal">
 <div class="modal" style="max-width:560px;">
     <div class="modal-header">
-        <div class="modal-title">Add a memory</div>
+        <div class="modal-title">{% trans "Add a memory" %}</div>
         <button class="modal-close" onclick="document.getElementById('add-memory-modal').classList.remove('open')">✕</button>
     </div>
     <form method="post" action="{% url 'add_memory' group.pk %}" enctype="multipart/form-data">
         {% csrf_token %}
         {% include 'core/_memory_form.html' with group=group all_members=all_members prefix='add' %}
         <div style="display:flex;gap:0.5rem;margin-top:1.25rem;">
-            <button type="submit" class="btn btn-primary" style="flex:1;">Save memory</button>
-            <button type="button" class="btn btn-ghost" onclick="document.getElementById('add-memory-modal').classList.remove('open')">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;">{% trans "Save memory" %}</button>
+            <button type="button" class="btn btn-ghost" onclick="document.getElementById('add-memory-modal').classList.remove('open')">{% trans "Cancel" %}</button>
         </div>
     </form>
 </div>
@@ -747,7 +748,7 @@
 <div class="modal-overlay" id="edit-memory-modal">
 <div class="modal" style="max-width:560px;">
     <div class="modal-header">
-        <div class="modal-title">Edit memory</div>
+        <div class="modal-title">{% trans "Edit memory" %}</div>
         <button class="modal-close" onclick="document.getElementById('edit-memory-modal').classList.remove('open')">✕</button>
     </div>
     <div id="edit-memory-content"><!-- loaded dynamically --></div>
@@ -768,26 +769,26 @@
 <div class="modal-overlay" id="invite-modal">
 <div class="modal">
     <div class="modal-header">
-        <div class="modal-title">Add member</div>
+        <div class="modal-title">{% trans "Add member" %}</div>
         <button class="modal-close" onclick="document.getElementById('invite-modal').classList.remove('open')">✕</button>
     </div>
     <div>
-        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);">Add by username or email</label>
+        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);">{% trans "Add by username or email" %}</label>
         <div style="display:flex;gap:0.5rem;margin-top:0.4rem;">
-            <input type="text" id="invite-email" placeholder="Username or email…" class="comment-input" style="flex:1;padding:0.5rem 0.75rem;font-size:0.875rem;" onkeydown="if(event.key==='Enter'){event.preventDefault();sendEmailInvite();}">
-            <button class="btn btn-amber" onclick="sendEmailInvite()">Invite</button>
+            <input type="text" id="invite-email" placeholder="{% trans "Username or email…" %}" class="comment-input" style="flex:1;padding:0.5rem 0.75rem;font-size:0.875rem;" onkeydown="if(event.key==='Enter'){event.preventDefault();sendEmailInvite();}">
+            <button class="btn btn-amber" onclick="sendEmailInvite()">{% trans "Invite" %}</button>
         </div>
         <div id="invite-msg" style="font-size:0.78rem;margin-top:0.5rem;"></div>
-        <p style="font-size:0.72rem;color:var(--ink-muted);margin-top:0.4rem;">If they already have a Rememory account, they'll get a request to accept. Otherwise we'll email them an invite.</p>
+        <p style="font-size:0.72rem;color:var(--ink-muted);margin-top:0.4rem;">{% trans "If they already have a Rememory account, they'll get a request to accept. Otherwise we'll email them an invite." %}</p>
     </div>
     {% if friend_groups %}
     <div style="border-top:1px solid var(--border);padding-top:1rem;margin-top:1rem;">
-        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);">Group</label>
+        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);">{% trans "Group" %}</label>
         <div class="quickpick-list">
             {% for fg in friend_groups %}
             <button type="button" class="quickpick-row" onclick="inviteFriendGroup({{ fg.pk }}, this)">
                 <span>{{ fg.name }}</span>
-                <span class="quickpick-count">{{ fg.member_count }} member{{ fg.member_count|pluralize }}</span>
+                <span class="quickpick-count">{% blocktrans count counter=fg.member_count %}{{ counter }} member{% plural %}{{ counter }} members{% endblocktrans %}</span>
             </button>
             {% endfor %}
         </div>
@@ -795,7 +796,7 @@
     {% endif %}
     {% if owner_friends %}
     <div style="border-top:1px solid var(--border);padding-top:1rem;margin-top:1rem;">
-        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);">Friends</label>
+        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);">{% trans "Friends" %}</label>
         <div class="quickpick-list">
             {% for friend in owner_friends %}
             <button type="button" class="quickpick-row" onclick="inviteFriendQuick('{{ friend.email|escapejs }}', this)">
@@ -807,14 +808,14 @@
     </div>
     {% endif %}
     <div id="pending-invites-section" style="border-top:1px solid var(--border);padding-top:1rem;margin-top:1rem;" {% if not pending_invites %}hidden{% endif %}>
-        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);">Pending invites (<span id="pending-invites-count">{{ pending_invites|length }}</span>)</label>
+        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);">{% trans "Pending invites" %} (<span id="pending-invites-count">{{ pending_invites|length }}</span>)</label>
         <div id="pending-invites-list" style="margin-top:0.5rem;display:flex;flex-direction:column;gap:0.4rem;">
             {% for inv in pending_invites %}
             <div class="pending-invite-row" id="pending-invite-{{ inv.pk }}" style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;font-size:0.82rem;padding:0.4rem 0.6rem;background:var(--cream);border:1px solid var(--border);">
                 <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ inv.email }}</span>
                 <span style="display:flex;gap:0.4rem;flex-shrink:0;">
-                    <button type="button" class="btn btn-ghost btn-sm" onclick="resendInvite({{ inv.pk }})">Resend</button>
-                    <button type="button" class="btn btn-ghost btn-sm" onclick="cancelInvite({{ inv.pk }})" style="color:#B83232;">Cancel</button>
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="resendInvite({{ inv.pk }})">{% trans "Resend" %}</button>
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="cancelInvite({{ inv.pk }})" style="color:#B83232;">{% trans "Cancel" %}</button>
                 </span>
             </div>
             {% endfor %}
@@ -827,12 +828,12 @@
 <div class="modal-overlay" id="settings-modal">
 <div class="modal">
     <div class="modal-header">
-        <div class="modal-title">Board settings</div>
+        <div class="modal-title">{% trans "Board settings" %}</div>
         <button class="modal-close" onclick="document.getElementById('settings-modal').classList.remove('open')">✕</button>
     </div>
     <form method="post" action="{% url 'update_board_settings' group.pk %}" style="margin-bottom:1.25rem;padding-bottom:1.25rem;border-bottom:1px solid var(--border);">
         {% csrf_token %}
-        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);display:block;margin-bottom:0.4rem;">Who can see this board?</label>
+        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);display:block;margin-bottom:0.4rem;">{% trans "Who can see this board?" %}</label>
         <select name="privacy" id="settings-privacy" class="comment-input" style="width:100%;padding:0.5rem 0.75rem;margin-bottom:0.6rem;" onchange="document.getElementById('settings-fg-row').style.display = (this.value === 'friend_group') ? 'block' : 'none';">
             {% for val, label in privacy_choices %}
             <option value="{{ val }}" {% if group.privacy == val %}selected{% endif %}>{{ label }}</option>
@@ -840,30 +841,30 @@
         </select>
         <div id="settings-fg-row" style="display:{% if group.privacy == 'friend_group' %}block{% else %}none{% endif %};margin-bottom:1rem;">
             <select name="visible_to_group" class="comment-input" style="width:100%;padding:0.5rem 0.75rem;">
-                <option value="">Choose a friend group…</option>
+                <option value="">{% trans "Choose a friend group…" %}</option>
                 {% for fg in friend_groups %}
                 <option value="{{ fg.pk }}" {% if group.visible_to_group_id == fg.pk %}selected{% endif %}>{{ fg.name }}</option>
                 {% endfor %}
             </select>
         </div>
-        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);display:block;margin-bottom:0.4rem;">Who can delete memories?</label>
+        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);display:block;margin-bottom:0.4rem;">{% trans "Who can delete memories?" %}</label>
         <select name="memory_delete_permission" class="comment-input" style="width:100%;padding:0.5rem 0.75rem;margin-bottom:1rem;">
             {% for val, label in memory_delete_choices %}
             <option value="{{ val }}" {% if group.memory_delete_permission == val %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
         </select>
-        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);display:block;margin-bottom:0.4rem;">Who can delete the board?</label>
+        <label style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);display:block;margin-bottom:0.4rem;">{% trans "Who can delete the board?" %}</label>
         <select name="board_delete_permission" class="comment-input" style="width:100%;padding:0.5rem 0.75rem;margin-bottom:1rem;">
             {% for val, label in board_delete_choices %}
             <option value="{{ val }}" {% if group.board_delete_permission == val %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
         </select>
-        <button type="submit" class="btn btn-ghost btn-sm">Save settings</button>
+        <button type="submit" class="btn btn-ghost btn-sm">{% trans "Save settings" %}</button>
     </form>
     <form method="post" action="{% url 'delete_group' group.pk %}">
         {% csrf_token %}
-        <p style="font-size:0.875rem;color:var(--ink-muted);margin-bottom:1rem;">Deleting this board will permanently remove all its memories.</p>
-        <button type="submit" class="btn btn-danger" onclick="return confirm('Delete board "{{ group.name }}"? This cannot be undone.')">Delete board</button>
+        <p style="font-size:0.875rem;color:var(--ink-muted);margin-bottom:1rem;">{% trans "Deleting this board will permanently remove all its memories." %}</p>
+        <button type="submit" class="btn btn-danger" onclick="return confirm('Delete board "{{ group.name }}"? This cannot be undone.')">{% trans "Delete board" %}</button>
     </form>
 </div>
 </div>
@@ -872,7 +873,7 @@
 <!-- Lightbox -->
 <div class="lightbox-overlay" id="lightbox-overlay" onclick="closeLightbox()">
     <button class="lightbox-close" onclick="event.stopPropagation(); closeLightbox()">✕</button>
-    <img id="lightbox-img" src="" alt="Full size photo">
+    <img id="lightbox-img" src="" alt="{% trans "Full size photo" %}">
 </div>
 
 {% if group.owner == request.user and group.cover_photo %}
@@ -880,16 +881,16 @@
 <div class="modal-overlay" id="reposition-modal">
 <div class="modal">
     <div class="modal-header">
-        <div class="modal-title">Reposition cover</div>
+        <div class="modal-title">{% trans "Reposition cover" %}</div>
         <button class="modal-close" onclick="closeRepositionModal()">✕</button>
     </div>
     <div class="reposition-frame" id="reposition-frame">
-        <img id="reposition-img" src="{{ group.cover_photo.url }}" alt="Drag to reposition">
+        <img id="reposition-img" src="{{ group.cover_photo.url }}" alt="{% trans "Drag to reposition" %}">
     </div>
-    <p class="reposition-hint">Drag the photo up or down to set what shows in the cover.</p>
+    <p class="reposition-hint">{% trans "Drag the photo up or down to set what shows in the cover." %}</p>
     <div class="reposition-actions">
-        <button type="button" class="btn btn-ghost btn-sm" onclick="closeRepositionModal()">Cancel</button>
-        <button type="button" class="btn btn-primary btn-sm" onclick="saveRepositionFocalY()">Save</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="closeRepositionModal()">{% trans "Cancel" %}</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="saveRepositionFocalY()">{% trans "Save" %}</button>
     </div>
 </div>
 </div>

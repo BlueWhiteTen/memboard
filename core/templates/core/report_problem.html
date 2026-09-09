@@ -1,5 +1,6 @@
 {% extends 'core/base.html' %}
-{% block title %}Rememory – Report a problem{% endblock %}
+{% load i18n %}
+{% block title %}Rememory – {% trans "Report a problem" %}{% endblock %}
 
 {% block extra_styles %}
 .page-header { padding:1.75rem 2.5rem 1.25rem; border-bottom:1px solid var(--border); background:var(--warm-white); display:flex; align-items:center; gap:0.75rem; }
@@ -31,21 +32,21 @@
 <div class="page-header">
     <a href="{% url 'home' %}" class="back-btn">
         <svg viewBox="0 0 13 13" fill="none"><path d="M8.5 2L4 6.5l4.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Back
+        {% trans "Back" %}
     </a>
-    <h2>Report a problem</h2>
+    <h2>{% trans "Report a problem" %}</h2>
 </div>
 <div class="page-content">
     {% if sent %}
     <div class="sent-box">
-        <h3>Thanks — that's been sent.</h3>
-        <p>Your message has been emailed over. If it's something we need to follow up with you about, we'll reach out at {{ request.user.email }}.</p>
+        <h3>{% trans "Thanks — that's been sent." %}</h3>
+        <p>{% blocktrans with user_email=request.user.email %}Your message has been emailed over. If it's something we need to follow up with you about, we'll reach out at {{ user_email }}.{% endblocktrans %}</p>
         <div>
-            <a href="{% url 'home' %}" class="btn btn-ghost btn-sm">Back to home</a>
+            <a href="{% url 'home' %}" class="btn btn-ghost btn-sm">{% trans "Back to home" %}</a>
         </div>
     </div>
     {% else %}
-    <p class="page-intro">Something not working right, or looking off? Describe it below and it'll be sent straight to us.</p>
+    <p class="page-intro">{% trans "Something not working right, or looking off? Describe it below and it'll be sent straight to us." %}</p>
     <form method="post">
         {% csrf_token %}
         {{ form.message }}
@@ -53,7 +54,7 @@
         <div class="field-errors">{{ form.message.errors.0 }}</div>
         {% endif %}
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Send report</button>
+            <button type="submit" class="btn btn-primary">{% trans "Send report" %}</button>
         </div>
     </form>
     {% endif %}
