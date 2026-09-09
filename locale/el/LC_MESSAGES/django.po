@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-09 19:39+0000\n"
+"POT-Creation-Date: 2026-09-09 19:53+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -356,73 +356,81 @@ msgstr "Δοκιμάστε διαφορετική χρονιά ή ξεκινήσ
 msgid "Go to boards"
 msgstr "Μετάβαση στους πίνακες"
 
-#: core/templates/core/base.html:385
+#: core/templates/core/base.html:436
+msgid "Menu"
+msgstr "Μενού"
+
+#: core/templates/core/base.html:453
+msgid "Close menu"
+msgstr "Κλείσιμο μενού"
+
+#: core/templates/core/base.html:468
 msgid "for things worth remembering"
 msgstr "για ό,τι αξίζει να θυμάστε"
 
-#: core/templates/core/base.html:390
+#: core/templates/core/base.html:473
 msgid "Search memories…"
 msgstr "Αναζήτηση αναμνήσεων…"
 
-#: core/templates/core/base.html:396
+#: core/templates/core/base.html:479
 msgid "Navigation"
 msgstr "Πλοήγηση"
 
-#: core/templates/core/base.html:399
+#: core/templates/core/base.html:482
 msgid "Home"
 msgstr "Αρχική"
 
-#: core/templates/core/base.html:403 core/templates/core/friends.html:3
+#: core/templates/core/base.html:486 core/templates/core/friends.html:3
 #: core/templates/core/friends.html:67
 #: core/templates/core/group_detail.html:799 core/templates/core/home.html:140
 msgid "Friends"
 msgstr "Φίλοι"
 
-#: core/templates/core/base.html:408 core/templates/core/home.html:142
+#: core/templates/core/base.html:491 core/templates/core/home.html:142
 #: core/templates/core/notifications.html:3
 #: core/templates/core/notifications.html:22
 msgid "Notifications"
 msgstr "Ειδοποιήσεις"
 
-#: core/templates/core/base.html:413 core/templates/core/search.html:3
+#: core/templates/core/base.html:496 core/templates/core/search.html:3
 #: core/templates/core/search.html:30
 msgid "Search"
 msgstr "Αναζήτηση"
 
-#: core/templates/core/base.html:417 core/templates/core/on_this_day.html:3
+#: core/templates/core/base.html:500 core/templates/core/on_this_day.html:3
 msgid "On This Day"
 msgstr "Σαν σήμερα"
 
-#: core/templates/core/base.html:421
+#: core/templates/core/base.html:504
 msgid "Annual Recap"
 msgstr "Ετήσια ανασκόπηση"
 
-#: core/templates/core/base.html:424 core/templates/core/home.html:3
+#: core/templates/core/base.html:507 core/templates/core/home.html:3
 msgid "My Boards"
 msgstr "Οι πίνακές μου"
 
-#: core/templates/core/base.html:431 core/templates/core/home.html:208
+#: core/templates/core/base.html:514 core/templates/core/home.html:208
 msgid "No boards yet"
 msgstr "Δεν υπάρχουν πίνακες ακόμα"
 
-#: core/templates/core/base.html:434
+#: core/templates/core/base.html:517
 #, python-format
 msgid "See all boards (%(sidebar_groups_count)s)"
 msgstr "Δείτε όλους τους πίνακες (%(sidebar_groups_count)s)"
 
-#: core/templates/core/base.html:439 core/templates/core/create_group.html:3
+#: core/templates/core/base.html:522 core/templates/core/create_group.html:3
 msgid "New Board"
 msgstr "Νέος πίνακας"
 
-#: core/templates/core/base.html:449 core/templates/core/site_settings.html:31
+#: core/templates/core/base.html:532 core/templates/core/site_settings.html:31
 msgid "Site Settings"
 msgstr "Ρυθμίσεις ιστότοπου"
 
-#: core/templates/core/base.html:453
+#: core/templates/core/base.html:536
 msgid "Sign out"
 msgstr "Αποσύνδεση"
 
-#: core/templates/core/base.html:455 core/templates/core/report_problem.html:3
+#: core/templates/core/base.html:538 core/templates/core/report_problem.html:3
 #: core/templates/core/report_problem.html:37
 #: core/templates/core/site_settings.html:75
 msgid "Report a problem"
