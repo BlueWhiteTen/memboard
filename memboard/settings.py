@@ -14,6 +14,13 @@ ALLOWED_HOSTS = ['*']
 APP_URL = os.environ.get('APP_URL', 'http://localhost:8000')
 CSRF_TRUSTED_ORIGINS = [APP_URL] if APP_URL.startswith('https') else []
 
+# Only force HTTPS when APP_URL is actually https — keeps local dev
+# (http://localhost:8000, no cert) working without a separate flag.
+if APP_URL.startswith('https'):
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
