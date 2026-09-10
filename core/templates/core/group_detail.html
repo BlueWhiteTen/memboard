@@ -1,5 +1,6 @@
 {% extends 'core/base.html' %}
 {% load i18n %}
+{% load core_extras %}
 {% block title %}{{ group.name }} – WorthKeeping{% endblock %}
 
 {% block extra_styles %}
@@ -558,7 +559,7 @@
                         {% for emoji, count in memory.reaction_counts.items %}
                         <button class="reaction-btn {% if emoji in memory.user_reactions %}mine{% endif %}"
                                 onclick="toggleReaction({{ memory.pk }}, '{{ emoji }}', this)"
-                                data-emoji="{{ emoji }}">
+                                data-emoji="{{ emoji }}" title="{{ memory.reaction_names|dict_get:emoji }}">
                             <span class="emoji">{{ emoji }}</span>
                             <span class="count">{{ count }}</span>
                         </button>
@@ -584,16 +585,18 @@
                         {% if memory.user_can_edit %}
                         <button class="mem-action-btn" onclick="openEditModal({{ memory.pk }})">✏️ {% trans "Edit" %}</button>
                         {% endif %}
-                        {% if memory.creator != request.user %}
-                        <button class="mem-action-btn report-btn" title="{% trans "Report" %}" onclick="openReportModal({{ memory.pk }})"><span class="report-icon">⚠️</span></button>
-                        {% endif %}
                     </div>
-                    {% if can_manage %}
+                    {% if can_manage or memory.creator != request.user %}
                     <div class="mem-menu">
                         <button type="button" class="mem-menu-btn" title="{% trans "More" %}" onclick="toggleMemMenu({{ memory.pk }}, event)">⋯</button>
                         <div class="mem-menu-dropdown" id="mem-menu-{{ memory.pk }}">
+                            {% if memory.creator != request.user %}
+                            <button type="button" onclick="closeMemMenus(); openReportModal({{ memory.pk }})">⚠️ {% trans "Report" %}</button>
+                            {% endif %}
+                            {% if can_manage %}
                             <button type="button" onclick="openCopyModal({{ memory.pk }})">📋 {% trans "Copy to another board" %}</button>
                             <button type="button" class="danger" onclick="closeMemMenus(); if(confirm('{% trans "Delete this memory?" %}')) deleteMemory({{ memory.pk }})">🗑 {% trans "Delete" %}</button>
+                            {% endif %}
                         </div>
                     </div>
                     {% endif %}
@@ -1268,24 +1271,24 @@ function toggleReaction(memPk, emoji, btn) {
         headers: {'X-CSRFToken': CSRF, 'Content-Type': 'application/json'},
         body: JSON.stringify({emoji})
     }).then(r => r.json()).then(data => {
-        if (data.ok) refreshReactions(memPk, data.counts, data.added ? emoji : null);
+        if (data.ok) refreshReactions(memPk, data.counts, data.names, data.added ? emoji : null);
     });
 }
 
-function refreshReactions(memPk, counts, addedEmoji) {
+function refreshReactions(memPk, counts, names, addedEmoji) {
     const card = document.getElementById('memory-' + memPk);
-    rebuildReactionButtons(card && card.querySelector('.memory-reactions'), memPk, counts);
+    rebuildReactionButtons(card && card.querySelector('.memory-reactions'), memPk, counts, names);
     // The memory-view modal shows its own clone of the reactions row (see
     // openMemoryView) so that toggling a reaction from inside the opened
     // memory updates what's on screen there too, not just the card
     // underneath it.
     const viewModal = document.getElementById('memory-view-modal');
     if (viewModal.classList.contains('open') && String(viewModal.dataset.memPk) === String(memPk)) {
-        rebuildReactionButtons(document.getElementById('modal-reactions'), memPk, counts);
+        rebuildReactionButtons(document.getElementById('modal-reactions'), memPk, counts, names);
     }
 }
 
-function rebuildReactionButtons(reactionsDiv, memPk, counts) {
+function rebuildReactionButtons(reactionsDiv, memPk, counts, names) {
     if (!reactionsDiv) return;
     // Rebuild reaction buttons (keep picker)
     const picker = reactionsDiv.querySelector('div'); // wrapper with picker
@@ -1296,6 +1299,7 @@ function rebuildReactionButtons(reactionsDiv, memPk, counts) {
         const btn = document.createElement('button');
         btn.className = 'reaction-btn';
         btn.setAttribute('data-emoji', emoji);
+        btn.title = (names && names[emoji]) || '';
         btn.onclick = () => toggleReaction(memPk, emoji, btn);
         btn.innerHTML = `<span class="emoji">${emoji}</span><span class="count">${count}</span>`;
         reactionsDiv.insertBefore(btn, picker);
@@ -1349,9 +1353,10 @@ function deleteMemory(memPk) {
 function closeMemMenus() {
     document.querySelectorAll('.mem-menu-dropdown.open').forEach(el => el.classList.remove('open'));
 }
-function toggleMemMenu(memPk, evt) {
+function toggleMemMenu(memPk, evt, dropdownId) {
     evt.stopPropagation();
-    const dropdown = document.getElementById('mem-menu-' + memPk);
+    const dropdown = document.getElementById(dropdownId || ('mem-menu-' + memPk));
+    if (!dropdown) return;
     const wasOpen = dropdown.classList.contains('open');
     closeMemMenus();
     if (!wasOpen) dropdown.classList.add('open');
@@ -1721,7 +1726,36 @@ function openMemoryView(memPk, evt) {
         reactionsHtml = reactionsClone.outerHTML;
     }
 
+    // Same idea as the reactions clone above: reuse the card's 3-dot menu
+    // (report/copy/delete) rather than rebuilding it, so its visibility
+    // rules stay in one place (the template). Only the dropdown's id and
+    // the toggle button's onclick are rewritten, since the card's own copy
+    // of the menu is still in the DOM underneath this modal and two
+    // elements can't share an id.
+    const menuSrc = card.querySelector('.mem-menu');
+    let menuHtml = '';
+    if (menuSrc) {
+        const menuClone = menuSrc.cloneNode(true);
+        const dropdown = menuClone.querySelector('.mem-menu-dropdown');
+        const modalDropdownId = 'modal-mem-menu-' + memPk;
+        if (dropdown) dropdown.id = modalDropdownId;
+        const toggleBtn = menuClone.querySelector('.mem-menu-btn');
+        if (toggleBtn) toggleBtn.setAttribute('onclick', `toggleMemMenu(${memPk}, event, '${modalDropdownId}')`);
+        // Keep `position:relative` (not `static`) so the dropdown — which is
+        // absolutely positioned relative to this element — still anchors to
+        // it instead of drifting up to some larger ancestor; just clear the
+        // card's bottom-right pinning offsets so it sits inline here instead.
+        menuClone.style.position = 'relative';
+        menuClone.style.right = 'auto';
+        menuClone.style.bottom = 'auto';
+        menuClone.style.display = 'flex';
+        menuClone.style.justifyContent = 'flex-end';
+        menuClone.style.marginBottom = '0.6rem';
+        menuHtml = menuClone.outerHTML;
+    }
+
     const infoHtml = `
+        ${menuHtml}
         ${titleEl ? `<div class="memory-title">${titleEl.innerHTML}</div>` : ''}
         ${contentEl ? `<div class="memory-content">${contentEl.innerHTML}</div>` : ''}
         ${(videoUrl || voiceUrl) ? `<div class="memory-view-media">${mediaHtml}</div>` : ''}

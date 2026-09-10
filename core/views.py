@@ -535,6 +535,10 @@ def group_detail_view(request, pk):
         memory.creator_display  = get_display_name(memory.creator)
         memory.reaction_counts  = memory.reaction_summary()
         memory.user_reactions   = list(memory.reactions.filter(user=user).values_list('emoji', flat=True))
+        memory.reaction_names   = {
+            emoji: ', '.join(get_display_name(u) for u in users)
+            for emoji, users in memory.reaction_users().items()
+        }
         memory.comment_count    = memory.comments.count()
         for t in memory.tagged.all():
             t.initials     = get_initials(t)
@@ -1654,7 +1658,11 @@ def react_memory_view(request, pk):
                          'actor': get_display_name(request.user), 'emoji': emoji,
                      }, memory=memory)
 
-    return JsonResponse({'ok': True, 'added': added, 'counts': memory.reaction_summary()})
+    names = {
+        emoji: ', '.join(get_display_name(u) for u in users)
+        for emoji, users in memory.reaction_users().items()
+    }
+    return JsonResponse({'ok': True, 'added': added, 'counts': memory.reaction_summary(), 'names': names})
 
 
 # ── Comments ──────────────────────────────────────────────────────────────────

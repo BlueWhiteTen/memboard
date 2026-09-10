@@ -489,6 +489,16 @@ class Memory(models.Model):
         return {r['emoji']: r['count'] for r in
                 self.reactions.values('emoji').annotate(count=Count('id'))}
 
+    def reaction_users(self):
+        """Returns dict of emoji → list of User objects who reacted with it,
+        in the order they reacted — used for the "who reacted" hover
+        tooltip. Callers apply get_display_name() themselves so hidden/
+        deleted-account labels stay consistent with the rest of the UI."""
+        users = {}
+        for r in self.reactions.select_related('user').order_by('created_at'):
+            users.setdefault(r.emoji, []).append(r.user)
+        return users
+
     def all_photo_urls(self):
         """The primary `photo` (if set) followed by any extra photos, in
         upload order — used by the gallery view of a memory."""
