@@ -143,6 +143,13 @@ LANGUAGE_CHOICES = [
     ('el', 'Ελληνικά'),
 ]
 
+REPORT_REASON_CHOICES = [
+    ('spam',          _('Spam or misleading')),
+    ('inappropriate', _('Inappropriate or offensive')),
+    ('harassment',    _('Harassment or bullying')),
+    ('other',         _('Something else')),
+]
+
 PROFILE_VISIBILITY_CHOICES = [
     ('friends', _('Visible to friends')),
     ('private', _('Only me')),
@@ -466,6 +473,8 @@ class Memory(models.Model):
     def can_delete(self, user):
         if user == self.creator:
             return True
+        if self.group.can_manage(user):
+            return True
         if self.group.memory_delete_permission == 'all_members':
             return self.group.members.filter(pk=user.pk).exists()
         return False
@@ -535,6 +544,26 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"{self.author} on {self.memory}: {self.content[:40]}"
+
+
+# ── Memory Report ─────────────────────────────────────────────────────────────
+
+class MemoryReport(models.Model):
+    """A member flagging a memory as spam/inappropriate/etc. Stored for
+    the record even though review currently happens by email (see
+    email_utils.send_memory_report_email) — a board-admin-facing review
+    queue can read straight from this table later without a new model."""
+    memory     = models.ForeignKey(Memory, related_name='reports', on_delete=models.CASCADE)
+    reporter   = models.ForeignKey(User, related_name='memory_reports', on_delete=models.CASCADE)
+    reason     = models.CharField(max_length=20, choices=REPORT_REASON_CHOICES)
+    details    = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.reporter} reported {self.memory} ({self.reason})"
 
 
 # ── Notification ──────────────────────────────────────────────────────────────

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-10 11:45+0000\n"
+"POT-Creation-Date: 2026-09-10 18:59+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -58,7 +58,7 @@ msgstr "Λεβάντα"
 msgid "Peach"
 msgstr "Ροδακινί"
 
-#: core/models.py:102 core/models.py:148
+#: core/models.py:102 core/models.py:155
 #: core/templates/core/_memory_form.html:140
 msgid "Only me"
 msgstr "Μόνο εγώ"
@@ -108,46 +108,63 @@ msgid "Custom"
 msgstr "Προσαρμοσμένο"
 
 #: core/models.py:147
+msgid "Spam or misleading"
+msgstr "Ανεπιθύμητο ή παραπλανητικό"
+
+#: core/models.py:148
+msgid "Inappropriate or offensive"
+msgstr "Ακατάλληλο ή προσβλητικό"
+
+#: core/models.py:149
+msgid "Harassment or bullying"
+msgstr "Παρενόχληση ή εκφοβισμός"
+
+#: core/models.py:150
+#| msgid "Nothing here yet"
+msgid "Something else"
+msgstr "Κάτι άλλο"
+
+#: core/models.py:154
 msgid "Visible to friends"
 msgstr "Ορατό στους φίλους"
 
-#: core/models.py:160
+#: core/models.py:167
 msgid "Smile"
 msgstr "Χαμόγελο"
 
-#: core/models.py:161
+#: core/models.py:168
 msgid "Heart"
 msgstr "Καρδιά"
 
-#: core/models.py:162
+#: core/models.py:169
 msgid "Laugh"
 msgstr "Γέλιο"
 
-#: core/models.py:163
+#: core/models.py:170
 msgid "Wow"
 msgstr "Ουάου"
 
-#: core/models.py:164
+#: core/models.py:171
 msgid "Sad"
 msgstr "Λύπη"
 
-#: core/models.py:165
+#: core/models.py:172
 msgid "Fire"
 msgstr "Φωτιά"
 
-#: core/models.py:166
+#: core/models.py:173
 msgid "Party"
 msgstr "Πάρτι"
 
-#: core/models.py:167
+#: core/models.py:174
 msgid "Thumbs up"
 msgstr "Μπράβο"
 
-#: core/models.py:168
+#: core/models.py:175
 msgid "Love it"
 msgstr "Το λατρεύω"
 
-#: core/models.py:169
+#: core/models.py:176
 msgid "Haha"
 msgstr "Χαχα"
 
@@ -160,10 +177,11 @@ msgstr "Αποθήκευση αλλαγών"
 #: core/templates/core/_edit_memory_fragment.html:7
 #: core/templates/core/create_friend_group.html:41
 #: core/templates/core/create_group.html:207
-#: core/templates/core/group_detail.html:424
-#: core/templates/core/group_detail.html:741
-#: core/templates/core/group_detail.html:818
-#: core/templates/core/group_detail.html:892
+#: core/templates/core/group_detail.html:468
+#: core/templates/core/group_detail.html:794
+#: core/templates/core/group_detail.html:850
+#: core/templates/core/group_detail.html:916
+#: core/templates/core/group_detail.html:990
 #: core/templates/core/my_profile.html:154
 msgid "Cancel"
 msgstr "Ακύρωση"
@@ -247,7 +265,7 @@ msgstr ""
 "και ένα φωνητικό σημείωμα (έως 15MB) — θα τακτοποιηθούν μόνα τους."
 
 #: core/templates/core/_memory_form.html:111
-#: core/templates/core/group_detail.html:441
+#: core/templates/core/group_detail.html:485
 msgid "Colour"
 msgstr "Χρώμα"
 
@@ -296,7 +314,7 @@ msgid "No memories this year — start creating!"
 msgstr "Καμία ανάμνηση φέτος — ξεκινήστε να δημιουργείτε!"
 
 #: core/templates/core/annual_recap.html:70
-#: core/templates/core/group_detail.html:375 core/templates/core/home.html:141
+#: core/templates/core/group_detail.html:419 core/templates/core/home.html:141
 msgid "Memories"
 msgstr "Αναμνήσεις"
 
@@ -332,7 +350,7 @@ msgstr "Πιο δραστήριοι πίνακες"
 
 #: core/templates/core/annual_recap.html:127
 #: core/templates/core/friend_profile.html:82
-#: core/templates/core/group_detail.html:362 core/templates/core/home.html:200
+#: core/templates/core/group_detail.html:406 core/templates/core/home.html:200
 #, python-format
 msgid "%(counter)s memory"
 msgid_plural "%(counter)s memories"
@@ -365,7 +383,6 @@ msgid "Close menu"
 msgstr "Κλείσιμο μενού"
 
 #: core/templates/core/base.html:486
-#| msgid "for things worth remembering"
 msgid "for the memories worth keeping"
 msgstr "για τις αναμνήσεις που αξίζει να κρατήσετε"
 
@@ -383,7 +400,7 @@ msgstr "Αρχική"
 
 #: core/templates/core/base.html:504 core/templates/core/friends.html:3
 #: core/templates/core/friends.html:67
-#: core/templates/core/group_detail.html:799 core/templates/core/home.html:140
+#: core/templates/core/group_detail.html:897 core/templates/core/home.html:140
 msgid "Friends"
 msgstr "Φίλοι"
 
@@ -510,7 +527,7 @@ msgid "What is this board about?"
 msgstr "Για ποιο θέμα είναι αυτός ο πίνακας;"
 
 #: core/templates/core/create_group.html:122
-#: core/templates/core/group_detail.html:836
+#: core/templates/core/group_detail.html:934
 msgid "Who can see this board?"
 msgstr "Ποιος μπορεί να δει αυτόν τον πίνακα;"
 
@@ -528,7 +545,7 @@ msgstr ""
 "και να ζητούν να συμμετάσχουν."
 
 #: core/templates/core/create_group.html:156
-#: core/templates/core/group_detail.html:844
+#: core/templates/core/group_detail.html:942
 msgid "Choose a friend group…"
 msgstr "Επιλέξτε ομάδα φίλων…"
 
@@ -552,9 +569,6 @@ msgstr "Όλοι από «%(name)s»"
 
 #: core/templates/core/create_group.html:202
 #, python-format
-#| msgid ""
-#| "You don't have any friends on Rememory yet. <a href=\"%(friends_url)s\" "
-#| "style=\"color:var(--amber);\">Add some friends</a> first."
 msgid ""
 "You don't have any friends on WorthKeeping yet. <a href=\"%(friends_url)s\" "
 "style=\"color:var(--amber);\">Add some friends</a> first."
@@ -571,7 +585,7 @@ msgid "Delete group"
 msgstr "Διαγραφή ομάδας"
 
 #: core/templates/core/friend_group_detail.html:52
-#: core/templates/core/group_detail.html:377
+#: core/templates/core/group_detail.html:421
 msgid "Members"
 msgstr "Μέλη"
 
@@ -676,7 +690,7 @@ msgid "Accept"
 msgstr "Αποδοχή"
 
 #: core/templates/core/friends.html:105
-#: core/templates/core/group_detail.html:644
+#: core/templates/core/group_detail.html:697
 #: core/templates/core/notifications.html:44
 msgid "Decline"
 msgstr "Απόρριψη"
@@ -732,231 +746,256 @@ msgstr "Αφαίρεση"
 msgid "No friends yet — send some requests above!"
 msgstr "Δεν υπάρχουν φίλοι ακόμα — στείλτε μερικά αιτήματα παραπάνω!"
 
-#: core/templates/core/group_detail.html:342
+#: core/templates/core/group_detail.html:386
 msgid "Board cover"
 msgstr "Εξώφυλλο πίνακα"
 
-#: core/templates/core/group_detail.html:346
+#: core/templates/core/group_detail.html:390
 msgid "Change cover"
 msgstr "Αλλαγή εξωφύλλου"
 
-#: core/templates/core/group_detail.html:350
+#: core/templates/core/group_detail.html:394
 msgid "Reposition"
 msgstr "Επανατοποθέτηση"
 
-#: core/templates/core/group_detail.html:362
-#: core/templates/core/group_detail.html:791 core/templates/core/home.html:199
+#: core/templates/core/group_detail.html:406
+#: core/templates/core/group_detail.html:889 core/templates/core/home.html:199
 #, python-format
 msgid "%(counter)s member"
 msgid_plural "%(counter)s members"
 msgstr[0] "%(counter)s μέλος"
 msgstr[1] "%(counter)s μέλη"
 
-#: core/templates/core/group_detail.html:367
-#: core/templates/core/group_detail.html:652
-#: core/templates/core/group_detail.html:772
+#: core/templates/core/group_detail.html:411
+#: core/templates/core/group_detail.html:705
+#: core/templates/core/group_detail.html:870
 msgid "Add member"
 msgstr "Προσθήκη μέλους"
 
-#: core/templates/core/group_detail.html:368
+#: core/templates/core/group_detail.html:412
 msgid "Settings"
 msgstr "Ρυθμίσεις"
 
-#: core/templates/core/group_detail.html:376
+#: core/templates/core/group_detail.html:420
 msgid "Map"
 msgstr "Χάρτης"
 
-#: core/templates/core/group_detail.html:380
+#: core/templates/core/group_detail.html:424
 msgid "Trash"
 msgstr "Κάδος"
 
-#: core/templates/core/group_detail.html:391
-#: core/templates/core/group_detail.html:733
+#: core/templates/core/group_detail.html:435
+#: core/templates/core/group_detail.html:786
 msgid "Add a memory"
 msgstr "Προσθήκη ανάμνησης"
 
-#: core/templates/core/group_detail.html:395
+#: core/templates/core/group_detail.html:439
 msgid "Sort:"
 msgstr "Ταξινόμηση:"
 
-#: core/templates/core/group_detail.html:397
+#: core/templates/core/group_detail.html:441
 msgid "Newest first"
 msgstr "Νεότερα πρώτα"
 
-#: core/templates/core/group_detail.html:398
+#: core/templates/core/group_detail.html:442
 msgid "Oldest first"
 msgstr "Παλαιότερα πρώτα"
 
-#: core/templates/core/group_detail.html:399
+#: core/templates/core/group_detail.html:443
 msgid "Alphabetical (A–Z)"
 msgstr "Αλφαβητικά (Α–Ω)"
 
-#: core/templates/core/group_detail.html:403
+#: core/templates/core/group_detail.html:447
 msgid "Surprise me"
 msgstr "Έκπληξέ με"
 
-#: core/templates/core/group_detail.html:404
+#: core/templates/core/group_detail.html:448
 msgid "Export board"
 msgstr "Εξαγωγή πίνακα"
 
-#: core/templates/core/group_detail.html:413
+#: core/templates/core/group_detail.html:457
 msgid "🔎 Search this board…"
 msgstr "🔎 Αναζήτηση σε αυτόν τον πίνακα…"
 
-#: core/templates/core/group_detail.html:415
+#: core/templates/core/group_detail.html:459
 msgid "Filters"
 msgstr "Φίλτρα"
 
-#: core/templates/core/group_detail.html:416
+#: core/templates/core/group_detail.html:460
 msgid "Select"
 msgstr "Επιλογή"
 
-#: core/templates/core/group_detail.html:422
+#: core/templates/core/group_detail.html:466
 msgid "0 selected"
 msgstr "0 επιλεγμένα"
 
-#: core/templates/core/group_detail.html:423
+#: core/templates/core/group_detail.html:467
 msgid "Delete selected"
 msgstr "Διαγραφή επιλεγμένων"
 
-#: core/templates/core/group_detail.html:432
+#: core/templates/core/group_detail.html:476
 msgid "Person"
 msgstr "Άτομο"
 
-#: core/templates/core/group_detail.html:434
+#: core/templates/core/group_detail.html:478
 msgid "Anyone"
 msgstr "Οποιοσδήποτε"
 
-#: core/templates/core/group_detail.html:443
+#: core/templates/core/group_detail.html:487
 msgid "Any colour"
 msgstr "Οποιοδήποτε χρώμα"
 
-#: core/templates/core/group_detail.html:450
+#: core/templates/core/group_detail.html:494
 msgid "From"
 msgstr "Από"
 
-#: core/templates/core/group_detail.html:454
+#: core/templates/core/group_detail.html:498
 msgid "To"
 msgstr "Έως"
 
-#: core/templates/core/group_detail.html:457
+#: core/templates/core/group_detail.html:501
 msgid "Filter"
 msgstr "Φιλτράρισμα"
 
-#: core/templates/core/group_detail.html:459
+#: core/templates/core/group_detail.html:503
 msgid "Clear filters"
 msgstr "Καθαρισμός φίλτρων"
 
-#: core/templates/core/group_detail.html:478
+#: core/templates/core/group_detail.html:522
 msgid "Select this memory"
 msgstr "Επιλογή αυτής της ανάμνησης"
 
-#: core/templates/core/group_detail.html:480
+#: core/templates/core/group_detail.html:524
 msgid "Has a video clip"
 msgstr "Έχει βίντεο κλιπ"
 
-#: core/templates/core/group_detail.html:480
+#: core/templates/core/group_detail.html:524
 msgid "Has a voice note"
 msgstr "Έχει φωνητικό σημείωμα"
 
-#: core/templates/core/group_detail.html:484
-#: core/templates/core/group_detail.html:538
+#: core/templates/core/group_detail.html:528
+#: core/templates/core/group_detail.html:582
 msgid "Pinned"
 msgstr "Καρφιτσωμένο"
 
-#: core/templates/core/group_detail.html:495
+#: core/templates/core/group_detail.html:539
 msgid "See more"
 msgstr "Δείτε περισσότερα"
 
-#: core/templates/core/group_detail.html:523
+#: core/templates/core/group_detail.html:567
 msgid "Add reaction"
 msgstr "Προσθήκη αντίδρασης"
 
-#: core/templates/core/group_detail.html:535
+#: core/templates/core/group_detail.html:579
 msgid "Comment"
 msgstr "Σχόλιο"
 
-#: core/templates/core/group_detail.html:537 core/templates/core/home.html:184
+#: core/templates/core/group_detail.html:581 core/templates/core/home.html:184
 msgid "Unpin"
 msgstr "Ξεκαρφίτσωμα"
 
-#: core/templates/core/group_detail.html:537
-#: core/templates/core/group_detail.html:538
+#: core/templates/core/group_detail.html:581
+#: core/templates/core/group_detail.html:582
 msgid "Pin"
 msgstr "Καρφίτσωμα"
 
-#: core/templates/core/group_detail.html:541
+#: core/templates/core/group_detail.html:585
 msgid "Edit"
 msgstr "Επεξεργασία"
 
-#: core/templates/core/group_detail.html:554
+#: core/templates/core/group_detail.html:588
+#| msgid "Reposition"
+msgid "Report"
+msgstr "Αναφορά"
+
+#: core/templates/core/group_detail.html:593
+msgid "More"
+msgstr "Περισσότερα"
+
+#: core/templates/core/group_detail.html:595
+#: core/templates/core/group_detail.html:815
+#| msgid "Most active boards"
+msgid "Copy to another board"
+msgstr "Αντιγραφή σε άλλον πίνακα"
+
+#: core/templates/core/group_detail.html:596
+#| msgid "Select this memory"
+msgid "Delete this memory?"
+msgstr "Διαγραφή αυτής της ανάμνησης;"
+
+#: core/templates/core/group_detail.html:596
+#| msgid "Deleted"
+msgid "Delete"
+msgstr "Διαγραφή"
+
+#: core/templates/core/group_detail.html:607
 msgid "Write a comment…"
 msgstr "Γράψτε ένα σχόλιο…"
 
-#: core/templates/core/group_detail.html:557
+#: core/templates/core/group_detail.html:610
 msgid "Send"
 msgstr "Αποστολή"
 
-#: core/templates/core/group_detail.html:569
+#: core/templates/core/group_detail.html:622
 msgid "No memories match"
 msgstr "Καμία ανάμνηση δεν ταιριάζει με"
 
-#: core/templates/core/group_detail.html:569
+#: core/templates/core/group_detail.html:622
 msgid "those filters"
 msgstr "αυτά τα φίλτρα"
 
-#: core/templates/core/group_detail.html:570
+#: core/templates/core/group_detail.html:623
 msgid "Try a different search term, person, colour, or date range."
 msgstr ""
 "Δοκιμάστε διαφορετικό όρο αναζήτησης, άτομο, χρώμα ή εύρος ημερομηνιών."
 
-#: core/templates/core/group_detail.html:572
+#: core/templates/core/group_detail.html:625
 msgid "No memories yet"
 msgstr "Δεν υπάρχουν αναμνήσεις ακόμα"
 
-#: core/templates/core/group_detail.html:573
+#: core/templates/core/group_detail.html:626
 msgid "Click + to add the first one!"
 msgstr "Κάντε κλικ στο + για να προσθέσετε την πρώτη!"
 
-#: core/templates/core/group_detail.html:583
+#: core/templates/core/group_detail.html:636
 msgid "Memories with locations pinned on the map."
 msgstr "Αναμνήσεις με τοποθεσίες καρφιτσωμένες στον χάρτη."
 
-#: core/templates/core/group_detail.html:586
+#: core/templates/core/group_detail.html:639
 msgid "No memories with locations yet. Add a location when creating a memory!"
 msgstr ""
 "Δεν υπάρχουν αναμνήσεις με τοποθεσίες ακόμα. Προσθέστε μια τοποθεσία όταν "
 "δημιουργείτε μια ανάμνηση!"
 
-#: core/templates/core/group_detail.html:594
+#: core/templates/core/group_detail.html:647
 msgid "Board members"
 msgstr "Μέλη πίνακα"
 
-#: core/templates/core/group_detail.html:603
+#: core/templates/core/group_detail.html:656
 msgid "Owner"
 msgstr "Ιδιοκτήτης"
 
-#: core/templates/core/group_detail.html:603
+#: core/templates/core/group_detail.html:656
 msgid "Admin"
 msgstr "Διαχειριστής"
 
-#: core/templates/core/group_detail.html:603
+#: core/templates/core/group_detail.html:656
 msgid "Member"
 msgstr "Μέλος"
 
-#: core/templates/core/group_detail.html:609
+#: core/templates/core/group_detail.html:662
 msgid "Remove admin"
 msgstr "Αφαίρεση δικαιωμάτων διαχειριστή"
 
-#: core/templates/core/group_detail.html:609
+#: core/templates/core/group_detail.html:662
 msgid "Make admin"
 msgstr "Ορισμός ως διαχειριστή"
 
-#: core/templates/core/group_detail.html:617
+#: core/templates/core/group_detail.html:670
 msgid "Public share link"
 msgstr "Δημόσιος σύνδεσμος κοινοποίησης"
 
-#: core/templates/core/group_detail.html:618
+#: core/templates/core/group_detail.html:671
 msgid ""
 "Anyone with this link can view (but not edit) this board's memories — no "
 "account needed."
@@ -964,45 +1003,45 @@ msgstr ""
 "Όποιος έχει αυτόν τον σύνδεσμο μπορεί να δει (όχι να επεξεργαστεί) τις "
 "αναμνήσεις αυτού του πίνακα — δεν απαιτείται λογαριασμός."
 
-#: core/templates/core/group_detail.html:620
+#: core/templates/core/group_detail.html:673
 msgid "Turn on share link"
 msgstr "Ενεργοποίηση συνδέσμου κοινοποίησης"
 
-#: core/templates/core/group_detail.html:626
+#: core/templates/core/group_detail.html:679
 msgid "Copy"
 msgstr "Αντιγραφή"
 
-#: core/templates/core/group_detail.html:627
+#: core/templates/core/group_detail.html:680
 msgid "Turn off"
 msgstr "Απενεργοποίηση"
 
-#: core/templates/core/group_detail.html:632
+#: core/templates/core/group_detail.html:685
 msgid "Pending join requests"
 msgstr "Εκκρεμή αιτήματα συμμετοχής"
 
-#: core/templates/core/group_detail.html:641
+#: core/templates/core/group_detail.html:694
 msgid "Approve"
 msgstr "Έγκριση"
 
-#: core/templates/core/group_detail.html:659
+#: core/templates/core/group_detail.html:712
 msgid "Leave board"
 msgstr "Αποχώρηση από τον πίνακα"
 
-#: core/templates/core/group_detail.html:664
-#: core/templates/core/group_detail.html:867
+#: core/templates/core/group_detail.html:717
+#: core/templates/core/group_detail.html:965
 msgid "Delete board"
 msgstr "Διαγραφή πίνακα"
 
-#: core/templates/core/group_detail.html:682
-#: core/templates/core/group_detail.html:707
+#: core/templates/core/group_detail.html:735
+#: core/templates/core/group_detail.html:760
 msgid "ago"
 msgstr "πριν"
 
-#: core/templates/core/group_detail.html:690
+#: core/templates/core/group_detail.html:743
 msgid "Nothing here yet"
 msgstr "Τίποτα εδώ ακόμα"
 
-#: core/templates/core/group_detail.html:691
+#: core/templates/core/group_detail.html:744
 msgid ""
 "Adding memories, reacting, and commenting will show up here as board "
 "activity."
@@ -1010,7 +1049,7 @@ msgstr ""
 "Η προσθήκη αναμνήσεων, οι αντιδράσεις και τα σχόλια θα εμφανίζονται εδώ ως "
 "δραστηριότητα πίνακα."
 
-#: core/templates/core/group_detail.html:700
+#: core/templates/core/group_detail.html:753
 msgid ""
 "Memories you deleted are kept here for 30 days before being permanently "
 "removed. Only you can see and restore your own deleted memories."
@@ -1019,53 +1058,83 @@ msgstr ""
 "οριστικά. Μόνο εσείς μπορείτε να δείτε και να επαναφέρετε τις δικές σας "
 "διαγραμμένες αναμνήσεις."
 
-#: core/templates/core/group_detail.html:707
+#: core/templates/core/group_detail.html:760
 msgid "Deleted"
 msgstr "Διαγράφηκε"
 
-#: core/templates/core/group_detail.html:707
+#: core/templates/core/group_detail.html:760
 #, python-format
 msgid "%(counter)s day left"
 msgid_plural "%(counter)s days left"
 msgstr[0] "%(counter)s ημέρα απομένει"
 msgstr[1] "%(counter)s ημέρες απομένουν"
 
-#: core/templates/core/group_detail.html:711
+#: core/templates/core/group_detail.html:764
 msgid "Restore"
 msgstr "Επαναφορά"
 
-#: core/templates/core/group_detail.html:718
+#: core/templates/core/group_detail.html:771
 msgid "Recycle bin is empty"
 msgstr "Ο κάδος ανακύκλωσης είναι άδειος"
 
-#: core/templates/core/group_detail.html:725
+#: core/templates/core/group_detail.html:778
 msgid "Add memory"
 msgstr "Προσθήκη ανάμνησης"
 
-#: core/templates/core/group_detail.html:740
+#: core/templates/core/group_detail.html:793
 msgid "Save memory"
 msgstr "Αποθήκευση ανάμνησης"
 
-#: core/templates/core/group_detail.html:751
+#: core/templates/core/group_detail.html:804
 msgid "Edit memory"
 msgstr "Επεξεργασία ανάμνησης"
 
-#: core/templates/core/group_detail.html:776
+#: core/templates/core/group_detail.html:818
+msgid "Copies just this memory — not its comments, tags, or reactions."
+msgstr ""
+"Αντιγράφει μόνο αυτή την ανάμνηση — όχι τα σχόλια, τις επισημάνσεις ή τις "
+"αντιδράσεις της."
+
+#: core/templates/core/group_detail.html:833
+#| msgid "Report a problem"
+msgid "Report content"
+msgstr "Αναφορά περιεχομένου"
+
+#: core/templates/core/group_detail.html:837
+msgid ""
+"Let us know what's wrong with this memory. Board admins will be able to "
+"review and remove it if needed."
+msgstr ""
+"Πείτε μας τι δεν πάει καλά με αυτή την ανάμνηση. Οι διαχειριστές του πίνακα "
+"θα μπορούν να την εξετάσουν και να την αφαιρέσουν αν χρειαστεί."
+
+#: core/templates/core/group_detail.html:846
+msgid "Anything else we should know? (optional)"
+msgstr "Κάτι άλλο που θα έπρεπε να γνωρίζουμε; (προαιρετικό)"
+
+#: core/templates/core/group_detail.html:847
+#| msgid "Add a place…"
+msgid "Add details…"
+msgstr "Προσθέστε λεπτομέρειες…"
+
+#: core/templates/core/group_detail.html:849
+#| msgid "Send report"
+msgid "Submit report"
+msgstr "Υποβολή αναφοράς"
+
+#: core/templates/core/group_detail.html:874
 msgid "Add by username or email"
 msgstr "Προσθήκη με όνομα χρήστη ή email"
 
-#: core/templates/core/group_detail.html:778
+#: core/templates/core/group_detail.html:876
 msgid "Username or email…"
 msgstr "Όνομα χρήστη ή email…"
 
-#: core/templates/core/group_detail.html:779
+#: core/templates/core/group_detail.html:877
 msgid "Invite"
 msgstr "Πρόσκληση"
 
-#: core/templates/core/group_detail.html:782
-#| msgid ""
-#| "If they already have a Rememory account, they'll get a request to accept. "
-#| "Otherwise we'll email them an invite."
+#: core/templates/core/group_detail.html:880
 msgid ""
 "If they already have a WorthKeeping account, they'll get a request to "
 "accept. Otherwise we'll email them an invite."
@@ -1073,59 +1142,77 @@ msgstr ""
 "Αν έχουν ήδη λογαριασμό WorthKeeping, θα λάβουν αίτημα προς αποδοχή. "
 "Διαφορετικά θα τους στείλουμε πρόσκληση με email."
 
-#: core/templates/core/group_detail.html:786
+#: core/templates/core/group_detail.html:884
 msgid "Group"
 msgstr "Ομάδα"
 
-#: core/templates/core/group_detail.html:811
+#: core/templates/core/group_detail.html:909
 msgid "Pending invites"
 msgstr "Εκκρεμείς προσκλήσεις"
 
-#: core/templates/core/group_detail.html:817
+#: core/templates/core/group_detail.html:915
 msgid "Resend"
 msgstr "Επαναποστολή"
 
-#: core/templates/core/group_detail.html:831
+#: core/templates/core/group_detail.html:929
 msgid "Board settings"
 msgstr "Ρυθμίσεις πίνακα"
 
-#: core/templates/core/group_detail.html:850
+#: core/templates/core/group_detail.html:948
 msgid "Who can delete memories?"
 msgstr "Ποιος μπορεί να διαγράφει αναμνήσεις;"
 
-#: core/templates/core/group_detail.html:856
+#: core/templates/core/group_detail.html:954
 msgid "Who can delete the board?"
 msgstr "Ποιος μπορεί να διαγράψει τον πίνακα;"
 
-#: core/templates/core/group_detail.html:862
+#: core/templates/core/group_detail.html:960
 msgid "Save settings"
 msgstr "Αποθήκευση ρυθμίσεων"
 
-#: core/templates/core/group_detail.html:866
+#: core/templates/core/group_detail.html:964
 msgid "Deleting this board will permanently remove all its memories."
 msgstr ""
 "Η διαγραφή αυτού του πίνακα θα αφαιρέσει οριστικά όλες τις αναμνήσεις του."
 
-#: core/templates/core/group_detail.html:876
+#: core/templates/core/group_detail.html:974
 msgid "Full size photo"
 msgstr "Φωτογραφία σε πλήρες μέγεθος"
 
-#: core/templates/core/group_detail.html:884
+#: core/templates/core/group_detail.html:982
 msgid "Reposition cover"
 msgstr "Επανατοποθέτηση εξωφύλλου"
 
-#: core/templates/core/group_detail.html:888
+#: core/templates/core/group_detail.html:986
 msgid "Drag to reposition"
 msgstr "Σύρετε για επανατοποθέτηση"
 
-#: core/templates/core/group_detail.html:890
+#: core/templates/core/group_detail.html:988
 msgid "Drag the photo up or down to set what shows in the cover."
 msgstr ""
 "Σύρετε τη φωτογραφία πάνω ή κάτω για να ορίσετε τι εμφανίζεται στο εξώφυλλο."
 
-#: core/templates/core/group_detail.html:893
+#: core/templates/core/group_detail.html:991
 msgid "Save"
 msgstr "Αποθήκευση"
+
+#: core/templates/core/group_detail.html:1362
+msgid "Loading…"
+msgstr "Φόρτωση…"
+
+#: core/templates/core/group_detail.html:1367
+#: core/templates/core/group_detail.html:1373
+msgid "Couldn't load your boards."
+msgstr "Δεν ήταν δυνατή η φόρτωση των πινάκων σας."
+
+#: core/templates/core/group_detail.html:1368
+#| msgid "You're not a member of that board."
+msgid "You're not a member of any other board yet."
+msgstr "Δεν είστε ακόμα μέλος κανενός άλλου πίνακα."
+
+#: core/templates/core/group_detail.html:1418
+msgid "Thanks — we'll take a look."
+msgstr "Ευχαριστούμε — θα το εξετάσουμε."
 
 #: core/templates/core/home.html:121
 #, python-format
@@ -1203,9 +1290,6 @@ msgid "New here? Start with a friend"
 msgstr "Νέοι εδώ; Ξεκινήστε με έναν φίλο"
 
 #: core/templates/core/home.html:238
-#| msgid ""
-#| "Boards can hold memories on their own, but Rememory really comes alive when "
-#| "you share them. Add your first friend to start collaborating."
 msgid ""
 "Boards can hold memories on their own, but WorthKeeping really comes alive "
 "when you share them. Add your first friend to start collaborating."
@@ -1240,7 +1324,6 @@ msgstr ""
 "ζήσετε ξανά αυτές τις αναμνήσεις μαζί →"
 
 #: core/templates/core/login.html:8
-#| msgid "Rememory – Sign in"
 msgid "WorthKeeping – Sign in"
 msgstr "WorthKeeping – Σύνδεση"
 
@@ -1454,7 +1537,6 @@ msgid "Browse other days with the arrows above."
 msgstr "Περιηγηθείτε σε άλλες ημέρες με τα βέλη παραπάνω."
 
 #: core/templates/core/password_reset.html:6
-#| msgid "Reset Password – Rememory"
 msgid "Reset Password – WorthKeeping"
 msgstr "Επαναφορά κωδικού – WorthKeeping"
 
@@ -1486,7 +1568,6 @@ msgid "← Back to sign in"
 msgstr "← Πίσω στη σύνδεση"
 
 #: core/templates/core/password_reset_complete.html:2
-#| msgid "Password reset – Rememory"
 msgid "Password reset – WorthKeeping"
 msgstr "Επαναφορά κωδικού – WorthKeeping"
 
@@ -1503,7 +1584,6 @@ msgstr ""
 "νέο σας κωδικό."
 
 #: core/templates/core/password_reset_confirm.html:2
-#| msgid "Set new password – Rememory"
 msgid "Set new password – WorthKeeping"
 msgstr "Ορισμός νέου κωδικού – WorthKeeping"
 
@@ -1534,7 +1614,6 @@ msgstr ""
 "href=\"%(reset_url)s\" style=\"color:var(--amber);\">Ζητήστε νέο</a>."
 
 #: core/templates/core/password_reset_done.html:2
-#| msgid "Check your email – Rememory"
 msgid "Check your email – WorthKeeping"
 msgstr "Ελέγξτε το email σας – WorthKeeping"
 
@@ -1570,7 +1649,6 @@ msgstr "Δεν υπάρχουν αναμνήσεις προς εμφάνιση �
 
 #: core/templates/core/public_board.html:92
 #: core/templates/core/public_memory.html:86
-#| msgid "Shared from Rememory"
 msgid "Shared from WorthKeeping"
 msgstr "Κοινοποιήθηκε από το WorthKeeping"
 
@@ -1594,7 +1672,6 @@ msgid "From the board \"%(group.name)s\""
 msgstr "Από τον πίνακα «%(group.name)s»"
 
 #: core/templates/core/register.html:8
-#| msgid "Rememory – Create Account"
 msgid "WorthKeeping – Create Account"
 msgstr "WorthKeeping – Δημιουργία λογαριασμού"
 
@@ -1695,12 +1772,10 @@ msgid "Search across all your boards and memories"
 msgstr "Αναζήτηση σε όλους τους πίνακες και τις αναμνήσεις σας"
 
 #: core/templates/core/site_settings.html:3
-#| msgid "Rememory – Site Settings"
 msgid "WorthKeeping – Site Settings"
 msgstr "WorthKeeping – Ρυθμίσεις ιστότοπου"
 
 #: core/templates/core/site_settings.html:32
-#| msgid "How Rememory looks and reads, for you"
 msgid "How WorthKeeping looks and reads, for you"
 msgstr "Πώς εμφανίζεται και διαβάζεται το WorthKeeping, για εσάς"
 
@@ -1735,10 +1810,6 @@ msgid "About the site"
 msgstr "Σχετικά με τον ιστότοπο"
 
 #: core/templates/core/site_settings.html:73
-#| msgid ""
-#| "Rememory is a place to keep the memories worth keeping — shared boards for "
-#| "photos, notes, videos and voice notes, built for the people who were "
-#| "actually there. No ads, no data selling — just your memories, on your terms."
 msgid ""
 "WorthKeeping is a place to keep the memories worth keeping — shared boards "
 "for photos, notes, videos and voice notes, built for the people who were "
@@ -1758,198 +1829,202 @@ msgstr "Πολιτική Απορρήτου"
 msgid "Terms of Service"
 msgstr "Όροι Χρήσης"
 
-#: core/views.py:145 core/views.py:160 core/views.py:1207
+#: core/views.py:149 core/views.py:164 core/views.py:1212
 #, python-format
 msgid "%(owner)s shared the board \"%(board)s\" with you"
 msgstr "Ο/Η %(owner)s μοιράστηκε τον πίνακα «%(board)s» μαζί σας"
 
-#: core/views.py:189
+#: core/views.py:193
 #, python-format
 msgid "You've been added to \"%(board)s\"!"
 msgstr "Προστεθήκατε στο «%(board)s»!"
 
-#: core/views.py:204
+#: core/views.py:208
 #, python-format
-#| msgid "%(name)s accepted your friend invite and joined Rememory!"
 msgid "%(name)s accepted your friend invite and joined WorthKeeping!"
 msgstr ""
 "Ο/Η %(name)s αποδέχτηκε την πρόσκληση φιλίας σας και συμμετέχει πλέον στο "
 "WorthKeeping!"
 
-#: core/views.py:209
+#: core/views.py:213
 #, python-format
-#| msgid "Welcome to Rememory, %(name)s!"
 msgid "Welcome to WorthKeeping, %(name)s!"
 msgstr "Καλώς ήρθατε στο WorthKeeping, %(name)s!"
 
-#: core/views.py:233
+#: core/views.py:237
 msgid "Welcome back — your account is active again."
 msgstr "Καλώς ήρθατε ξανά — ο λογαριασμός σας είναι ενεργός και πάλι."
 
-#: core/views.py:420
+#: core/views.py:424
 msgid "Couldn't send your report just now — please try again in a moment."
 msgstr ""
 "Δεν ήταν δυνατή η αποστολή της αναφοράς σας αυτή τη στιγμή — δοκιμάστε ξανά "
 "σε λίγο."
 
-#: core/views.py:460
+#: core/views.py:464
 #, python-format
 msgid "%(actor)s created the board"
 msgstr "Ο/Η %(actor)s δημιούργησε τον πίνακα"
 
-#: core/views.py:461
+#: core/views.py:465
 #, python-format
 msgid "Board \"%(board)s\" created!"
 msgstr "Ο πίνακας «%(board)s» δημιουργήθηκε!"
 
-#: core/views.py:476 core/views.py:1245 core/views.py:1423 core/views.py:1475
+#: core/views.py:480 core/views.py:1250 core/views.py:1504 core/views.py:1556
 msgid "You're not a member of that board."
 msgstr "Δεν είστε μέλος αυτού του πίνακα."
 
-#: core/views.py:665
+#: core/views.py:670
 #, python-format
 msgid "%(actor)s updated the board cover"
 msgstr "Ο/Η %(actor)s ενημέρωσε το εξώφυλλο του πίνακα"
 
-#: core/views.py:793
+#: core/views.py:798
 msgid "Board settings updated."
 msgstr "Οι ρυθμίσεις του πίνακα ενημερώθηκαν."
 
-#: core/views.py:880 core/views.py:952 core/views.py:975
+#: core/views.py:885 core/views.py:957 core/views.py:980
 #, python-format
 msgid "%(actor)s invited you to join \"%(board)s\""
 msgstr "Ο/Η %(actor)s σας προσκάλεσε στο «%(board)s»"
 
-#: core/views.py:897 core/views.py:1786
+#: core/views.py:902 core/views.py:1867
 #, python-format
 msgid "%(actor)s sent you a friend request"
 msgstr "Ο/Η %(actor)s σας έστειλε αίτημα φιλίας"
 
-#: core/views.py:995 core/views.py:1095
+#: core/views.py:1000 core/views.py:1100
 #, python-format
 msgid "%(actor)s joined the board"
 msgstr "Ο/Η %(actor)s συμμετέχει πλέον στον πίνακα"
 
-#: core/views.py:996
+#: core/views.py:1001
 #, python-format
 msgid "You've joined \"%(board)s\"!"
 msgstr "Συμμετέχετε πλέον στο «%(board)s»!"
 
-#: core/views.py:1051
+#: core/views.py:1056
 msgid "You don't have permission to delete this board."
 msgstr "Δεν έχετε δικαίωμα να διαγράψετε αυτόν τον πίνακα."
 
-#: core/views.py:1056
+#: core/views.py:1061
 #, python-format
 msgid "Board \"%(board)s\" deleted."
 msgstr "Ο πίνακας «%(board)s» διαγράφηκε."
 
-#: core/views.py:1067
+#: core/views.py:1072
 msgid "You don't have permission to request to join that board."
 msgstr "Δεν έχετε δικαίωμα να ζητήσετε συμμετοχή σε αυτόν τον πίνακα."
 
-#: core/views.py:1073
+#: core/views.py:1078
 #, python-format
 msgid "%(actor)s asked to join \"%(board)s\""
 msgstr "Ο/Η %(actor)s ζήτησε να συμμετάσχει στο «%(board)s»"
 
-#: core/views.py:1078
+#: core/views.py:1083
 #, python-format
 msgid "Request sent — %(owner)s will need to approve it."
 msgstr "Το αίτημα στάλθηκε — ο/η %(owner)s θα χρειαστεί να το εγκρίνει."
 
-#: core/views.py:1098
+#: core/views.py:1103
 #, python-format
 msgid "%(actor)s approved your request to join \"%(board)s\""
 msgstr "Ο/Η %(actor)s ενέκρινε το αίτημά σας συμμετοχής στο «%(board)s»"
 
-#: core/views.py:1103
+#: core/views.py:1108
 #, python-format
 msgid "%(name)s added to the board!"
 msgstr "Ο/Η %(name)s προστέθηκε στον πίνακα!"
 
-#: core/views.py:1131
+#: core/views.py:1136
 #, python-format
 msgid "%(actor)s made you an admin of \"%(board)s\""
 msgstr "Ο/Η %(actor)s σάς έκανε διαχειριστή του «%(board)s»"
 
-#: core/views.py:1163
+#: core/views.py:1168
 #, python-format
 msgid "\"%(name)s\" created — add friends to it below."
 msgstr "Το «%(name)s» δημιουργήθηκε — προσθέστε φίλους παρακάτω."
 
-#: core/views.py:1212
+#: core/views.py:1217
 #, python-format
 msgid "\"%(name)s\" updated."
 msgstr "Το «%(name)s» ενημερώθηκε."
 
-#: core/views.py:1235
+#: core/views.py:1240
 #, python-format
 msgid "\"%(name)s\" deleted."
 msgstr "Το «%(name)s» διαγράφηκε."
 
-#: core/views.py:1261
+#: core/views.py:1266
 #, python-format
 msgid "%(actor)s tagged you in a memory on \"%(board)s\""
 msgstr "Ο/Η %(actor)s σας επισήμανε σε μια ανάμνηση στο «%(board)s»"
 
-#: core/views.py:1267
+#: core/views.py:1272
 #, python-format
 msgid "%(actor)s added a memory: %(summary)s"
 msgstr "Ο/Η %(actor)s πρόσθεσε μια ανάμνηση: %(summary)s"
 
-#: core/views.py:1272
+#: core/views.py:1277
 msgid "Memory saved!"
 msgstr "Η ανάμνηση αποθηκεύτηκε!"
 
-#: core/views.py:1299
+#: core/views.py:1304
 msgid "You don't have permission to edit that memory."
 msgstr "Δεν έχετε δικαίωμα να επεξεργαστείτε αυτή την ανάμνηση."
 
-#: core/views.py:1311
+#: core/views.py:1316
 #, python-format
 msgid "%(actor)s edited a memory: %(summary)s"
 msgstr "Ο/Η %(actor)s επεξεργάστηκε μια ανάμνηση: %(summary)s"
 
-#: core/views.py:1316
+#: core/views.py:1321
 msgid "Memory updated!"
 msgstr "Η ανάμνηση ενημερώθηκε!"
 
-#: core/views.py:1329
+#: core/views.py:1334
 msgid "You don't have permission to delete that memory."
 msgstr "Δεν έχετε δικαίωμα να διαγράψετε αυτή την ανάμνηση."
 
-#: core/views.py:1333
+#: core/views.py:1338
 #, python-format
 msgid "%(actor)s deleted a memory: %(summary)s"
 msgstr "Ο/Η %(actor)s διέγραψε μια ανάμνηση: %(summary)s"
 
-#: core/views.py:1340
+#: core/views.py:1345
 msgid "Memory moved to the recycle bin — it'll be kept for 30 days."
 msgstr ""
 "Η ανάμνηση μετακινήθηκε στον κάδο ανακύκλωσης — θα διατηρηθεί για 30 ημέρες."
 
-#: core/views.py:1353
+#: core/views.py:1358
 msgid "You don't have permission to restore that memory."
 msgstr "Δεν έχετε δικαίωμα να επαναφέρετε αυτή την ανάμνηση."
 
-#: core/views.py:1360
+#: core/views.py:1365
 #, python-format
 msgid "%(actor)s restored a memory from the recycle bin"
 msgstr "Ο/Η %(actor)s επανέφερε μια ανάμνηση από τον κάδο ανακύκλωσης"
 
-#: core/views.py:1363
+#: core/views.py:1368
 msgid "Memory restored!"
 msgstr "Η ανάμνηση επαναφέρθηκε!"
 
-#: core/views.py:1389
+#: core/views.py:1394
 #, python-format
 msgid "%(actor)s deleted %(count)d memory at once"
 msgid_plural "%(actor)s deleted %(count)d memories at once"
 msgstr[0] "Ο/Η %(actor)s διέγραψε %(count)d ανάμνηση ταυτόχρονα"
 msgstr[1] "Ο/Η %(actor)s διέγραψε %(count)d αναμνήσεις ταυτόχρονα"
 
-#: core/views.py:1473
+#: core/views.py:1478
+#, python-format
+#| msgid "%(actor)s pinned your memory in \"%(board)s\""
+msgid "%(actor)s copied a memory here from \"%(board)s\""
+msgstr "Ο/Η %(actor)s αντέγραψε εδώ μια ανάμνηση από «%(board)s»"
+
+#: core/views.py:1554
 msgid ""
 "Board owners can't leave — delete the board instead, or transfer ownership "
 "first."
@@ -1957,62 +2032,59 @@ msgstr ""
 "Οι ιδιοκτήτες πίνακα δεν μπορούν να αποχωρήσουν — διαγράψτε τον πίνακα ή "
 "μεταβιβάστε πρώτα την ιδιοκτησία."
 
-#: core/views.py:1479
+#: core/views.py:1560
 #, python-format
 msgid "%(actor)s left the board"
 msgstr "Ο/Η %(actor)s αποχώρησε από τον πίνακα"
 
-#: core/views.py:1480
+#: core/views.py:1561
 #, python-format
 msgid "You left \"%(board)s\"."
 msgstr "Αποχωρήσατε από το «%(board)s»."
 
-#: core/views.py:1495
+#: core/views.py:1576
 #, python-format
 msgid "%(actor)s pinned a memory"
 msgstr "Ο/Η %(actor)s καρφίτσωσε μια ανάμνηση"
 
-#: core/views.py:1497
+#: core/views.py:1578
 #, python-format
 msgid "%(actor)s unpinned a memory"
 msgstr "Ο/Η %(actor)s ξεκαρφίτσωσε μια ανάμνηση"
 
-#: core/views.py:1501
+#: core/views.py:1582
 #, python-format
 msgid "%(actor)s pinned your memory in \"%(board)s\""
 msgstr "Ο/Η %(actor)s καρφίτσωσε την ανάμνησή σας στο «%(board)s»"
 
-#: core/views.py:1566
+#: core/views.py:1647
 #, python-format
 msgid "%(actor)s reacted %(emoji)s to your memory in \"%(board)s\""
 msgstr ""
 "Ο/Η %(actor)s αντέδρασε με %(emoji)s στην ανάμνησή σας στο «%(board)s»"
 
-#: core/views.py:1572
+#: core/views.py:1653
 #, python-format
 msgid "%(actor)s reacted %(emoji)s to a memory"
 msgstr "Ο/Η %(actor)s αντέδρασε με %(emoji)s σε μια ανάμνηση"
 
-#: core/views.py:1594
+#: core/views.py:1675
 #, python-format
 msgid "%(actor)s commented on a memory"
 msgstr "Ο/Η %(actor)s σχολίασε μια ανάμνηση"
 
-#: core/views.py:1599
+#: core/views.py:1680
 #, python-format
 msgid "%(actor)s commented on your memory in \"%(board)s\""
 msgstr "Ο/Η %(actor)s σχολίασε την ανάμνησή σας στο «%(board)s»"
 
-#: core/views.py:1788
+#: core/views.py:1869
 #, python-format
 msgid "Friend request sent to %(name)s!"
 msgstr "Το αίτημα φιλίας στάλθηκε στον/στην %(name)s!"
 
-#: core/views.py:1796
+#: core/views.py:1877
 #, python-format
-#| msgid ""
-#| "%(email)s isn't on Rememory yet — we've emailed them an invite. You'll be "
-#| "friends automatically once they sign up."
 msgid ""
 "%(email)s isn't on WorthKeeping yet — we've emailed them an invite. You'll "
 "be friends automatically once they sign up."
@@ -2020,25 +2092,25 @@ msgstr ""
 "Ο/Η %(email)s δεν είναι ακόμα στο WorthKeeping — του/της στείλαμε πρόσκληση "
 "με email. Θα γίνετε φίλοι αυτόματα μόλις εγγραφεί."
 
-#: core/views.py:1801
+#: core/views.py:1882
 #, python-format
 msgid "Failed to send email: %(err)s"
 msgstr "Αποτυχία αποστολής email: %(err)s"
 
-#: core/views.py:1816
+#: core/views.py:1897
 #, python-format
 msgid "You're now friends with %(name)s!"
 msgstr "Είστε πλέον φίλοι με τον/την %(name)s!"
 
-#: core/views.py:1850
+#: core/views.py:1931
 msgid "You don't share a board or friendship with that person."
 msgstr "Δεν μοιράζεστε πίνακα ή φιλία με αυτό το άτομο."
 
-#: core/views.py:1886
+#: core/views.py:1967
 msgid "Profile updated."
 msgstr "Το προφίλ ενημερώθηκε."
 
-#: core/views.py:1928
+#: core/views.py:2009
 msgid ""
 "Your account is paused. Log back in any time to pick up right where you left"
 " off."
@@ -2046,11 +2118,11 @@ msgstr ""
 "Ο λογαριασμός σας είναι σε παύση. Συνδεθείτε ξανά όποτε θέλετε για να "
 "συνεχίσετε ακριβώς από εκεί που μείνατε."
 
-#: core/views.py:1945
+#: core/views.py:2026
 msgid "That didn't match your account email — nothing was deleted."
 msgstr ""
 "Αυτό δεν ταίριαξε με το email του λογαριασμού σας — δεν διαγράφηκε τίποτα."
 
-#: core/views.py:1981
+#: core/views.py:2062
 msgid "Your account has been deleted."
 msgstr "Ο λογαριασμός σας διαγράφηκε."

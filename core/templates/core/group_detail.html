@@ -208,6 +208,50 @@
 .mem-action-btn.danger { border-color:rgba(192,57,43,0.3); color:#c0392b; }
 .mem-action-btn.danger:hover { background:#fdf0ee; }
 .mem-action-btn.pin-active { background:var(--amber); color:white; border-color:var(--amber); }
+.mem-action-btn.report-btn { margin-left:auto; padding:0.22rem 0.4rem; border-color:rgba(177,74,58,0.35); color:#B14A3A; }
+.mem-action-btn.report-btn:hover { background:#FDF0EE; }
+.report-icon { font-size:0.78rem; line-height:1; }
+
+/* 3-dot menu (owner/admin only) — pinned to the card's bottom-right corner */
+.mem-menu { position:absolute; right:0.5rem; bottom:0.5rem; z-index:5; }
+.mem-menu-btn {
+    width:24px; height:24px; display:flex; align-items:center; justify-content:center;
+    border:1px solid var(--border); border-radius:0; background:var(--warm-white);
+    color:var(--ink-muted); cursor:pointer; font-size:0.95rem; line-height:1; padding:0;
+}
+.mem-menu-btn:hover { border-color:var(--amber); color:var(--ink); background:var(--amber-pale); }
+.mem-menu-dropdown {
+    display:none; position:absolute; right:0; bottom:calc(100% + 0.3rem);
+    min-width:190px; background:var(--warm-white); border:1.5px solid var(--border-strong);
+    box-shadow:3px 3px 0 rgba(23,23,26,0.18); z-index:30;
+}
+.mem-menu-dropdown.open { display:flex; flex-direction:column; }
+.mem-menu-dropdown button {
+    display:flex; align-items:center; gap:0.5rem; padding:0.55rem 0.75rem;
+    border:none; background:none; text-align:left; font-family:inherit; font-size:0.8rem;
+    color:var(--ink); cursor:pointer;
+}
+.mem-menu-dropdown button:hover { background:var(--amber-pale); }
+.mem-menu-dropdown button.danger { color:#c0392b; }
+.mem-menu-dropdown button.danger:hover { background:#fdf0ee; }
+
+/* Copy-to-board picker */
+.copy-board-list { display:flex; flex-direction:column; gap:0.4rem; margin-bottom:1rem; max-height:280px; overflow-y:auto; }
+.copy-board-option {
+    display:flex; align-items:center; justify-content:space-between; gap:0.6rem;
+    padding:0.6rem 0.75rem; border:1px solid var(--border); background:var(--cream);
+    cursor:pointer; font-size:0.88rem; color:var(--ink); font-family:inherit; text-align:left; width:100%;
+}
+.copy-board-option:hover { border-color:var(--amber); background:var(--amber-pale); }
+.copy-board-empty { font-size:0.85rem; color:var(--ink-muted); text-align:center; padding:1.5rem 0.5rem; }
+
+.modal-sub { font-size:0.82rem; color:var(--ink-muted); margin-bottom:1.1rem; line-height:1.4; }
+
+/* Report modal */
+.report-reason-list { display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1.1rem; }
+.report-reason-option { display:flex; align-items:center; gap:0.6rem; padding:0.55rem 0.7rem; border:1px solid var(--border); background:var(--cream); cursor:pointer; font-size:0.85rem; color:var(--ink); }
+.report-reason-option.selected { border-color:var(--amber); background:var(--amber-pale); }
+.report-reason-option input { accent-color:var(--amber); width:15px; height:15px; }
 
 /* Add memory btn */
 .add-memory-fab {
@@ -540,10 +584,19 @@
                         {% if memory.user_can_edit %}
                         <button class="mem-action-btn" onclick="openEditModal({{ memory.pk }})">✏️ {% trans "Edit" %}</button>
                         {% endif %}
-                        {% if memory.user_can_delete %}
-                        <button class="mem-action-btn danger" onclick="if(confirm('Delete this memory?')) deleteMemory({{ memory.pk }})">🗑</button>
+                        {% if memory.creator != request.user %}
+                        <button class="mem-action-btn report-btn" title="{% trans "Report" %}" onclick="openReportModal({{ memory.pk }})"><span class="report-icon">⚠️</span></button>
                         {% endif %}
                     </div>
+                    {% if can_manage %}
+                    <div class="mem-menu">
+                        <button type="button" class="mem-menu-btn" title="{% trans "More" %}" onclick="toggleMemMenu({{ memory.pk }}, event)">⋯</button>
+                        <div class="mem-menu-dropdown" id="mem-menu-{{ memory.pk }}">
+                            <button type="button" onclick="openCopyModal({{ memory.pk }})">📋 {% trans "Copy to another board" %}</button>
+                            <button type="button" class="danger" onclick="closeMemMenus(); if(confirm('{% trans "Delete this memory?" %}')) deleteMemory({{ memory.pk }})">🗑 {% trans "Delete" %}</button>
+                        </div>
+                    </div>
+                    {% endif %}
 
                     <!-- Comments section -->
                     <div class="comments-section" id="comments-{{ memory.pk }}">
@@ -755,6 +808,51 @@
 </div>
 </div>
 
+<!-- Copy-to-board Modal -->
+<div class="modal-overlay" id="copy-board-modal">
+<div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+        <div class="modal-title">{% trans "Copy to another board" %}</div>
+        <button class="modal-close" onclick="document.getElementById('copy-board-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-sub">{% trans "Copies just this memory — not its comments, tags, or reactions." %}</div>
+    <div class="copy-board-list" id="copy-board-list"><!-- populated by JS --></div>
+</div>
+</div>
+
+<!-- Report Content Modal -->
+<div class="modal-overlay" id="report-modal">
+<div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+        <div class="modal-title-group" style="display:flex;align-items:center;gap:0.55rem;">
+            <svg width="24" height="24" viewBox="0 0 24 24" style="flex-shrink:0;">
+                <path d="M12 2.5 L23 21.5 L1 21.5 Z" fill="#F5C518" stroke="#241F18" stroke-width="1.4" stroke-linejoin="round"/>
+                <rect x="11" y="9" width="2" height="7" rx="0.5" fill="#241F18"/>
+                <circle cx="12" cy="18.3" r="1.15" fill="#241F18"/>
+            </svg>
+            <div class="modal-title">{% trans "Report content" %}</div>
+        </div>
+        <button class="modal-close" onclick="document.getElementById('report-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-sub">{% trans "Let us know what's wrong with this memory. Board admins will be able to review and remove it if needed." %}</div>
+    <form id="report-form" onsubmit="event.preventDefault(); submitReport();">
+        <div class="report-reason-list" id="report-reason-list">
+            {% for key, label in report_reasons %}
+            <label class="report-reason-option {% if forloop.first %}selected{% endif %}" onclick="selectReportReason(this)">
+                <input type="radio" name="reason" value="{{ key }}" {% if forloop.first %}checked{% endif %}> {{ label }}
+            </label>
+            {% endfor %}
+        </div>
+        <label class="form-label" style="display:block;font-size:0.8rem;font-weight:500;color:var(--ink-muted);margin-bottom:0.35rem;">{% trans "Anything else we should know? (optional)" %}</label>
+        <textarea class="form-input" id="report-details" placeholder="{% trans "Add details…" %}" style="width:100%;padding:0.55rem 0.7rem;border:1px solid var(--border);font-family:inherit;font-size:0.85rem;color:var(--ink);background:var(--cream);resize:vertical;min-height:64px;margin-bottom:1.25rem;"></textarea>
+        <div class="modal-btn-row" style="display:flex;gap:0.5rem;">
+            <button type="submit" class="btn btn-danger" style="flex:1;">{% trans "Submit report" %}</button>
+            <button type="button" class="btn btn-ghost" style="flex:1;" onclick="document.getElementById('report-modal').classList.remove('open')">{% trans "Cancel" %}</button>
+        </div>
+    </form>
+</div>
+</div>
+
 <!-- Memory View Modal (bigger read view: photo left / comments right when a
      photo is present, title-then-comments stacked when it isn't) -->
 <div class="modal-overlay" id="memory-view-modal" onclick="if(event.target===this) closeMemoryView()">
@@ -897,6 +995,10 @@
 {% endif %}
 
 <!-- ── Scripts ── -->
+{% trans "Loading…" as i18n_loading %}
+{% trans "Couldn't load your boards." as i18n_copy_load_error %}
+{% trans "You're not a member of any other board yet." as i18n_copy_no_boards %}
+{% trans "Thanks — we'll take a look." as i18n_report_thanks %}
 <script>
 const CSRF = '{{ csrf_token }}';
 const GROUP_PK = {{ group.pk }};
@@ -1241,6 +1343,85 @@ function deleteMemory(memPk) {
         const wrapper = document.getElementById('memory-' + memPk).closest('.memory-wrapper');
         if (wrapper) wrapper.remove();
     });
+}
+
+// 3-dot menu (owner/admin only) — copy to board / delete
+function closeMemMenus() {
+    document.querySelectorAll('.mem-menu-dropdown.open').forEach(el => el.classList.remove('open'));
+}
+function toggleMemMenu(memPk, evt) {
+    evt.stopPropagation();
+    const dropdown = document.getElementById('mem-menu-' + memPk);
+    const wasOpen = dropdown.classList.contains('open');
+    closeMemMenus();
+    if (!wasOpen) dropdown.classList.add('open');
+}
+document.addEventListener('click', closeMemMenus);
+
+let copyModalMemPk = null;
+function openCopyModal(memPk) {
+    closeMemMenus();
+    copyModalMemPk = memPk;
+    const list = document.getElementById('copy-board-list');
+    list.innerHTML = '<div class="copy-board-empty">{{ i18n_loading|escapejs }}</div>';
+    document.getElementById('copy-board-modal').classList.add('open');
+    fetch(`/memory/${memPk}/copy-targets/`)
+        .then(r => r.json())
+        .then(data => {
+            if (!data.ok) { list.innerHTML = '<div class="copy-board-empty">{{ i18n_copy_load_error|escapejs }}</div>'; return; }
+            if (!data.boards.length) { list.innerHTML = '<div class="copy-board-empty">{{ i18n_copy_no_boards|escapejs }}</div>'; return; }
+            list.innerHTML = data.boards.map(b =>
+                `<button type="button" class="copy-board-option" onclick="submitCopyMemory(${b.id})">${b.name.replace(/</g,'&lt;')}</button>`
+            ).join('');
+        })
+        .catch(() => { list.innerHTML = '<div class="copy-board-empty">{{ i18n_copy_load_error|escapejs }}</div>'; });
+}
+function submitCopyMemory(targetGroupId) {
+    if (!copyModalMemPk) return;
+    const fd = new URLSearchParams({target_group: targetGroupId});
+    fetch(`/memory/${copyModalMemPk}/copy/`, {
+        method: 'POST', headers: {'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded'}, body: fd
+    })
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('copy-board-modal').classList.remove('open');
+        if (!data.ok) { alert(data.error || "Couldn't copy that memory."); return; }
+        window.location.href = data.board_url;
+    })
+    .catch(() => alert("Couldn't copy that memory."));
+}
+
+let reportModalMemPk = null;
+function openReportModal(memPk) {
+    reportModalMemPk = memPk;
+    document.getElementById('report-details').value = '';
+    const options = document.querySelectorAll('#report-reason-list .report-reason-option');
+    options.forEach((el, i) => {
+        el.classList.toggle('selected', i === 0);
+        el.querySelector('input').checked = (i === 0);
+    });
+    document.getElementById('report-modal').classList.add('open');
+}
+function selectReportReason(label) {
+    document.querySelectorAll('#report-reason-list .report-reason-option').forEach(el => el.classList.remove('selected'));
+    label.classList.add('selected');
+    label.querySelector('input').checked = true;
+}
+function submitReport() {
+    if (!reportModalMemPk) return;
+    const reason = document.querySelector('#report-reason-list input:checked').value;
+    const details = document.getElementById('report-details').value;
+    const fd = new URLSearchParams({reason, details});
+    fetch(`/memory/${reportModalMemPk}/report/`, {
+        method: 'POST', headers: {'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded'}, body: fd
+    })
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('report-modal').classList.remove('open');
+        if (!data.ok) { alert(data.error || "Couldn't submit that report."); return; }
+        alert("{{ i18n_report_thanks|escapejs }}");
+    })
+    .catch(() => alert("Couldn't submit that report."));
 }
 
 // Comments

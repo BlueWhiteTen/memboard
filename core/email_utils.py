@@ -101,6 +101,32 @@ def send_problem_report_email(user, message):
         return False, str(e)
 
 
+def send_memory_report_email(reporter, memory, reason_label, details):
+    """Sends a 'Report content' submission to the site's support inbox
+    (settings.REPORT_PROBLEM_EMAIL) — same inbox as send_problem_report_email,
+    kept separate because the subject/body need to reference the memory and
+    board. Returns (ok, error_message)."""
+    to_email = getattr(settings, 'REPORT_PROBLEM_EMAIL', None)
+    if not to_email:
+        return False, "No report recipient configured."
+    subject = "WorthKeeping content report on \"{}\"".format(memory.group.name)
+    body = (
+        "{} {} ({}) reported a memory on the board \"{}\":\n\n"
+        "Reason: {}\n"
+        "Memory: {}\n"
+        "Details: {}\n"
+    ).format(
+        reporter.first_name, reporter.last_name, reporter.email, memory.group.name,
+        reason_label, (memory.title or memory.content[:80]), (details or '(none given)'),
+    )
+    try:
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [to_email])
+        return True, None
+    except Exception as e:
+        logger.exception("Failed to send memory report email from user %s", reporter.pk)
+        return False, str(e)
+
+
 def send_password_reset_email(user, reset_url):
     subject = "Reset your WorthKeeping password"
     body = (

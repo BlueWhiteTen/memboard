@@ -58,6 +58,9 @@ urlpatterns = [
     path('memory/<int:pk>/restore/',    views.restore_memory_view, name='restore_memory'),
     path('memory/<int:pk>/pin/',        views.pin_memory_view,    name='pin_memory'),
     path('memory/<int:pk>/share/',      views.toggle_memory_share_view, name='toggle_memory_share'),
+    path('memory/<int:pk>/report/',     views.report_memory_view,       name='report_memory'),
+    path('memory/<int:pk>/copy-targets/', views.memory_copy_targets_view, name='memory_copy_targets'),
+    path('memory/<int:pk>/copy/',       views.copy_memory_view,         name='copy_memory'),
     path('shared/memory/<uuid:token>/', views.public_memory_view, name='public_memory'),
 
     # Reactions & Comments

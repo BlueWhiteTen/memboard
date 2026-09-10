@@ -22,17 +22,21 @@ from django.conf import settings
 from .models import (
     Group, Memory, MemoryPhoto, Friendship, FriendRequest, UserProfile,
     GroupInvite, FriendInvite, Reaction, Comment, Notification, ActivityLog,
-    FriendGroup, BoardJoinRequest, BoardOrder,
+    FriendGroup, BoardJoinRequest, BoardOrder, MemoryReport,
     FONT_CHOICES, REACTION_CHOICES, COLOUR_CHOICES, THEME_CHOICES, PRIVACY_CHOICES,
     MEMORY_DELETE_PERMISSION_CHOICES, BOARD_DELETE_PERMISSION_CHOICES, BOARD_SORT_CHOICES,
-    LANGUAGE_CHOICES,
+    LANGUAGE_CHOICES, REPORT_REASON_CHOICES,
 )
 from .forms import (
     RegisterForm, EmailAuthenticationForm, GroupForm, GroupCoverForm,
     MemoryForm, EditMemoryForm, FriendRequestForm,
     GroupSettingsForm, FriendGroupForm, ProfileForm, ReportProblemForm,
 )
-from .email_utils import send_invite_email, send_friend_invite_email, send_problem_report_email
+from .email_utils import (
+    send_invite_email, send_friend_invite_email, send_problem_report_email,
+    send_memory_report_email,
+)
+from django.core import files as django_files
 from .on_this_day import get_on_this_day_memories
 
 
@@ -635,6 +639,7 @@ def group_detail_view(request, pk):
         'map_memories':     json.dumps(map_memories),
         'activity_log':     activity_log,
         'reaction_choices': REACTION_CHOICES,
+        'report_reasons':   REPORT_REASON_CHOICES,
         'colour_choices':   COLOUR_CHOICES,
         'is_owner':         is_owner,
         'is_admin':         is_admin,
@@ -1398,6 +1403,82 @@ def bulk_delete_memories_view(request, pk):
     if skipped:
         message += f' ({skipped} skipped — no permission.)'
     return JsonResponse({'ok': True, 'deleted': deleted, 'message': message})
+
+
+@login_required
+@require_POST
+def report_memory_view(request, pk):
+    memory = get_object_or_404(Memory, pk=pk, is_deleted=False)
+    if request.user not in memory.group.members.all():
+        return JsonResponse({'ok': False, 'error': "You're not a member of that board."}, status=403)
+    reason = request.POST.get('reason', '')
+    valid_reasons = {key for key, _label in REPORT_REASON_CHOICES}
+    if reason not in valid_reasons:
+        return JsonResponse({'ok': False, 'error': 'Invalid reason.'}, status=400)
+    details = request.POST.get('details', '').strip()
+    MemoryReport.objects.create(
+        memory=memory, reporter=request.user, reason=reason, details=details,
+    )
+    reason_label = dict(REPORT_REASON_CHOICES).get(reason, reason)
+    send_memory_report_email(request.user, memory, reason_label, details)
+    return JsonResponse({'ok': True})
+
+
+@login_required
+def memory_copy_targets_view(request, pk):
+    """Boards (other than this memory's own) that the requesting user could
+    copy this memory into — anywhere they're a member, same as who's
+    allowed to add a memory there in the first place."""
+    memory = get_object_or_404(Memory, pk=pk, is_deleted=False)
+    if not memory.group.can_manage(request.user):
+        return JsonResponse({'ok': False, 'error': 'Not allowed.'}, status=403)
+    boards = (Group.objects.filter(members=request.user)
+              .exclude(pk=memory.group.pk).order_by('name'))
+    return JsonResponse({'ok': True, 'boards': [{'id': b.pk, 'name': b.name} for b in boards]})
+
+
+@login_required
+@require_POST
+def copy_memory_view(request, pk):
+    """Duplicates just the memory itself (content/photo/video/voice note/
+    date/location) into another board the user belongs to — deliberately
+    leaves behind its comments, tags, and reactions, which are specific to
+    where it originally lived. Only the board owner/admins can do this
+    (same as the delete action it sits next to in the 3-dot menu)."""
+    memory = get_object_or_404(Memory, pk=pk, is_deleted=False)
+    if not memory.group.can_manage(request.user):
+        return JsonResponse({'ok': False, 'error': 'Not allowed.'}, status=403)
+    target_pk = request.POST.get('target_group')
+    target = get_object_or_404(Group, pk=target_pk)
+    if request.user not in target.members.all():
+        return JsonResponse({'ok': False, 'error': "You're not a member of that board."}, status=403)
+
+    new_memory = Memory(
+        group=target, creator=request.user,
+        title=memory.title, content=memory.content, colour=memory.colour,
+        memory_date=memory.memory_date, location_name=memory.location_name,
+        location_lat=memory.location_lat, location_lng=memory.location_lng,
+    )
+    for field_name in ('photo', 'video', 'voice_note'):
+        src = getattr(memory, field_name)
+        if src:
+            src.open('rb')
+            getattr(new_memory, field_name).save(
+                os.path.basename(src.name), django_files.File(src), save=False)
+            src.close()
+    new_memory.save()
+    for extra in memory.extra_photos.all():
+        extra.photo.open('rb')
+        photo_copy = MemoryPhoto(memory=new_memory)
+        photo_copy.photo.save(os.path.basename(extra.photo.name), django_files.File(extra.photo), save=False)
+        photo_copy.save()
+        extra.photo.close()
+
+    log_activity(target, request.user, 'memory_add',
+                 _('%(actor)s copied a memory here from "%(board)s"') % {
+                     'actor': get_display_name(request.user), 'board': memory.group.name,
+                 }, memory=new_memory)
+    return JsonResponse({'ok': True, 'board_url': f'/groups/{target.pk}/'})
 
 
 @login_required
