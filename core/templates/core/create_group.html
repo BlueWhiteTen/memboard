@@ -1,6 +1,6 @@
 {% extends 'core/base.html' %}
 {% load i18n %}
-{% block title %}Rememory – {% trans "New Board" %}{% endblock %}
+{% block title %}WorthKeeping – {% trans "New Board" %}{% endblock %}
 
 {% block extra_styles %}
 .page-header { padding:1.75rem 2.5rem 1.25rem; border-bottom:1px solid var(--border); background:var(--warm-white); display:flex; align-items:center; gap:0.75rem; }
@@ -199,7 +199,7 @@
             <div class="selected-count" id="selectedCount"></div>
             {% else %}
             {% url 'friends' as friends_url %}
-            <p class="no-friends-msg">{% blocktrans %}You don't have any friends on Rememory yet. <a href="{{ friends_url }}" style="color:var(--amber);">Add some friends</a> first.{% endblocktrans %}</p>
+            <p class="no-friends-msg">{% blocktrans %}You don't have any friends on WorthKeeping yet. <a href="{{ friends_url }}" style="color:var(--amber);">Add some friends</a> first.{% endblocktrans %}</p>
             {% endif %}
         </div>
 

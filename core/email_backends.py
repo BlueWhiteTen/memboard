@@ -64,7 +64,7 @@ class ResendEmailBackend(BaseEmailBackend):
                         # urllib's default "Python-urllib/x.y" User-Agent as
                         # bot traffic (Cloudflare error 1010) — a normal
                         # browser-looking one avoids that.
-                        'User-Agent':    'Mozilla/5.0 (compatible; Rememory/1.0)',
+                        'User-Agent':    'Mozilla/5.0 (compatible; WorthKeeping/1.0)',
                     },
                 )
                 with urllib.request.urlopen(req, timeout=10) as resp:

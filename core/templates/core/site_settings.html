@@ -1,6 +1,6 @@
 {% extends 'core/base.html' %}
 {% load i18n %}
-{% block title %}{% trans "Rememory – Site Settings" %}{% endblock %}
+{% block title %}{% trans "WorthKeeping – Site Settings" %}{% endblock %}
 
 {% block extra_styles %}
 .page-header{padding:2rem 2.5rem 1.25rem;border-bottom:1px solid var(--border);background:var(--warm-white);display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
@@ -29,7 +29,7 @@
 <div class="page-header">
     <div>
         <h2>{% trans "Site Settings" %}</h2>
-        <p>{% trans "How Rememory looks and reads, for you" %}</p>
+        <p>{% trans "How WorthKeeping looks and reads, for you" %}</p>
     </div>
 </div>
 
@@ -70,7 +70,7 @@
 
     <div class="section-title">{% trans "About the site" %}</div>
     <div class="info-card">
-        <p class="hint">{% blocktrans %}Rememory is a place to keep the memories worth keeping — shared boards for photos, notes, videos and voice notes, built for the people who were actually there. No ads, no data selling — just your memories, on your terms.{% endblocktrans %}</p>
+        <p class="hint">{% blocktrans %}WorthKeeping is a place to keep the memories worth keeping — shared boards for photos, notes, videos and voice notes, built for the people who were actually there. No ads, no data selling — just your memories, on your terms.{% endblocktrans %}</p>
         <p class="hint">
             <a href="{% url 'report_problem' %}" class="settings-report-link">{% trans "Report a problem" %}</a>
             &nbsp;·&nbsp;

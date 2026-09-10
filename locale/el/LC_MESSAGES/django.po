@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-09 20:27+0000\n"
+"POT-Creation-Date: 2026-09-10 11:45+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -356,81 +356,82 @@ msgstr "Δοκιμάστε διαφορετική χρονιά ή ξεκινήσ
 msgid "Go to boards"
 msgstr "Μετάβαση στους πίνακες"
 
-#: core/templates/core/base.html:436
+#: core/templates/core/base.html:440
 msgid "Menu"
 msgstr "Μενού"
 
-#: core/templates/core/base.html:453
+#: core/templates/core/base.html:464
 msgid "Close menu"
 msgstr "Κλείσιμο μενού"
 
-#: core/templates/core/base.html:468
-msgid "for things worth remembering"
-msgstr "για ό,τι αξίζει να θυμάστε"
+#: core/templates/core/base.html:486
+#| msgid "for things worth remembering"
+msgid "for the memories worth keeping"
+msgstr "για τις αναμνήσεις που αξίζει να κρατήσετε"
 
-#: core/templates/core/base.html:473
+#: core/templates/core/base.html:491
 msgid "Search memories…"
 msgstr "Αναζήτηση αναμνήσεων…"
 
-#: core/templates/core/base.html:479
+#: core/templates/core/base.html:497
 msgid "Navigation"
 msgstr "Πλοήγηση"
 
-#: core/templates/core/base.html:482
+#: core/templates/core/base.html:500
 msgid "Home"
 msgstr "Αρχική"
 
-#: core/templates/core/base.html:486 core/templates/core/friends.html:3
+#: core/templates/core/base.html:504 core/templates/core/friends.html:3
 #: core/templates/core/friends.html:67
 #: core/templates/core/group_detail.html:799 core/templates/core/home.html:140
 msgid "Friends"
 msgstr "Φίλοι"
 
-#: core/templates/core/base.html:491 core/templates/core/home.html:142
+#: core/templates/core/base.html:509 core/templates/core/home.html:142
 #: core/templates/core/notifications.html:3
 #: core/templates/core/notifications.html:22
 msgid "Notifications"
 msgstr "Ειδοποιήσεις"
 
-#: core/templates/core/base.html:496 core/templates/core/search.html:3
+#: core/templates/core/base.html:514 core/templates/core/search.html:3
 #: core/templates/core/search.html:30
 msgid "Search"
 msgstr "Αναζήτηση"
 
-#: core/templates/core/base.html:500 core/templates/core/on_this_day.html:3
+#: core/templates/core/base.html:518 core/templates/core/on_this_day.html:3
 msgid "On This Day"
 msgstr "Σαν σήμερα"
 
-#: core/templates/core/base.html:504
+#: core/templates/core/base.html:522
 msgid "Annual Recap"
 msgstr "Ετήσια ανασκόπηση"
 
-#: core/templates/core/base.html:507 core/templates/core/home.html:3
+#: core/templates/core/base.html:525 core/templates/core/home.html:3
 msgid "My Boards"
 msgstr "Οι πίνακές μου"
 
-#: core/templates/core/base.html:514 core/templates/core/home.html:208
+#: core/templates/core/base.html:532 core/templates/core/home.html:208
 msgid "No boards yet"
 msgstr "Δεν υπάρχουν πίνακες ακόμα"
 
-#: core/templates/core/base.html:517
+#: core/templates/core/base.html:535
 #, python-format
 msgid "See all boards (%(sidebar_groups_count)s)"
 msgstr "Δείτε όλους τους πίνακες (%(sidebar_groups_count)s)"
 
-#: core/templates/core/base.html:522 core/templates/core/create_group.html:3
+#: core/templates/core/base.html:540 core/templates/core/create_group.html:3
 msgid "New Board"
 msgstr "Νέος πίνακας"
 
-#: core/templates/core/base.html:532 core/templates/core/site_settings.html:31
+#: core/templates/core/base.html:550 core/templates/core/site_settings.html:31
 msgid "Site Settings"
 msgstr "Ρυθμίσεις ιστότοπου"
 
-#: core/templates/core/base.html:536
+#: core/templates/core/base.html:554
 msgid "Sign out"
 msgstr "Αποσύνδεση"
 
-#: core/templates/core/base.html:538 core/templates/core/report_problem.html:3
+#: core/templates/core/base.html:556 core/templates/core/report_problem.html:3
 #: core/templates/core/report_problem.html:37
 #: core/templates/core/site_settings.html:75
 msgid "Report a problem"
@@ -551,11 +552,14 @@ msgstr "Όλοι από «%(name)s»"
 
 #: core/templates/core/create_group.html:202
 #, python-format
+#| msgid ""
+#| "You don't have any friends on Rememory yet. <a href=\"%(friends_url)s\" "
+#| "style=\"color:var(--amber);\">Add some friends</a> first."
 msgid ""
-"You don't have any friends on Rememory yet. <a href=\"%(friends_url)s\" "
+"You don't have any friends on WorthKeeping yet. <a href=\"%(friends_url)s\" "
 "style=\"color:var(--amber);\">Add some friends</a> first."
 msgstr ""
-"Δεν έχετε ακόμα φίλους στο Rememory. <a href=\"%(friends_url)s\" "
+"Δεν έχετε ακόμα φίλους στο WorthKeeping. <a href=\"%(friends_url)s\" "
 "style=\"color:var(--amber);\">Προσθέστε μερικούς φίλους</a> πρώτα."
 
 #: core/templates/core/create_group.html:208
@@ -1059,12 +1063,15 @@ msgid "Invite"
 msgstr "Πρόσκληση"
 
 #: core/templates/core/group_detail.html:782
+#| msgid ""
+#| "If they already have a Rememory account, they'll get a request to accept. "
+#| "Otherwise we'll email them an invite."
 msgid ""
-"If they already have a Rememory account, they'll get a request to accept. "
-"Otherwise we'll email them an invite."
+"If they already have a WorthKeeping account, they'll get a request to "
+"accept. Otherwise we'll email them an invite."
 msgstr ""
-"Αν έχουν ήδη λογαριασμό Rememory, θα λάβουν αίτημα προς αποδοχή. Διαφορετικά"
-" θα τους στείλουμε πρόσκληση με email."
+"Αν έχουν ήδη λογαριασμό WorthKeeping, θα λάβουν αίτημα προς αποδοχή. "
+"Διαφορετικά θα τους στείλουμε πρόσκληση με email."
 
 #: core/templates/core/group_detail.html:786
 msgid "Group"
@@ -1196,11 +1203,14 @@ msgid "New here? Start with a friend"
 msgstr "Νέοι εδώ; Ξεκινήστε με έναν φίλο"
 
 #: core/templates/core/home.html:238
+#| msgid ""
+#| "Boards can hold memories on their own, but Rememory really comes alive when "
+#| "you share them. Add your first friend to start collaborating."
 msgid ""
-"Boards can hold memories on their own, but Rememory really comes alive when "
-"you share them. Add your first friend to start collaborating."
+"Boards can hold memories on their own, but WorthKeeping really comes alive "
+"when you share them. Add your first friend to start collaborating."
 msgstr ""
-"Οι πίνακες μπορούν να κρατούν αναμνήσεις μόνοι τους, αλλά το Rememory "
+"Οι πίνακες μπορούν να κρατούν αναμνήσεις μόνοι τους, αλλά το WorthKeeping "
 "πραγματικά ζωντανεύει όταν τις μοιράζεστε. Προσθέστε τον πρώτο σας φίλο για "
 "να ξεκινήσετε τη συνεργασία."
 
@@ -1230,30 +1240,25 @@ msgstr ""
 "ζήσετε ξανά αυτές τις αναμνήσεις μαζί →"
 
 #: core/templates/core/login.html:8
-msgid "Rememory – Sign in"
-msgstr "Rememory – Σύνδεση"
+#| msgid "Rememory – Sign in"
+msgid "WorthKeeping – Sign in"
+msgstr "WorthKeeping – Σύνδεση"
 
-#: core/templates/core/login.html:123 core/templates/core/register.html:103
+#: core/templates/core/login.html:125 core/templates/core/register.html:105
 msgid "est. wherever you last were"
 msgstr "εκεί που μείνατε τελευταία φορά"
 
-#: core/templates/core/login.html:124
-#: core/templates/core/password_reset.html:32
-#: core/templates/core/register.html:104
-msgid "Rememory"
-msgstr "Rememory"
-
-#: core/templates/core/login.html:128
+#: core/templates/core/login.html:130
 msgid "Good to see you again"
 msgstr "Χαιρόμαστε που σας ξαναβλέπουμε"
 
-#: core/templates/core/login.html:129
+#: core/templates/core/login.html:131
 #: core/templates/core/password_reset_complete.html:5
-#: core/templates/core/register.html:159
+#: core/templates/core/register.html:161
 msgid "Sign in"
 msgstr "Σύνδεση"
 
-#: core/templates/core/login.html:131
+#: core/templates/core/login.html:133
 msgid ""
 "Too many login attempts from your network. Please wait a few minutes and try"
 " again."
@@ -1261,42 +1266,41 @@ msgstr ""
 "Πάρα πολλές προσπάθειες σύνδεσης από το δίκτυό σας. Περιμένετε λίγα λεπτά "
 "και δοκιμάστε ξανά."
 
-#: core/templates/core/login.html:138
-#: core/templates/core/password_reset.html:41
-#: core/templates/core/register.html:138
+#: core/templates/core/login.html:140
+#: core/templates/core/password_reset.html:42
+#: core/templates/core/register.html:140
 msgid "Email address"
 msgstr "Διεύθυνση email"
 
-#: core/templates/core/login.html:139 core/templates/core/register.html:140
+#: core/templates/core/login.html:141 core/templates/core/register.html:142
 msgid "you@email.com"
 msgstr "you@email.com"
 
-#: core/templates/core/login.html:143 core/templates/core/register.html:145
+#: core/templates/core/login.html:145 core/templates/core/register.html:147
 msgid "Password"
 msgstr "Κωδικός πρόσβασης"
 
-#: core/templates/core/login.html:146
+#: core/templates/core/login.html:148
 msgid "Chart my way in"
 msgstr "Είσοδος"
 
-#: core/templates/core/login.html:149
+#: core/templates/core/login.html:151
 msgid "Forgot password?"
 msgstr "Ξεχάσατε τον κωδικό;"
 
-#: core/templates/core/login.html:152
+#: core/templates/core/login.html:154
 msgid "New around here?"
 msgstr "Καινούριος/α εδώ;"
 
-#: core/templates/core/login.html:152
-#| msgid "Create a new board"
+#: core/templates/core/login.html:154
 msgid "Create your own board"
 msgstr "Δημιουργήστε τον δικό σας πίνακα"
 
-#: core/templates/core/login.html:153 core/templates/core/register.html:160
+#: core/templates/core/login.html:155 core/templates/core/register.html:162
 msgid "Privacy"
 msgstr "Απόρρητο"
 
-#: core/templates/core/login.html:153 core/templates/core/register.html:160
+#: core/templates/core/login.html:155 core/templates/core/register.html:162
 msgid "Terms"
 msgstr "Όροι"
 
@@ -1450,39 +1454,41 @@ msgid "Browse other days with the arrows above."
 msgstr "Περιηγηθείτε σε άλλες ημέρες με τα βέλη παραπάνω."
 
 #: core/templates/core/password_reset.html:6
-msgid "Reset Password – Rememory"
-msgstr "Επαναφορά κωδικού – Rememory"
+#| msgid "Reset Password – Rememory"
+msgid "Reset Password – WorthKeeping"
+msgstr "Επαναφορά κωδικού – WorthKeeping"
 
-#: core/templates/core/password_reset.html:33
+#: core/templates/core/password_reset.html:34
 msgid "Reset your password"
 msgstr "Επαναφορά κωδικού πρόσβασης"
 
-#: core/templates/core/password_reset.html:36
+#: core/templates/core/password_reset.html:37
 msgid "Forgot your password?"
 msgstr "Ξεχάσατε τον κωδικό σας;"
 
-#: core/templates/core/password_reset.html:37
+#: core/templates/core/password_reset.html:38
 msgid "Enter your email address and we'll send you a link to reset it."
 msgstr ""
 "Εισαγάγετε τη διεύθυνση email σας και θα σας στείλουμε έναν σύνδεσμο για "
 "επαναφορά."
 
-#: core/templates/core/password_reset.html:42
+#: core/templates/core/password_reset.html:43
 msgid "your@email.com"
 msgstr "your@email.com"
 
-#: core/templates/core/password_reset.html:44
+#: core/templates/core/password_reset.html:45
 msgid "Send reset link"
 msgstr "Αποστολή συνδέσμου επαναφοράς"
 
-#: core/templates/core/password_reset.html:46
+#: core/templates/core/password_reset.html:47
 #: core/templates/core/password_reset_done.html:5
 msgid "← Back to sign in"
 msgstr "← Πίσω στη σύνδεση"
 
 #: core/templates/core/password_reset_complete.html:2
-msgid "Password reset – Rememory"
-msgstr "Επαναφορά κωδικού – Rememory"
+#| msgid "Password reset – Rememory"
+msgid "Password reset – WorthKeeping"
+msgstr "Επαναφορά κωδικού – WorthKeeping"
 
 #: core/templates/core/password_reset_complete.html:5
 msgid "Password updated!"
@@ -1497,8 +1503,9 @@ msgstr ""
 "νέο σας κωδικό."
 
 #: core/templates/core/password_reset_confirm.html:2
-msgid "Set new password – Rememory"
-msgstr "Ορισμός νέου κωδικού – Rememory"
+#| msgid "Set new password – Rememory"
+msgid "Set new password – WorthKeeping"
+msgstr "Ορισμός νέου κωδικού – WorthKeeping"
 
 #: core/templates/core/password_reset_confirm.html:5
 msgid "Set a new password"
@@ -1509,7 +1516,7 @@ msgid "New password"
 msgstr "Νέος κωδικός"
 
 #: core/templates/core/password_reset_confirm.html:10
-#: core/templates/core/register.html:151
+#: core/templates/core/register.html:153
 msgid "Confirm password"
 msgstr "Επιβεβαίωση κωδικού"
 
@@ -1527,8 +1534,9 @@ msgstr ""
 "href=\"%(reset_url)s\" style=\"color:var(--amber);\">Ζητήστε νέο</a>."
 
 #: core/templates/core/password_reset_done.html:2
-msgid "Check your email – Rememory"
-msgstr "Ελέγξτε το email σας – Rememory"
+#| msgid "Check your email – Rememory"
+msgid "Check your email – WorthKeeping"
+msgstr "Ελέγξτε το email σας – WorthKeeping"
 
 #: core/templates/core/password_reset_done.html:5
 msgid "Check your email"
@@ -1562,8 +1570,9 @@ msgstr "Δεν υπάρχουν αναμνήσεις προς εμφάνιση �
 
 #: core/templates/core/public_board.html:92
 #: core/templates/core/public_memory.html:86
-msgid "Shared from Rememory"
-msgstr "Κοινοποιήθηκε από το Rememory"
+#| msgid "Shared from Rememory"
+msgid "Shared from WorthKeeping"
+msgstr "Κοινοποιήθηκε από το WorthKeeping"
 
 #: core/templates/core/public_board.html:94
 #: core/templates/core/public_memory.html:88
@@ -1585,49 +1594,50 @@ msgid "From the board \"%(group.name)s\""
 msgstr "Από τον πίνακα «%(group.name)s»"
 
 #: core/templates/core/register.html:8
-msgid "Rememory – Create Account"
-msgstr "Rememory – Δημιουργία λογαριασμού"
+#| msgid "Rememory – Create Account"
+msgid "WorthKeeping – Create Account"
+msgstr "WorthKeeping – Δημιουργία λογαριασμού"
 
-#: core/templates/core/register.html:108
+#: core/templates/core/register.html:110
 msgid "First time here"
 msgstr "Πρώτη φορά εδώ"
 
-#: core/templates/core/register.html:109
+#: core/templates/core/register.html:111
 msgid "Start a board"
 msgstr "Ξεκινήστε έναν πίνακα"
 
-#: core/templates/core/register.html:110
+#: core/templates/core/register.html:112
 msgid "Save the memories worth keeping, with the people who were there."
 msgstr ""
 "Αποθηκεύστε τις αναμνήσεις που αξίζει να κρατήσετε, με τους ανθρώπους που "
 "ήταν εκεί."
 
-#: core/templates/core/register.html:113
+#: core/templates/core/register.html:115
 msgid ""
 "Too many signup attempts from your network. Please wait a bit and try again."
 msgstr ""
 "Πάρα πολλές προσπάθειες εγγραφής από το δίκτυό σας. Περιμένετε λίγο και "
 "δοκιμάστε ξανά."
 
-#: core/templates/core/register.html:115
+#: core/templates/core/register.html:117
 msgid "You were invited to join a board. Sign up to accept!"
 msgstr ""
 "Έχετε προσκληθεί να συμμετάσχετε σε έναν πίνακα. Εγγραφείτε για να "
 "αποδεχτείτε!"
 
-#: core/templates/core/register.html:124
+#: core/templates/core/register.html:126
 msgid "First name"
 msgstr "Όνομα"
 
-#: core/templates/core/register.html:130
+#: core/templates/core/register.html:132
 msgid "Last name"
 msgstr "Επώνυμο"
 
-#: core/templates/core/register.html:156
+#: core/templates/core/register.html:158
 msgid "Create account"
 msgstr "Δημιουργία λογαριασμού"
 
-#: core/templates/core/register.html:159
+#: core/templates/core/register.html:161
 msgid "Already have an account?"
 msgstr "Έχετε ήδη λογαριασμό;"
 
@@ -1685,12 +1695,14 @@ msgid "Search across all your boards and memories"
 msgstr "Αναζήτηση σε όλους τους πίνακες και τις αναμνήσεις σας"
 
 #: core/templates/core/site_settings.html:3
-msgid "Rememory – Site Settings"
-msgstr "Rememory – Ρυθμίσεις ιστότοπου"
+#| msgid "Rememory – Site Settings"
+msgid "WorthKeeping – Site Settings"
+msgstr "WorthKeeping – Ρυθμίσεις ιστότοπου"
 
 #: core/templates/core/site_settings.html:32
-msgid "How Rememory looks and reads, for you"
-msgstr "Πώς εμφανίζεται και διαβάζεται το Rememory, για εσάς"
+#| msgid "How Rememory looks and reads, for you"
+msgid "How WorthKeeping looks and reads, for you"
+msgstr "Πώς εμφανίζεται και διαβάζεται το WorthKeeping, για εσάς"
 
 #: core/templates/core/site_settings.html:37
 msgid "Appearance"
@@ -1723,13 +1735,17 @@ msgid "About the site"
 msgstr "Σχετικά με τον ιστότοπο"
 
 #: core/templates/core/site_settings.html:73
+#| msgid ""
+#| "Rememory is a place to keep the memories worth keeping — shared boards for "
+#| "photos, notes, videos and voice notes, built for the people who were "
+#| "actually there. No ads, no data selling — just your memories, on your terms."
 msgid ""
-"Rememory is a place to keep the memories worth keeping — shared boards for "
-"photos, notes, videos and voice notes, built for the people who were "
+"WorthKeeping is a place to keep the memories worth keeping — shared boards "
+"for photos, notes, videos and voice notes, built for the people who were "
 "actually there. No ads, no data selling — just your memories, on your terms."
 msgstr ""
-"Το Rememory είναι ένας χώρος για να κρατάτε τις αναμνήσεις που αξίζει να "
-"κρατήσετε — κοινόχρηστοι πίνακες για φωτογραφίες, σημειώσεις, βίντεο και "
+"Το WorthKeeping είναι ένας χώρος για να κρατάτε τις αναμνήσεις που αξίζει να"
+" κρατήσετε — κοινόχρηστοι πίνακες για φωτογραφίες, σημειώσεις, βίντεο και "
 "φωνητικά σημειώματα, φτιαγμένοι για τους ανθρώπους που ήταν πραγματικά εκεί."
 " Χωρίς διαφημίσεις, χωρίς πώληση δεδομένων — μόνο οι αναμνήσεις σας, με τους"
 " δικούς σας όρους."
@@ -1754,15 +1770,17 @@ msgstr "Προστεθήκατε στο «%(board)s»!"
 
 #: core/views.py:204
 #, python-format
-msgid "%(name)s accepted your friend invite and joined Rememory!"
+#| msgid "%(name)s accepted your friend invite and joined Rememory!"
+msgid "%(name)s accepted your friend invite and joined WorthKeeping!"
 msgstr ""
 "Ο/Η %(name)s αποδέχτηκε την πρόσκληση φιλίας σας και συμμετέχει πλέον στο "
-"Rememory!"
+"WorthKeeping!"
 
 #: core/views.py:209
 #, python-format
-msgid "Welcome to Rememory, %(name)s!"
-msgstr "Καλώς ήρθατε στο Rememory, %(name)s!"
+#| msgid "Welcome to Rememory, %(name)s!"
+msgid "Welcome to WorthKeeping, %(name)s!"
+msgstr "Καλώς ήρθατε στο WorthKeeping, %(name)s!"
 
 #: core/views.py:233
 msgid "Welcome back — your account is active again."
@@ -1992,12 +2010,15 @@ msgstr "Το αίτημα φιλίας στάλθηκε στον/στην %(name
 
 #: core/views.py:1796
 #, python-format
+#| msgid ""
+#| "%(email)s isn't on Rememory yet — we've emailed them an invite. You'll be "
+#| "friends automatically once they sign up."
 msgid ""
-"%(email)s isn't on Rememory yet — we've emailed them an invite. You'll be "
-"friends automatically once they sign up."
+"%(email)s isn't on WorthKeeping yet — we've emailed them an invite. You'll "
+"be friends automatically once they sign up."
 msgstr ""
-"Ο/Η %(email)s δεν είναι ακόμα στο Rememory — του/της στείλαμε πρόσκληση με "
-"email. Θα γίνετε φίλοι αυτόματα μόλις εγγραφεί."
+"Ο/Η %(email)s δεν είναι ακόμα στο WorthKeeping — του/της στείλαμε πρόσκληση "
+"με email. Θα γίνετε φίλοι αυτόματα μόλις εγγραφεί."
 
 #: core/views.py:1801
 #, python-format

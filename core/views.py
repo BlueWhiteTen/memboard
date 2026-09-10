@@ -201,12 +201,12 @@ def register_view(request):
                 notify_boards_visible_after_friendship(finv.from_user, user)
                 create_notification(
                     finv.from_user, user, 'friend_req',
-                    _('%(name)s accepted your friend invite and joined Rememory!') % {
+                    _('%(name)s accepted your friend invite and joined WorthKeeping!') % {
                         'name': get_display_name(user),
                     },
                 )
         login(request, user)
-        messages.success(request, _("Welcome to Rememory, %(name)s!") % {'name': user.first_name})
+        messages.success(request, _("Welcome to WorthKeeping, %(name)s!") % {'name': user.first_name})
         return redirect('home')
     return render(request, 'core/register.html', {'form': form, 'invite_token': invite_token})
 
@@ -902,7 +902,7 @@ def invite_by_email_view(request, pk):
     try:
         django_forms.EmailField().clean(email)
     except django_forms.ValidationError:
-        return JsonResponse({'ok': False, 'error': "No Rememory account found with that username. To invite someone new, enter their email address instead."}, status=404)
+        return JsonResponse({'ok': False, 'error': "No WorthKeeping account found with that username. To invite someone new, enter their email address instead."}, status=404)
 
     if group.members.filter(email__iexact=email).exists():
         return JsonResponse({'ok': False, 'error': 'That person is already a member of this board.'}, status=400)
@@ -1793,7 +1793,7 @@ def send_friend_request_view(request):
                 invite = FriendInvite.objects.create(from_user=request.user, email=email)
                 sent, err = send_friend_invite_email(request.user, email, invite.token)
                 if sent:
-                    messages.success(request, _("%(email)s isn't on Rememory yet — we've emailed them an invite. You'll be friends automatically once they sign up.") % {
+                    messages.success(request, _("%(email)s isn't on WorthKeeping yet — we've emailed them an invite. You'll be friends automatically once they sign up.") % {
                         'email': email,
                     })
                 else:
@@ -1901,7 +1901,7 @@ def my_profile_view(request):
 def site_settings_view(request):
     """Appearance (dark mode), language, and note font live here rather than
     scattered across the sidebar and the profile page — this is the one
-    place to change how Rememory looks and reads for you. The controls
+    place to change how WorthKeeping looks and reads for you. The controls
     themselves post to the same set_theme/set_language/set_font endpoints
     the old locations used; nothing about how a change is saved changed,
     only where the control lives."""
@@ -1971,7 +1971,7 @@ def delete_account_view(request):
 
     user.first_name = ''
     user.last_name  = ''
-    user.email    = f'deleted-{user.pk}@deleted.rememory.local'
+    user.email    = f'deleted-{user.pk}@deleted.worthkeeping.local'
     user.username = user.email
     user.is_active = False
     user.set_unusable_password()
@@ -2004,9 +2004,9 @@ def sw_view(request):
 def manifest_view(request):
     from django.http import JsonResponse
     manifest = {
-        "name": "Rememory",
-        "short_name": "Rememory",
-        "description": "For things worth remembering",
+        "name": "WorthKeeping",
+        "short_name": "WorthKeeping",
+        "description": "For the memories worth keeping",
         "start_url": "/",
         "display": "standalone",
         "background_color": "#EAE2CD",

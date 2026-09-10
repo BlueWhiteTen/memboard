@@ -1,5 +1,5 @@
-// Rememory Service Worker v8
-const CACHE_NAME = 'rememory-v8';
+// WorthKeeping Service Worker v8
+const CACHE_NAME = 'worthkeeping-v8';
 const OFFLINE_URL = '/static/core/offline.html';
 
 const PRECACHE_URLS = [
@@ -48,7 +48,7 @@ self.addEventListener('fetch', event => {
 // Push notifications
 self.addEventListener('push', event => {
   const data = event.data ? event.data.json() : {};
-  const title   = data.title   || 'Rememory';
+  const title   = data.title   || 'WorthKeeping';
   const options = {
     body:    data.body    || 'You have a new notification',
     icon:    '/static/core/icon-192.png',

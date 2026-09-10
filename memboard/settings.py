@@ -84,7 +84,7 @@ TIME_ZONE     = 'UTC'
 USE_I18N      = True
 USE_TZ        = True
 
-# Languages Rememory has translations for — add a new (code, "Native name")
+# Languages WorthKeeping has translations for — add a new (code, "Native name")
 # pair here once its locale/<code>/LC_MESSAGES/django.po is translated.
 LANGUAGES = [
     ('en', 'English'),

@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>{{ memory.title|default:_("A memory") }} — Rememory</title>
+<title>{{ memory.title|default:_("A memory") }} — WorthKeeping</title>
 <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -83,7 +83,7 @@ body {
         {% endif %}
         <div class="board-link">{% blocktrans %}From the board "{{ group.name }}"{% endblocktrans %}</div>
     </div>
-    <div class="footer-note">{% trans "Shared from Rememory" %}</div>
+    <div class="footer-note">{% trans "Shared from WorthKeeping" %}</div>
     {% url 'login' as login_url %}
     <div class="login-note">{% blocktrans %}Have an account? <a href="{{ login_url }}">Log in</a> to see this on the website.{% endblocktrans %}</div>
 </div>
