@@ -248,6 +248,14 @@ def logout_view(request):
 
 # ── Home ──────────────────────────────────────────────────────────────────────
 
+def home_router_view(request):
+    """'/' — signed-in users get their boards (home_view); everyone else gets
+    the public landing page instead of being bounced straight to the login form."""
+    if request.user.is_authenticated:
+        return home_view(request)
+    return render(request, 'core/landing.html')
+
+
 @login_required
 def home_view(request):
     user = request.user
