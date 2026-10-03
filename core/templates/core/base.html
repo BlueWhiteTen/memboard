@@ -152,6 +152,10 @@
             top: 0;
             height: 100vh;
             overflow-y: auto;
+            /* UI font applies to everything in the sidebar by default; the
+               wordmark (.sidebar-logo-text) opts back into Spectral below,
+               since it's the one thing in here that should stay serif. */
+            font-family: var(--font-ui);
         }
 
         .sidebar-logo {
