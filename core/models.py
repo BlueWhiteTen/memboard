@@ -76,6 +76,7 @@ class FriendGroup(models.Model):
 
 FONT_CHOICES = [
     ('dm_sans',       'DM Sans'),
+    ('comfortaa',     'Comfortaa'),
     ('lora',          'Lora'),
     ('caveat',        'Caveat'),
     ('courier_prime', 'Courier Prime'),
@@ -157,6 +158,7 @@ PROFILE_VISIBILITY_CHOICES = [
 
 FONT_CSS = {
     'dm_sans':       "'DM Sans', sans-serif",
+    'comfortaa':     "'Comfortaa', sans-serif",
     'lora':          "'Lora', serif",
     'caveat':        "'Caveat', cursive",
     'courier_prime': "'Courier Prime', monospace",
@@ -213,6 +215,11 @@ class UserProfile(models.Model):
     push_p256dh    = models.TextField(blank=True)
     push_auth      = models.TextField(blank=True)
     weekly_digest  = models.BooleanField(default=True)
+
+    # Which in-app notifications also get emailed — on top of (not instead
+    # of) the bell-icon notification, which always happens regardless.
+    email_on_comment       = models.BooleanField(default=False)
+    email_on_friend_request = models.BooleanField(default=False)
     theme          = models.CharField(max_length=10, choices=THEME_CHOICES, default='light')
 
     # Powers the "Since your last visit" panel on the home page: set to now
@@ -225,6 +232,10 @@ class UserProfile(models.Model):
     # per-user rather than per-board, since two people sharing a board may
     # each want it sorted differently.
     board_sort_mode = models.CharField(max_length=15, choices=BOARD_SORT_CHOICES, default='recent')
+
+    # Pre-selected privacy option on the "New Board" form — purely a
+    # convenience default, doesn't restrict what the user can pick per board.
+    default_board_privacy = models.CharField(max_length=12, choices=PRIVACY_CHOICES, default='members')
 
     # Disable = "close for a bit": reversible, nothing is touched besides
     # this flag. Delete = permanent: the account is scrubbed and locked, but

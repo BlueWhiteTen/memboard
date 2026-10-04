@@ -63,8 +63,47 @@
         <div class="font-picker">
             {% for key, label in font_choices %}
             <button type="button" class="font-btn {% if current_font == key %}active{% endif %}" onclick="setNoteFont('{{ key }}', this)"
-                    style="font-family:{% if key == 'dm_sans' %}'DM Sans',sans-serif{% elif key == 'lora' %}'Lora',serif{% elif key == 'caveat' %}'Caveat',cursive{% elif key == 'courier_prime' %}'Courier Prime',monospace{% elif key == 'patrick_hand' %}'Patrick Hand',cursive{% endif %}">{{ label }}</button>
+                    style="font-family:{% if key == 'dm_sans' %}'DM Sans',sans-serif{% elif key == 'comfortaa' %}'Comfortaa',sans-serif{% elif key == 'lora' %}'Lora',serif{% elif key == 'caveat' %}'Caveat',cursive{% elif key == 'courier_prime' %}'Courier Prime',monospace{% elif key == 'patrick_hand' %}'Patrick Hand',cursive{% endif %}">{{ label }}</button>
             {% endfor %}
+        </div>
+    </div>
+
+    <div class="section-title">{% trans "Default board privacy" %}</div>
+    <div class="info-card">
+        <p class="hint">{% trans "Who new boards are shared with by default — you can still change it per board when creating one." %}</p>
+        <div class="language-row">
+            <span>🔒 {% trans "Default privacy" %}</span>
+            <select class="language-select" onchange="setDefaultBoardPrivacy(this.value)">
+                {% for key, label in privacy_choices %}
+                <option value="{{ key }}" {% if current_default_privacy == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class="section-title">{% trans "Email notifications" %}</div>
+    <div class="info-card">
+        <p class="hint">{% trans "These are on top of the bell-icon notifications, which always happen." %}</p>
+        <div class="theme-toggle-row">
+            <span>📰 {% trans "Weekly digest" %}</span>
+            <label class="theme-switch">
+                <input type="checkbox" {% if weekly_digest %}checked{% endif %} onchange="setEmailNotification('weekly_digest', this.checked)">
+                <span class="theme-slider"></span>
+            </label>
+        </div>
+        <div class="theme-toggle-row">
+            <span>💬 {% trans "Comments on your memories" %}</span>
+            <label class="theme-switch">
+                <input type="checkbox" {% if email_on_comment %}checked{% endif %} onchange="setEmailNotification('email_on_comment', this.checked)">
+                <span class="theme-slider"></span>
+            </label>
+        </div>
+        <div class="theme-toggle-row" style="margin-bottom:0;">
+            <span>🤝 {% trans "Friend requests" %}</span>
+            <label class="theme-switch">
+                <input type="checkbox" {% if email_on_friend_request %}checked{% endif %} onchange="setEmailNotification('email_on_friend_request', this.checked)">
+                <span class="theme-slider"></span>
+            </label>
         </div>
     </div>
 
@@ -90,6 +129,22 @@ function setNoteFont(font, btn) {
     }).then(() => {
         document.querySelectorAll('.font-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+    });
+}
+
+function setDefaultBoardPrivacy(privacy) {
+    fetch("{% url 'set_default_board_privacy' %}", {
+        method: 'POST',
+        headers: {'X-CSRFToken': THEME_CSRF, 'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'privacy=' + privacy
+    });
+}
+
+function setEmailNotification(field, checked) {
+    fetch("{% url 'set_email_notification' %}", {
+        method: 'POST',
+        headers: {'X-CSRFToken': THEME_CSRF, 'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'field=' + field + '&value=' + (checked ? '1' : '0')
     });
 }
 </script>

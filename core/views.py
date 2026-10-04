@@ -34,7 +34,7 @@ from .forms import (
 )
 from .email_utils import (
     send_invite_email, send_friend_invite_email, send_problem_report_email,
-    send_memory_report_email,
+    send_memory_report_email, send_notification_email,
 )
 from django.core import files as django_files
 from .on_this_day import get_on_this_day_memories
@@ -94,6 +94,16 @@ def get_user_stats(user):
     }
 
 
+#: in-app notification types that can additionally be emailed, mapped to the
+#: UserProfile boolean field that opts a user into that email. The bell-icon
+#: notification itself always happens regardless of these settings — this
+#: only controls whether it's *also* emailed.
+EMAIL_NOTIFICATION_TYPES = {
+    'comment':    'email_on_comment',
+    'friend_req': 'email_on_friend_request',
+}
+
+
 def create_notification(recipient, actor, notif_type, text, memory=None, group=None):
     if recipient == actor:
         return
@@ -101,6 +111,11 @@ def create_notification(recipient, actor, notif_type, text, memory=None, group=N
         recipient=recipient, actor=actor, notif_type=notif_type,
         text=text, memory=memory, group=group,
     )
+    profile_field = EMAIL_NOTIFICATION_TYPES.get(notif_type)
+    if profile_field:
+        profile = getattr(recipient, 'profile', None)
+        if profile is not None and getattr(profile, profile_field, False):
+            send_notification_email(recipient, _('WorthKeeping: %(text)s') % {'text': text}, text)
 
 
 def log_activity(group, actor, action_type, description, memory=None):
@@ -473,7 +488,8 @@ def create_group_view(request):
             messages.success(request, _('Board "%(board)s" created!') % {'board': group.name})
             return redirect('group_detail', pk=group.pk)
     else:
-        form = GroupForm(owner=user)
+        profile, _created = UserProfile.objects.get_or_create(user=user)
+        form = GroupForm(owner=user, initial={'privacy': profile.default_board_privacy})
     return render(request, 'core/create_group.html', {
         'form': form, 'friends': friends, 'friend_groups': friend_groups,
         'user_initials': get_initials(user),
@@ -492,6 +508,14 @@ def group_detail_view(request, pk):
     sort = request.GET.get('sort', 'newest')
     if sort not in ('newest', 'oldest', 'alphabetical'):
         sort = 'newest'
+
+    # Memory layout: the usual masonry grid of cards, or a full-width list
+    # (one row per memory, photo on the left, everything else to its right).
+    # Kept as a plain GET param (like `sort` above) rather than a stored
+    # preference — it's a per-visit display choice, not an account setting.
+    view_mode = request.GET.get('view', 'grid')
+    if view_mode not in ('grid', 'list'):
+        view_mode = 'grid'
 
     # Filters — person tagged/created, colour, and a memory-date range.
     # Invalid/unparseable values are just dropped rather than erroring, so a
@@ -636,6 +660,7 @@ def group_detail_view(request, pk):
         'group':            group,
         'memories':         memories,
         'current_sort':     sort,
+        'current_view':     view_mode,
         'filter_person':    filter_person,
         'filter_colour':    filter_colour,
         'filter_from':      filter_from,
@@ -721,6 +746,36 @@ def set_theme_view(request):
             profile, _created = UserProfile.objects.get_or_create(user=request.user)
             profile.theme = theme
             profile.save(update_fields=['theme'])
+            return JsonResponse({'ok': True})
+    return JsonResponse({'ok': False}, status=400)
+
+
+@login_required
+def set_default_board_privacy_view(request):
+    if request.method == 'POST':
+        privacy = request.POST.get('privacy', 'members')
+        valid = [p[0] for p in PRIVACY_CHOICES]
+        if privacy in valid:
+            profile, _created = UserProfile.objects.get_or_create(user=request.user)
+            profile.default_board_privacy = privacy
+            profile.save(update_fields=['default_board_privacy'])
+            return JsonResponse({'ok': True})
+    return JsonResponse({'ok': False}, status=400)
+
+
+@login_required
+def set_email_notification_view(request):
+    """One endpoint for every email-notification toggle in Site Settings —
+    `field` names the UserProfile boolean field to flip, `value` is '1'/'0'.
+    Kept generic rather than one view per toggle since the set only grows."""
+    if request.method == 'POST':
+        field = request.POST.get('field', '')
+        value = request.POST.get('value', '') == '1'
+        allowed = {'weekly_digest', 'email_on_comment', 'email_on_friend_request'}
+        if field in allowed:
+            profile, _created = UserProfile.objects.get_or_create(user=request.user)
+            setattr(profile, field, value)
+            profile.save(update_fields=[field])
             return JsonResponse({'ok': True})
     return JsonResponse({'ok': False}, status=400)
 
@@ -2008,6 +2063,11 @@ def site_settings_view(request):
         'user_display':  get_display_name(request.user),
         'font_choices':  FONT_CHOICES,
         'current_font':  profile.note_font,
+        'privacy_choices':        PRIVACY_CHOICES,
+        'current_default_privacy': profile.default_board_privacy,
+        'weekly_digest':           profile.weekly_digest,
+        'email_on_comment':        profile.email_on_comment,
+        'email_on_friend_request': profile.email_on_friend_request,
     })
 
 

@@ -123,6 +123,30 @@
 .memory-card.has-photo .memory-photo-col { flex: 0 0 25%; max-width: 25%; position: relative; overflow: hidden; }
 .memory-card.has-photo .memory-photo-col .memory-photo { width: 100%; height: 100%; max-height: none; }
 .memory-card.has-photo .memory-inner { flex: 1 1 auto; min-width: 0; }
+
+/* List view — one full-width row per memory instead of the masonry grid
+   above: photo (fixed-width column) on the left, everything else filling
+   the rest of the row to its right. Reuses .memory-card/.has-photo/
+   .memory-photo-col as-is; this block only overrides what needs to change
+   (single column, auto height, no text clamp, no hover zoom). */
+.memories-grid.list-view { columns: 1; }
+.memories-grid.list-view .memory-wrapper { margin-bottom: 0.75rem; }
+.memories-grid.list-view .memory-card {
+    height: auto; min-height: 120px;
+    display: flex; align-items: stretch;
+}
+.memories-grid.list-view .memory-card:hover { transform: none; }
+.memories-grid.list-view .memory-card.has-photo .memory-photo-col {
+    flex: 0 0 220px; max-width: 220px;
+}
+.memories-grid.list-view .memory-photo { max-height: none; }
+.memories-grid.list-view .memory-inner { flex: 1 1 auto; min-width: 0; padding: 0.9rem 1.1rem; }
+.memories-grid.list-view .card-content-clamp { display: block; -webkit-line-clamp: unset; overflow: visible; }
+.memories-grid.list-view .see-more-btn { display: none; }
+@media(max-width:680px){
+    .memories-grid.list-view .memory-card.has-photo { flex-direction: column; }
+    .memories-grid.list-view .memory-card.has-photo .memory-photo-col { flex: 0 0 160px; max-width: none; width: 100%; }
+}
 /* The card is now plain parchment (see .memory-card), so its text follows
    the normal theme ink tokens like the rest of the site instead of being
    pinned to a fixed dark color for contrast against a bright note color. */
@@ -285,6 +309,12 @@
 .sort-label { display:inline-flex; align-items:center; gap:0.4rem; font-size:0.8rem; color:var(--ink-muted); font-weight:500; }
 .sort-select { padding:0.4rem 0.6rem; border:1px solid var(--border); border-radius: var(--radius); background:var(--warm-white); font-family:inherit; font-size:0.82rem; color:var(--ink); cursor:pointer; }
 .board-toolbar { display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem; }
+
+.view-toggle { display:flex; border:1px solid var(--border-strong); border-radius: var(--radius); overflow:hidden; }
+.view-toggle-btn { background:var(--warm-white); border:none; padding:0.4rem 0.65rem; font-size:1rem; line-height:1; color:var(--ink-muted); cursor:pointer; transition:all 0.12s; }
+.view-toggle-btn + .view-toggle-btn { border-left:1px solid var(--border-strong); }
+.view-toggle-btn.active { background:var(--amber); color:var(--warm-white); }
+.view-toggle-btn:hover:not(.active) { background:var(--amber-pale); }
 .toolbar-right { display:flex; align-items:center; gap:0.5rem; margin-left:auto; }
 .board-search-input { padding:0.4rem 0.6rem; font-size:0.82rem; width:180px; border-radius: var(--radius); }
 .memory-share-row { margin-bottom:0.85rem; padding:0.6rem 0.7rem; border:1px solid var(--border); background:var(--warm-white); }
@@ -445,12 +475,19 @@
                 </select>
             </label>
             {% endif %}
+            {% if memories or filters_active %}
+            <div class="view-toggle" role="group" aria-label="{% trans "Memory layout" %}">
+                <button type="button" class="view-toggle-btn {% if current_view == 'grid' %}active{% endif %}" onclick="changeView('grid')" title="{% trans "Grid view" %}">▦</button>
+                <button type="button" class="view-toggle-btn {% if current_view == 'list' %}active{% endif %}" onclick="changeView('list')" title="{% trans "List view" %}">☰</button>
+            </div>
+            {% endif %}
             <button type="button" class="toolbar-btn" onclick="surpriseMe()">🎲 {% trans "Surprise me" %}</button>
             <a class="toolbar-btn" href="{% url 'export_board' group.pk %}" style="display:none;">⬇️ {% trans "Export board" %}</a>
 
             <div class="toolbar-right">
                 <form method="get" class="board-search-form" style="display:flex;align-items:center;">
                     <input type="hidden" name="sort" value="{{ current_sort }}">
+                    <input type="hidden" name="view" value="{{ current_view }}">
                     {% if filter_person %}<input type="hidden" name="person" value="{{ filter_person }}">{% endif %}
                     {% if filter_colour %}<input type="hidden" name="colour" value="{{ filter_colour }}">{% endif %}
                     {% if filter_from %}<input type="hidden" name="date_from" value="{{ filter_from }}">{% endif %}
@@ -472,6 +509,7 @@
         <!-- Filters (toggled via the 🔍 Filters button above) -->
         <form method="get" class="filters-bar" id="filters-panel" style="display:{% if filters_active %}flex{% else %}none{% endif %};">
             <input type="hidden" name="sort" value="{{ current_sort }}">
+            <input type="hidden" name="view" value="{{ current_view }}">
             {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
             <label class="filter-field">
                 <span class="filter-label">{% trans "Person" %}</span>
@@ -501,12 +539,12 @@
             </label>
             <button type="submit" class="btn btn-primary btn-sm">{% trans "Filter" %}</button>
             {% if filters_active %}
-            <a href="?sort={{ current_sort }}" class="btn btn-ghost btn-sm">{% trans "Clear filters" %}</a>
+            <a href="?sort={{ current_sort }}&view={{ current_view }}" class="btn btn-ghost btn-sm">{% trans "Clear filters" %}</a>
             {% endif %}
         </form>
 
         {% if memories %}
-        <div class="memories-grid" id="memories-container" style="font-family:{{ note_font }};">
+        <div class="memories-grid {% if current_view == 'list' %}list-view{% endif %}" id="memories-container" style="font-family:{{ note_font }};">
             {% for memory in memories %}
             <div class="memory-wrapper">
             <div class="memory-card {% if memory.is_pinned %}pinned{% endif %} {% if memory.card_photo_url %}has-photo{% endif %}"
@@ -1012,6 +1050,13 @@ const MAP_MEMORIES = {{ map_memories|safe }};
 function changeSort(value) {
     const url = new URL(window.location.href);
     url.searchParams.set('sort', value);
+    window.location.href = url.toString();
+}
+
+// Grid/list layout toggle — same reload-with-query-param pattern as sort.
+function changeView(value) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('view', value);
     window.location.href = url.toString();
 }
 
