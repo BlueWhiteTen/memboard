@@ -621,6 +621,10 @@ def group_detail_view(request, pk):
         else:
             memory.card_photo_url   = None
             memory.extra_photo_count = 0
+        # Photos peeking out behind the card thumbnail (stack effect) and the
+        # total photo count shown in the card's corner badge.
+        memory.photo_total = memory.extra_photo_count + (1 if memory.card_photo_url else 0)
+        memory.stack_urls = [u for u in all_urls if u != memory.card_photo_url][:2]
 
     other_members = annotate_users(list(group.members.exclude(pk=user.pk)))
     all_members   = annotate_users(list(group.members.all()))

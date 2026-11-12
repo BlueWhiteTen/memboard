@@ -353,7 +353,15 @@
 .lightbox-close:hover { background: rgba(255,255,255,0.22); }
 .memory-photo { cursor: zoom-in; }
 .memory-photo-wrap { position: relative; }
-.photo-count-badge { position:absolute; bottom:8px; right:8px; background:rgba(23,23,26,0.72); color:#fff; font-size:0.68rem; font-weight:700; padding:1px 7px; border-radius:10px; pointer-events:none; }
+.photo-count-badge { position:absolute; top:8px; right:8px; z-index:5; display:flex; align-items:center; gap:4px; background:rgba(23,23,26,0.78); color:#fff; font-size:0.72rem; font-weight:700; padding:3px 9px 3px 7px; border-radius:999px; pointer-events:none; }
+.photo-count-badge svg { width:13px; height:13px; }
+/* Several photos: the thumbnail sits on top of up to two more, tilted so
+   their edges peek out behind it (like a small pile of prints). */
+.memory-card.has-photo .memory-photo-col.multi { overflow: visible; }
+.memory-photo-col.multi .photo-layer { position:absolute; left:0; top:0; width:100%; height:100%; object-fit:cover; border-radius:var(--radius); border:3px solid var(--warm-white); box-shadow:0 2px 6px rgba(23,23,26,0.3); pointer-events:none; }
+.memory-photo-col.multi .layer-1 { transform: rotate(-5deg) translate(-6px,3px); z-index:1; filter:brightness(.8); }
+.memory-photo-col.multi .layer-2 { transform: rotate(4deg) translate(5px,2px); z-index:2; filter:brightness(.9); }
+.memory-photo-col.multi .memory-photo { position:relative; z-index:3; border:3px solid var(--warm-white); box-shadow:0 2px 8px rgba(23,23,26,0.35); }
 
 /* Trash / recycle bin */
 .trash-item { display:flex; gap:0.75rem; align-items:center; padding:0.75rem; background:var(--warm-white); border:1px solid var(--border); border-radius: var(--radius); margin-bottom:0.6rem; }
@@ -656,9 +664,10 @@
                 {% endif %}
                 {% if memory.is_pinned %}<span class="pin-badge" title="{% trans "Pinned" %}">📌</span>{% endif %}
                 {% if memory.card_photo_url %}
-                <div class="memory-photo-col">
+                <div class="memory-photo-col{% if memory.extra_photo_count > 0 %} multi{% endif %}">
+                    {% for u in memory.stack_urls reversed %}{% if memory.extra_photo_count > 0 %}<img src="{{ u }}" alt="" class="photo-layer layer-{{ forloop.revcounter }}" loading="lazy" aria-hidden="true">{% endif %}{% endfor %}
                     <img src="{{ memory.card_photo_url }}" alt="" class="memory-photo">
-                    {% if memory.extra_photo_count > 0 %}<span class="photo-count-badge">+{{ memory.extra_photo_count }}</span>{% endif %}
+                    {% if memory.extra_photo_count > 0 %}<span class="photo-count-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="7" y="7" width="13" height="13" rx="2.5"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/></svg>{{ memory.photo_total }}</span>{% endif %}
                 </div>
                 {% endif %}
                 <div class="memory-inner">
