@@ -378,23 +378,86 @@
 
 /* Memory view modal (opened by clicking a memory card) */
 .memory-card { cursor: pointer; }
-.memory-view-modal-box { max-width: 900px; width: 92%; padding: 0; overflow: hidden; position: relative; }
-.memory-view-body { display: flex; max-height: 88vh; }
+.memory-view-modal-box { max-width: 900px; width: 92%; padding: 0; overflow: hidden; position: relative; display: flex; flex-direction: column; max-height: 92vh; }
+.memory-view-modal-box.mv-wide { max-width: 1040px; }
+#memory-view-content { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; }
+.memory-view-body { display: flex; flex: 1 1 auto; min-height: 0; }
 .memory-view-body.no-photo { flex-direction: column; }
-.memory-view-photo-col { flex: 1 1 50%; background: #17171a; display: flex; flex-direction: column; align-items: center; overflow-y: auto; max-height: 88vh; }
-.memory-view-photo-col img { width: 100%; max-height: 88vh; object-fit: contain; cursor: zoom-in; flex-shrink: 0; }
+.memory-view-photo-col { flex: 1 1 50%; background: #17171a; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
+.memory-view-photo-col img { width: 100%; max-height: 80vh; object-fit: contain; cursor: zoom-in; flex-shrink: 0; }
 .memory-view-photo-col img:not(:first-child) { border-top: 2px solid #17171a; }
-.memory-view-info-col { flex: 1 1 50%; padding: 2rem 1.75rem 1.75rem; overflow-y: auto; max-height: 88vh; position: relative; background: var(--warm-white); }
+.memory-view-info-col { flex: 1 1 50%; padding: 2rem 1.75rem 1.75rem; overflow-y: auto; position: relative; background: var(--warm-white); }
 .memory-view-info-col .memory-tape { top: 10px; left: 1.75rem; margin-left: 0; }
 .memory-view-body.no-photo .memory-view-info-col { flex: 1 1 100%; }
-.memory-view-info-col .memory-title { font-size: 1.35rem; margin-bottom: 0.6rem; }
 .memory-view-info-col .memory-content { font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem; white-space: pre-wrap; }
-.memory-view-created { font-size: 0.72rem; color: rgba(23,23,26,0.55); margin-bottom: 0.75rem; }
+.memory-view-created { font-size: 0.72rem; color: var(--ink-muted); margin-bottom: 0.75rem; }
 .memory-view-media { margin-bottom: 0.85rem; display:flex; flex-direction:column; gap:0.5rem; }
 .memory-view-video { width:100%; max-height:320px; background:#000; }
 .memory-view-audio { width:100%; }
 .memory-view-comments { border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 0.5rem; }
 .memory-view-comments-list { max-height: 240px; overflow-y: auto; margin-bottom: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; }
+
+/* Memory pop-up header row: title + who/when/where on the left, the ⋯ menu and
+   the close button side by side on the right — in normal flow, so the menu's
+   dropdown (which opens downwards here) can never land on top of the close
+   button. */
+.mv-head { display: flex; align-items: flex-start; gap: 1rem; padding: 1.1rem 1.4rem 0.9rem; border-bottom: 1px solid var(--border); position: relative; z-index: 4; background: var(--warm-white); flex: 0 0 auto; }
+.mv-titlewrap { flex: 1 1 auto; min-width: 0; }
+.mv-title { font-size: 1.3rem; font-weight: 700; margin: 0 0 0.25rem; color: var(--ink); overflow-wrap: anywhere; }
+.mv-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 0.2rem 0.75rem; font-size: 0.74rem; color: var(--ink-muted); }
+.mv-sub .memory-meta, .mv-sub > * { margin: 0; }
+.mv-actions { display: flex; align-items: center; gap: 0.45rem; flex: 0 0 auto; }
+.mv-close, .mv-menu .mem-menu-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border-strong); background: var(--cream); color: var(--ink-light); cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; line-height: 1; padding: 0; }
+.mv-menu .mem-menu-btn { font-size: 1.15rem; }
+.mv-close:hover, .mv-menu .mem-menu-btn:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-pale); }
+.mv-menu.mem-menu { position: relative; right: auto; bottom: auto; }
+.mv-menu .mem-menu-dropdown { top: calc(100% + 0.4rem); bottom: auto; right: 0; border-radius: var(--radius); overflow: hidden; }
+
+/* Photo viewer (memories with 2+ photos) */
+.mv-toolbar { display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem 1.4rem; border-bottom: 1px solid var(--border); font-size: 0.78rem; color: var(--ink-muted); flex: 0 0 auto; }
+.mv-seg { display: inline-flex; margin-left: auto; border: 1px solid var(--border-strong); border-radius: var(--radius); overflow: hidden; }
+.mv-seg button { background: var(--cream); border: none; padding: 0.4rem 0.8rem; font-family: inherit; font-size: 0.78rem; color: var(--ink); cursor: pointer; }
+.mv-seg button + button { border-left: 1px solid var(--border-strong); }
+.mv-seg button.on { background: var(--amber); color: var(--on-amber); }
+.mv-body { display: flex; flex: 1 1 auto; min-height: 0; }
+.mv-viewer { flex: 1 1 62%; min-width: 0; background: #17171a; display: flex; flex-direction: column; padding: 1rem; gap: 0.8rem; }
+.mv-stage { position: relative; flex: 1 1 auto; min-height: 280px; display: flex; align-items: center; justify-content: center; border-radius: 12px; overflow: hidden; }
+.mv-stage > img { max-width: 100%; max-height: 100%; width: 100%; height: 100%; object-fit: contain; cursor: zoom-in; position: absolute; inset: 0; }
+.mv-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%; border: none; background: rgba(20,20,26,0.62); color: #fff; font-size: 1.3rem; cursor: pointer; z-index: 2; line-height: 1; }
+.mv-arrow:hover { background: rgba(20,20,26,0.88); }
+.mv-arrow.prev { left: 12px; } .mv-arrow.next { right: 12px; }
+.mv-counter { position: absolute; left: 12px; top: 12px; background: rgba(20,20,26,0.62); color: #fff; font-size: 0.72rem; padding: 0.25rem 0.6rem; border-radius: 99px; z-index: 2; }
+.mv-strip { display: flex; gap: 0.5rem; overflow-x: auto; padding: 4px 2px 6px; flex: 0 0 auto; scrollbar-width: thin; }
+.mv-thumb { flex: 0 0 76px; height: 56px; border-radius: 8px; border: 2px solid transparent; padding: 0; position: relative; cursor: pointer; opacity: 0.7; overflow: hidden; background: #2a2a30; transition: opacity 0.12s; }
+.mv-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mv-thumb:hover { opacity: 1; }
+.mv-thumb.active { border-color: var(--amber); opacity: 1; box-shadow: 0 0 0 2px var(--amber-pale); }
+.mv-thumb .cc, .mv-gt .cc { position: absolute; right: 3px; bottom: 3px; background: rgba(20,20,26,0.78); color: #fff; font-size: 0.58rem; border-radius: 99px; padding: 0 5px; }
+.mv-side { flex: 1 1 38%; min-width: 280px; max-width: 390px; display: flex; flex-direction: column; border-left: 1px solid var(--border); min-height: 0; background: var(--warm-white); }
+.mv-side-scroll { flex: 1 1 auto; overflow-y: auto; padding: 1.1rem 1.3rem; min-height: 0; }
+.mv-side .memory-view-comments { margin-top: 0.25rem; }
+.mv-side .memory-view-comments-list { max-height: none; overflow: visible; }
+.mv-tabs { display: flex; gap: 1rem; margin-bottom: 0.7rem; border-bottom: 1px solid var(--border); }
+.mv-tabs button { background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: 0.2rem 0 0.45rem; font-family: inherit; font-size: 0.8rem; font-weight: 700; color: var(--ink-muted); cursor: pointer; }
+.mv-tabs button.on { color: var(--ink); border-bottom-color: var(--amber); }
+.mv-tabs button span { font-weight: 400; }
+.mv-cform { flex: 0 0 auto; padding: 0.8rem 1.3rem; border-top: 1px solid var(--border); background: var(--warm-white); }
+.mv-cform .comment-form { margin-top: 0; }
+.mv-gridwrap { display: none; flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 1.2rem 1.4rem; background: #17171a; }
+.mv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.7rem; }
+.mv-gt { aspect-ratio: 1; border: none; border-radius: 12px; padding: 0; position: relative; overflow: hidden; cursor: pointer; background: #2a2a30; transition: transform 0.12s; }
+.mv-gt img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mv-gt:hover { transform: scale(1.03); }
+.mv-gt .cc { right: 7px; top: 7px; bottom: auto; font-size: 0.65rem; }
+.mv-mode-grid .mv-body { display: none; }
+.mv-mode-grid .mv-gridwrap { display: block; }
+@media (max-width: 760px) {
+    .mv-body, .memory-view-body { flex-direction: column; overflow-y: auto; }
+    .mv-side { max-width: none; border-left: none; border-top: 1px solid var(--border); }
+    .mv-side-scroll { overflow: visible; }
+    .mv-stage { min-height: 240px; }
+    .mv-head { padding: 0.9rem 1rem 0.75rem; }
+}
 
 /* Fonts */
 
@@ -553,6 +616,7 @@
                  data-video-url="{% if memory.video %}{{ memory.video.url }}{% endif %}"
                  data-voice-url="{% if memory.voice_note %}{{ memory.voice_note.url }}{% endif %}"
                  data-photo-urls='{{ memory.photo_urls_json }}'
+                 data-photos='{{ memory.photos_json }}'
                  data-can-share="{% if memory.user_can_share %}1{% else %}0{% endif %}"
                  data-share-url="{{ memory.share_url }}"
                  data-colour="{{ memory.colour }}"
@@ -898,7 +962,6 @@
      photo is present, title-then-comments stacked when it isn't) -->
 <div class="modal-overlay" id="memory-view-modal" onclick="if(event.target===this) closeMemoryView()">
 <div class="modal memory-view-modal-box">
-    <button class="modal-close" style="position:absolute;top:0.85rem;right:0.85rem;z-index:1;" onclick="closeMemoryView()">✕</button>
     <div id="memory-view-content"><!-- populated by JS from the clicked card --></div>
 </div>
 </div>
@@ -1042,6 +1105,18 @@
 {% trans "Thanks — we'll take a look." as i18n_report_thanks %}
 <script>
 const CSRF = '{{ csrf_token }}';
+{% trans "Close" as t_close %}{% trans "Write a comment…" as t_comment %}{% trans "Comment on this photo…" as t_cphoto %}{% trans "Comment on this memory…" as t_cmem %}
+{% trans "Send" as t_send %}{% trans "photos" as t_photos %}{% trans "Viewer" as t_viewer %}{% trans "All photos" as t_all %}
+{% trans "Previous photo" as t_prev %}{% trans "Next photo" as t_next %}{% trans "This photo" as t_this %}{% trans "Memory" as t_memory %}
+{% trans "No comments on this photo yet." as t_nop %}{% trans "No comments on this memory yet." as t_nom %}{% trans "No comments yet." as t_noc %}
+// Strings used by the memory pop-up / photo viewer (built in JS, so translated here)
+const MVT = {
+    close: "{{ t_close|escapejs }}", comment: "{{ t_comment|escapejs }}", commentPhoto: "{{ t_cphoto|escapejs }}",
+    commentMemory: "{{ t_cmem|escapejs }}", send: "{{ t_send|escapejs }}", photos: "{{ t_photos|escapejs }}",
+    viewer: "{{ t_viewer|escapejs }}", allPhotos: "{{ t_all|escapejs }}", prev: "{{ t_prev|escapejs }}",
+    next: "{{ t_next|escapejs }}", thisPhoto: "{{ t_this|escapejs }}", memory: "{{ t_memory|escapejs }}",
+    noPhotoComments: "{{ t_nop|escapejs }}", noMemoryComments: "{{ t_nom|escapejs }}", noComments: "{{ t_noc|escapejs }}",
+};
 const GROUP_PK = {{ group.pk }};
 const MAP_MEMORIES = {{ map_memories|safe }};
 
@@ -1617,6 +1692,7 @@ function deleteComment(commentId) {
         const memPk = inlineSection ? inlineSection.id.replace('comments-', '') :
                       (modal && modal.classList.contains('open') ? modal.dataset.memPk : null);
         wrap.remove();
+        if (!inlineSection) mvOnDelete();   // deleted from inside the photo viewer
         if (memPk) {
             const countEl = document.querySelector(`#memory-${memPk} .comment-count`);
             if (countEl) countEl.textContent = Math.max(0, (parseInt(countEl.textContent, 10) || 0) - 1);
@@ -1708,12 +1784,18 @@ function openMemoryView(memPk, evt) {
     const metaEl    = card.querySelector('.memory-meta');
     const tagsEl    = card.querySelector('.tagged-list');
     // Primary photo first, then any additional photos (e.g. from a trip) —
-    // read from the card's data attribute rather than the DOM, since the
+    // read from the card's data attributes rather than the DOM, since the
     // card thumbnail may be showing a fallback (an extra photo) rather than
-    // the primary one.
+    // the primary one. `data-photos` also carries each photo's comment key
+    // and comment count, for the photo viewer below.
     let photoUrls = [];
     try { photoUrls = JSON.parse(card.dataset.photoUrls || '[]'); } catch (e) { photoUrls = []; }
+    let photos = [];
+    try { photos = JSON.parse(card.dataset.photos || '[]'); } catch (e) { photos = []; }
     const hasPhoto  = photoUrls.length > 0;
+    // Two or more photos get the viewer (big photo + filmstrip + per-photo
+    // comments); a single photo or none keeps the simpler two-column layout.
+    const useViewer = photos.length >= 2 && photos.every(p => p.k);
 
     // The card shows the creator as an initials circle (compact); this
     // bigger view has room to spell out the full name instead.
@@ -1776,7 +1858,9 @@ function openMemoryView(memPk, evt) {
     // rules stay in one place (the template). Only the dropdown's id and
     // the toggle button's onclick are rewritten, since the card's own copy
     // of the menu is still in the DOM underneath this modal and two
-    // elements can't share an id.
+    // elements can't share an id. In the modal the menu sits in the header
+    // row next to the close button (see .mv-menu) and its dropdown opens
+    // downwards, so it can't collide with the close button.
     const menuSrc = card.querySelector('.mem-menu');
     let menuHtml = '';
     if (menuSrc) {
@@ -1786,55 +1870,193 @@ function openMemoryView(memPk, evt) {
         if (dropdown) dropdown.id = modalDropdownId;
         const toggleBtn = menuClone.querySelector('.mem-menu-btn');
         if (toggleBtn) toggleBtn.setAttribute('onclick', `toggleMemMenu(${memPk}, event, '${modalDropdownId}')`);
-        // Keep `position:relative` (not `static`) so the dropdown — which is
-        // absolutely positioned relative to this element — still anchors to
-        // it instead of drifting up to some larger ancestor; just clear the
-        // card's bottom-right pinning offsets so it sits inline here instead.
-        menuClone.style.position = 'relative';
-        menuClone.style.right = 'auto';
-        menuClone.style.bottom = 'auto';
-        menuClone.style.display = 'flex';
-        menuClone.style.justifyContent = 'flex-end';
-        menuClone.style.marginBottom = '0.6rem';
+        menuClone.classList.add('mv-menu');
         menuHtml = menuClone.outerHTML;
     }
-
-    const infoHtml = `
-        ${menuHtml}
-        ${titleEl ? `<div class="memory-title">${titleEl.innerHTML}</div>` : ''}
-        ${contentEl ? `<div class="memory-content">${contentEl.innerHTML}</div>` : ''}
-        ${(videoUrl || voiceUrl) ? `<div class="memory-view-media">${mediaHtml}</div>` : ''}
-        ${metaEl ? `<div class="memory-meta" style="margin-bottom:0.85rem;">${metaHtml}</div>` : ''}
-        ${tagsEl ? `<div class="tagged-list" style="margin-bottom:0.85rem;">${tagsEl.innerHTML}</div>` : ''}
-        ${createdAt ? `<div class="memory-view-created">Created on ${createdAt}</div>` : ''}
-        ${reactionsHtml}
-        ${shareHtml}
-        <div class="memory-view-comments">
-            <div class="memory-view-comments-list" id="modal-comments-list"></div>
-            <div class="comment-form">
-                <input type="text" class="comment-input" id="modal-comment-input" placeholder="Write a comment…"
-                       onkeydown="if(event.key==='Enter'){submitModalComment(${memPk})}">
-                <button class="comment-submit" onclick="submitModalComment(${memPk})">Send</button>
-            </div>
-        </div>`;
-
-    const photosHtml = photoUrls.map(url =>
-        `<img src="${url}" alt="" onclick="openLightbox('${url}')">`).join('');
 
     const colour = card.dataset.colour || '';
     const tapeHtml = colour ? `<span class="memory-tape" style="background: var(--note-${colour});" title="${colour}"></span>` : '';
 
-    document.getElementById('memory-view-content').innerHTML = `
-        <div class="memory-view-body ${hasPhoto ? '' : 'no-photo'}">
-            ${hasPhoto ? `<div class="memory-view-photo-col">${photosHtml}</div>` : ''}
-            <div class="memory-view-info-col">${tapeHtml}${infoHtml}</div>
+    const headHtml = `
+        <div class="mv-head">
+            <div class="mv-titlewrap">
+                ${titleEl ? `<h2 class="mv-title">${titleEl.innerHTML}</h2>` : ''}
+                ${metaEl ? `<div class="mv-sub">${metaHtml}</div>` : ''}
+            </div>
+            <div class="mv-actions">
+                ${menuHtml}
+                <button type="button" class="mv-close" title="${MVT.close}" onclick="closeMemoryView()">✕</button>
+            </div>
+        </div>`;
+
+    // Everything about the memory except its title/creator/date/place (those
+    // live in the header above).
+    const infoHtml = `
+        ${contentEl ? `<div class="memory-content">${contentEl.innerHTML}</div>` : ''}
+        ${(videoUrl || voiceUrl) ? `<div class="memory-view-media">${mediaHtml}</div>` : ''}
+        ${tagsEl ? `<div class="tagged-list" style="margin-bottom:0.85rem;">${tagsEl.innerHTML}</div>` : ''}
+        ${createdAt ? `<div class="memory-view-created">Created on ${createdAt}</div>` : ''}
+        ${reactionsHtml}
+        ${shareHtml}`;
+
+    const commentFormHtml = `
+        <div class="comment-form">
+            <input type="text" class="comment-input" id="modal-comment-input" placeholder="${useViewer ? MVT.commentPhoto : MVT.comment}"
+                   onkeydown="if(event.key==='Enter'){submitModalComment(${memPk})}">
+            <button class="comment-submit" onclick="submitModalComment(${memPk})">${MVT.send}</button>
         </div>`;
 
     const viewModal = document.getElementById('memory-view-modal');
+    const box = viewModal.querySelector('.memory-view-modal-box');
+    box.classList.toggle('mv-wide', useViewer);
+    box.classList.remove('mv-mode-grid');
+    MV = null;
+
+    if (useViewer) {
+        const cardTotal = parseInt((card.querySelector('.comment-count') || {}).textContent, 10) || 0;
+        const photoTotal = photos.reduce((n, p) => n + (p.c || 0), 0);
+        MV = { memPk, photos, cur: 0, thread: 'photo', memCount: Math.max(0, cardTotal - photoTotal), loadTok: 0 };
+        document.getElementById('memory-view-content').innerHTML = `
+            ${headHtml}
+            <div class="mv-toolbar">
+                <span>${photos.length} ${MVT.photos}</span>
+                <div class="mv-seg">
+                    <button type="button" id="mv-seg-v" class="on" onclick="mvSetMode('viewer')">🖼 ${MVT.viewer}</button>
+                    <button type="button" id="mv-seg-g" onclick="mvSetMode('grid')">▦ ${MVT.allPhotos}</button>
+                </div>
+            </div>
+            <div class="mv-body">
+                <div class="mv-viewer">
+                    <div class="mv-stage">
+                        <img id="mv-img" alt="" onclick="openLightbox(MV.photos[MV.cur].u)">
+                        <div class="mv-counter" id="mv-counter"></div>
+                        <button type="button" class="mv-arrow prev" onclick="mvStep(-1)" aria-label="${MVT.prev}">‹</button>
+                        <button type="button" class="mv-arrow next" onclick="mvStep(1)" aria-label="${MVT.next}">›</button>
+                    </div>
+                    <div class="mv-strip" id="mv-strip"></div>
+                </div>
+                <aside class="mv-side">
+                    <div class="mv-side-scroll">
+                        ${infoHtml}
+                        <div class="memory-view-comments">
+                            <div class="mv-tabs">
+                                <button type="button" id="mv-tab-photo" class="on" onclick="mvSetThread('photo')">${MVT.thisPhoto} <span id="mv-cnt-photo"></span></button>
+                                <button type="button" id="mv-tab-memory" onclick="mvSetThread('memory')">${MVT.memory} <span id="mv-cnt-memory"></span></button>
+                            </div>
+                            <div class="memory-view-comments-list" id="modal-comments-list"></div>
+                        </div>
+                    </div>
+                    <div class="mv-cform">${commentFormHtml}</div>
+                </aside>
+            </div>
+            <div class="mv-gridwrap"><div class="mv-grid" id="mv-grid"></div></div>`;
+        viewModal.classList.add('open');
+        viewModal.dataset.memPk = memPk;
+        mvRender();
+        return;
+    }
+
+    const photosHtml = photoUrls.map(url =>
+        `<img src="${url}" alt="" onclick="openLightbox('${url}')">`).join('');
+
+    document.getElementById('memory-view-content').innerHTML = `
+        ${headHtml}
+        <div class="memory-view-body ${hasPhoto ? '' : 'no-photo'}">
+            ${hasPhoto ? `<div class="memory-view-photo-col">${photosHtml}</div>` : ''}
+            <div class="memory-view-info-col">${tapeHtml}${infoHtml}
+                <div class="memory-view-comments">
+                    <div class="memory-view-comments-list" id="modal-comments-list"></div>
+                    ${commentFormHtml}
+                </div>
+            </div>
+        </div>`;
+
     viewModal.classList.add('open');
     viewModal.dataset.memPk = memPk;
     loadModalComments(memPk);
 }
+
+// ── Photo viewer (memories with 2+ photos) ───────────────────────────────
+// MV holds the open viewer's state: which photo is showing (cur), which
+// comment thread is showing — 'photo' (comments on the current photo) or
+// 'memory' (comments on the memory as a whole, including every comment from
+// before per-photo comments existed) — and the comment counts per photo.
+let MV = null;
+
+function mvRender() {
+    if (!MV) return;
+    const p = MV.photos[MV.cur];
+    document.getElementById('mv-img').src = p.u;
+    document.getElementById('mv-counter').textContent = (MV.cur + 1) + ' / ' + MV.photos.length;
+    document.getElementById('mv-strip').innerHTML = MV.photos.map((x, i) =>
+        `<button type="button" class="mv-thumb ${i === MV.cur ? 'active' : ''}" onclick="mvGo(${i})">
+            <img src="${x.u}" alt="" loading="lazy">${x.c ? `<span class="cc">💬 ${x.c}</span>` : ''}
+        </button>`).join('');
+    document.getElementById('mv-grid').innerHTML = MV.photos.map((x, i) =>
+        `<button type="button" class="mv-gt" onclick="mvGo(${i}); mvSetMode('viewer')">
+            <img src="${x.u}" alt="" loading="lazy">${x.c ? `<span class="cc">💬 ${x.c}</span>` : ''}
+        </button>`).join('');
+    const active = document.querySelector('#mv-strip .mv-thumb.active');
+    if (active) active.scrollIntoView({block: 'nearest', inline: 'center'});
+    mvUpdateCounts();
+    loadModalComments(MV.memPk);
+}
+
+// Refresh the tab counts, and write the per-photo counts back to the card so
+// reopening this memory later (without a page reload) shows current numbers.
+function mvUpdateCounts() {
+    if (!MV) return;
+    const cp = document.getElementById('mv-cnt-photo');
+    const cm = document.getElementById('mv-cnt-memory');
+    if (cp) cp.textContent = MV.photos[MV.cur].c ? '(' + MV.photos[MV.cur].c + ')' : '';
+    if (cm) cm.textContent = MV.memCount ? '(' + MV.memCount + ')' : '';
+    document.querySelectorAll('#mv-strip .mv-thumb, #mv-grid .mv-gt').forEach((el, idx) => {
+        const i = idx % MV.photos.length;
+        let badge = el.querySelector('.cc');
+        if (MV.photos[i].c) {
+            if (!badge) { badge = document.createElement('span'); badge.className = 'cc'; el.appendChild(badge); }
+            badge.textContent = '💬 ' + MV.photos[i].c;
+        } else if (badge) { badge.remove(); }
+    });
+    const card = document.getElementById('memory-' + MV.memPk);
+    if (card) card.dataset.photos = JSON.stringify(MV.photos);
+}
+
+function mvGo(i) { if (!MV) return; MV.cur = i; MV.thread = 'photo'; mvSyncTabs(); mvRender(); }
+function mvStep(d) { if (MV) mvGo((MV.cur + d + MV.photos.length) % MV.photos.length); }
+function mvSetMode(mode) {
+    const box = document.querySelector('.memory-view-modal-box');
+    box.classList.toggle('mv-mode-grid', mode === 'grid');
+    document.getElementById('mv-seg-v').classList.toggle('on', mode !== 'grid');
+    document.getElementById('mv-seg-g').classList.toggle('on', mode === 'grid');
+}
+function mvSetThread(t) {
+    if (!MV || MV.thread === t) return;
+    MV.thread = t; mvSyncTabs();
+    const input = document.getElementById('modal-comment-input');
+    if (input) input.placeholder = t === 'photo' ? MVT.commentPhoto : MVT.commentMemory;
+    loadModalComments(MV.memPk);
+}
+function mvSyncTabs() {
+    document.getElementById('mv-tab-photo').classList.toggle('on', MV.thread === 'photo');
+    document.getElementById('mv-tab-memory').classList.toggle('on', MV.thread === 'memory');
+    const input = document.getElementById('modal-comment-input');
+    if (input) input.placeholder = MV.thread === 'photo' ? MVT.commentPhoto : MVT.commentMemory;
+}
+// Called after a comment is deleted from inside the modal, to keep counts right.
+function mvOnDelete() {
+    if (!MV) return;
+    if (MV.thread === 'photo') MV.photos[MV.cur].c = Math.max(0, MV.photos[MV.cur].c - 1);
+    else MV.memCount = Math.max(0, MV.memCount - 1);
+    mvUpdateCounts();
+}
+document.addEventListener('keydown', (e) => {
+    if (!MV || !document.getElementById('memory-view-modal').classList.contains('open')) return;
+    if (e.target.closest('input, textarea')) return;
+    if (document.getElementById('lightbox-overlay').classList.contains('open')) return;
+    if (e.key === 'ArrowLeft')  mvStep(-1);
+    if (e.key === 'ArrowRight') mvStep(1);
+});
 
 function toggleMemoryShare(memPk, enable) {
     const fd = new URLSearchParams({enable: enable ? '1' : '0'});
@@ -1861,16 +2083,26 @@ function copyMemoryShareUrl(memPk) {
 
 function closeMemoryView() {
     document.getElementById('memory-view-modal').classList.remove('open');
+    MV = null;
+}
+
+// The query string that picks which comments the modal lists: everything on
+// the memory normally, or — in the photo viewer — just the current thread.
+function modalCommentQuery() {
+    if (!MV) return '';
+    return '?photo=' + (MV.thread === 'memory' ? 'memory' : encodeURIComponent(MV.photos[MV.cur].k));
 }
 
 function loadModalComments(memPk) {
-    fetch(`/memory/${memPk}/comments/`)
+    const tok = MV ? ++MV.loadTok : 0;
+    fetch(`/memory/${memPk}/comments/${modalCommentQuery()}`)
     .then(r => r.json()).then(data => {
         if (!data.ok) return;
+        if (MV && tok !== MV.loadTok) return;   // a newer photo/tab was picked meanwhile
         const list = document.getElementById('modal-comments-list');
         if (!list) return;
         list.innerHTML = data.comments.map(commentItemHtml).join('') ||
-            '<p style="font-size:0.78rem;color:var(--ink-muted);">No comments yet.</p>';
+            `<p style="font-size:0.78rem;color:var(--ink-muted);">${MV ? (MV.thread === 'photo' ? MVT.noPhotoComments : MVT.noMemoryComments) : MVT.noComments}</p>`;
     });
 }
 
@@ -1878,10 +2110,12 @@ function submitModalComment(memPk) {
     const input = document.getElementById('modal-comment-input');
     const content = input.value.trim();
     if (!content) return;
+    const payload = {content};
+    if (MV && MV.thread === 'photo') payload.photo = MV.photos[MV.cur].k;
     fetch(`/memory/${memPk}/comments/`, {
         method: 'POST',
         headers: {'X-CSRFToken': CSRF, 'Content-Type': 'application/json'},
-        body: JSON.stringify({content})
+        body: JSON.stringify(payload)
     }).then(r => r.json()).then(data => {
         if (!data.ok) return;
         input.value = '';
@@ -1892,6 +2126,10 @@ function submitModalComment(memPk) {
             const item = document.createElement('div');
             item.innerHTML = commentItemHtml(c);
             list.appendChild(item.firstElementChild);
+        }
+        if (MV) {
+            if (MV.thread === 'photo') MV.photos[MV.cur].c++; else MV.memCount++;
+            mvUpdateCounts();
         }
         // Keep the card's own comment count — and its inline comments panel,
         // if it happens to be open — in sync with what was just posted here.

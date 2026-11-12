@@ -2316,3 +2316,55 @@ msgstr ""
 #: core/views.py:2138
 msgid "Your account has been deleted."
 msgstr "Ο λογαριασμός σας διαγράφηκε."
+
+#: core/templates/core/group_detail.html:0
+msgid "Close"
+msgstr "Κλείσιμο"
+
+#: core/templates/core/group_detail.html:0
+msgid "Comment on this photo…"
+msgstr "Σχολιάστε αυτή τη φωτογραφία…"
+
+#: core/templates/core/group_detail.html:0
+msgid "Comment on this memory…"
+msgstr "Σχολιάστε αυτή την ανάμνηση…"
+
+#: core/templates/core/group_detail.html:0
+msgid "photos"
+msgstr "φωτογραφίες"
+
+#: core/templates/core/group_detail.html:0
+msgid "Viewer"
+msgstr "Προβολή"
+
+#: core/templates/core/group_detail.html:0
+msgid "All photos"
+msgstr "Όλες οι φωτογραφίες"
+
+#: core/templates/core/group_detail.html:0
+msgid "Previous photo"
+msgstr "Προηγούμενη φωτογραφία"
+
+#: core/templates/core/group_detail.html:0
+msgid "Next photo"
+msgstr "Επόμενη φωτογραφία"
+
+#: core/templates/core/group_detail.html:0
+msgid "This photo"
+msgstr "Αυτή η φωτογραφία"
+
+#: core/templates/core/group_detail.html:0
+msgid "Memory"
+msgstr "Ανάμνηση"
+
+#: core/templates/core/group_detail.html:0
+msgid "No comments on this photo yet."
+msgstr "Δεν υπάρχουν σχόλια σε αυτή τη φωτογραφία ακόμα."
+
+#: core/templates/core/group_detail.html:0
+msgid "No comments on this memory yet."
+msgstr "Δεν υπάρχουν σχόλια σε αυτή την ανάμνηση ακόμα."
+
+#: core/templates/core/group_detail.html:0
+msgid "No comments yet."
+msgstr "Δεν υπάρχουν σχόλια ακόμα."

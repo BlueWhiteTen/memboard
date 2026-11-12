@@ -556,6 +556,14 @@ class Reaction(models.Model):
 class Comment(models.Model):
     memory     = models.ForeignKey(Memory, related_name='comments', on_delete=models.CASCADE)
     author     = models.ForeignKey(User, related_name='comments', on_delete=models.CASCADE)
+    # Which photo (if any) the comment is about, for memories with several
+    # photos. A comment with neither set is a plain memory-level comment (all
+    # comments written before per-photo comments existed). The primary photo
+    # lives on Memory.photo rather than in MemoryPhoto, so it gets a flag
+    # instead of a foreign key.
+    photo            = models.ForeignKey('MemoryPhoto', related_name='comments',
+                                         null=True, blank=True, on_delete=models.CASCADE)
+    on_primary_photo = models.BooleanField(default=False)
     content    = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

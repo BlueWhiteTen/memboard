@@ -591,6 +591,26 @@ def group_detail_view(request, pk):
         extra_list = list(memory.extra_photos.all())
         all_urls = ([memory.photo.url] if memory.photo else []) + [p.photo.url for p in extra_list]
         memory.photo_urls_json = json.dumps(all_urls)
+
+        # Per-photo metadata for the photo viewer: each photo's url, a key
+        # that comment requests use to say which photo they are about ('p'
+        # = the primary photo, 'e<id>' = an additional photo), and how many
+        # comments it has so far.
+        photo_counts = {}
+        for c in memory.comments.all():
+            if c.on_primary_photo:
+                k = 'p'
+            elif c.photo_id:
+                k = f'e{c.photo_id}'
+            else:
+                continue
+            photo_counts[k] = photo_counts.get(k, 0) + 1
+        photos_meta = []
+        if memory.photo:
+            photos_meta.append({'u': memory.photo.url, 'k': 'p', 'c': photo_counts.get('p', 0)})
+        for ep in extra_list:
+            photos_meta.append({'u': ep.photo.url, 'k': f'e{ep.pk}', 'c': photo_counts.get(f'e{ep.pk}', 0)})
+        memory.photos_json = json.dumps(photos_meta)
         if memory.photo:
             memory.card_photo_url   = memory.photo.url
             memory.extra_photo_count = len(extra_list)
@@ -1730,6 +1750,18 @@ def react_memory_view(request, pk):
 
 # ── Comments ──────────────────────────────────────────────────────────────────
 
+def _resolve_photo_key(memory, key):
+    """Turn a photo key from the photo viewer ('p' = primary photo,
+    'e<id>' = an additional photo) into (photo, on_primary). Returns None if
+    the key is malformed or names a photo that isn't on this memory."""
+    if key == 'p':
+        return (None, True) if memory.photo else None
+    if key and key.startswith('e') and key[1:].isdigit():
+        photo = memory.extra_photos.filter(pk=int(key[1:])).first()
+        return (photo, False) if photo else None
+    return None
+
+
 @login_required
 def comments_view(request, pk):
     memory = get_object_or_404(Memory, pk=pk, is_deleted=False)
@@ -1741,7 +1773,15 @@ def comments_view(request, pk):
         content = data.get('content', '').strip()
         if not content:
             return JsonResponse({'ok': False, 'error': 'Empty comment'}, status=400)
-        comment = Comment.objects.create(memory=memory, author=request.user, content=content)
+        photo, on_primary = None, False
+        photo_key = data.get('photo')
+        if photo_key:
+            resolved = _resolve_photo_key(memory, photo_key)
+            if resolved is None:
+                return JsonResponse({'ok': False, 'error': 'Unknown photo'}, status=400)
+            photo, on_primary = resolved
+        comment = Comment.objects.create(memory=memory, author=request.user, content=content,
+                                         photo=photo, on_primary_photo=on_primary)
         log_activity(memory.group, request.user, 'comment_add',
                      _('%(actor)s commented on a memory') % {'actor': get_display_name(request.user)},
                      memory=memory)
@@ -1766,8 +1806,19 @@ def comments_view(request, pk):
             }
         })
 
-    # GET – fetch all comments
+    # GET – fetch comments. With no `photo` parameter that's every comment on
+    # the memory (as before). The photo viewer passes `photo=memory` for the
+    # memory-level thread, or a photo key ('p' / 'e<id>') for one photo's.
     comments = memory.comments.select_related('author')
+    photo_param = request.GET.get('photo')
+    if photo_param == 'memory':
+        comments = comments.filter(photo__isnull=True, on_primary_photo=False)
+    elif photo_param:
+        resolved = _resolve_photo_key(memory, photo_param)
+        if resolved is None:
+            return JsonResponse({'ok': False, 'error': 'Unknown photo'}, status=400)
+        photo, on_primary = resolved
+        comments = comments.filter(on_primary_photo=True) if on_primary else comments.filter(photo=photo)
     data = [
         {
             'id':         c.pk,
