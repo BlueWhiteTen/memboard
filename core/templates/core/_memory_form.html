@@ -304,6 +304,8 @@ function toggleMapPicker(prefix) {
         const map = L.map(el).setView([startLat, startLng], (latInput.value && lngInput.value) ? 13 : 5);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors', maxZoom: 19,
+            // Needed for OpenStreetMap to accept the tile requests — see the board map.
+            referrerPolicy: 'strict-origin-when-cross-origin',
         }).addTo(map);
 
         let marker = null;
