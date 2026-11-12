@@ -1,3 +1,4 @@
+from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
@@ -226,9 +227,23 @@ def register_view(request):
                     },
                 )
         login(request, user)
+        link_owner = _friend_link_owner(request.session.pop('friend_link_code', None))
+        if link_owner and link_owner.pk != user.pk:
+            # They signed up through someone's personal link: friends right away.
+            Friendship.make_friends(link_owner, user)
+            notify_boards_visible_after_friendship(link_owner, user)
+            create_notification(
+                link_owner, user, 'friend_req',
+                _('%(name)s joined WorthKeeping through your invite link!') % {'name': get_display_name(user)},
+            )
+            messages.success(request, _("You're now friends with %(name)s!") % {'name': get_display_name(link_owner)})
         messages.success(request, _("Welcome to WorthKeeping, %(name)s!") % {'name': user.first_name})
         return redirect('home')
-    return render(request, 'core/register.html', {'form': form, 'invite_token': invite_token})
+    link_owner = _friend_link_owner(request.session.get('friend_link_code'))
+    return render(request, 'core/register.html', {
+        'form': form, 'invite_token': invite_token,
+        'friend_link_owner': get_display_name(link_owner) if link_owner else None,
+    })
 
 
 @ratelimit(key='ip', rate='15/5m', method='POST', block=False)
@@ -249,11 +264,18 @@ def login_view(request):
             profile.account_status = 'active'
             profile.save(update_fields=['account_status'])
         login(request, user)
+        link_owner = _friend_link_owner(request.session.pop('friend_link_code', None))
+        if link_owner:
+            _friend_link_message(request, _friend_link_connect(user, link_owner), link_owner)
         if was_disabled:
             messages.success(request, _("Welcome back — your account is active again."))
             return redirect('home')
         return redirect(request.GET.get('next', 'home'))
-    return render(request, 'core/login.html', {'form': form})
+    link_owner = _friend_link_owner(request.session.get('friend_link_code'))
+    return render(request, 'core/login.html', {
+        'form': form,
+        'friend_link_owner': get_display_name(link_owner) if link_owner else None,
+    })
 
 
 def logout_view(request):
@@ -1999,6 +2021,87 @@ def on_this_day_view(request):
     })
 
 
+# ── Personal friend link ──────────────────────────────────────────────────────
+
+def get_friend_code(user):
+    """The user's personal friend-link code, created the first time it's needed."""
+    import secrets
+    profile, _created = UserProfile.objects.get_or_create(user=user)
+    if not profile.friend_code:
+        profile.friend_code = secrets.token_urlsafe(9)
+        profile.save(update_fields=['friend_code'])
+    return profile.friend_code
+
+
+def _friend_link_owner(code):
+    if not code:
+        return None
+    profile = UserProfile.objects.filter(friend_code=code).select_related('user').first()
+    if not profile or not profile.user.is_active or profile.account_status == 'disabled':
+        return None
+    return profile.user
+
+
+def _friend_link_connect(user, owner):
+    """Send `owner` a friend request from `user` (or, if `owner` had already
+    asked `user`, make them friends straight away). Returns 'self', 'already',
+    'made' or 'sent'."""
+    if user.pk == owner.pk:
+        return 'self'
+    if Friendship.are_friends(user, owner):
+        return 'already'
+    reverse_req = FriendRequest.objects.filter(from_user=owner, to_user=user, accepted=False).first()
+    if reverse_req:
+        reverse_req.accepted = True
+        reverse_req.save()
+        Friendship.make_friends(owner, user)
+        notify_boards_visible_after_friendship(owner, user)
+        return 'made'
+    _req, created = FriendRequest.objects.get_or_create(from_user=user, to_user=owner)
+    if created:
+        create_notification(
+            owner, user, 'friend_req',
+            _('%(actor)s sent you a friend request') % {'actor': get_display_name(user)},
+        )
+    return 'sent'
+
+
+def _friend_link_message(request, result, owner):
+    name = get_display_name(owner)
+    if result == 'sent':
+        messages.success(request, _("Friend request sent to %(name)s!") % {'name': name})
+    elif result == 'made':
+        messages.success(request, _("You're now friends with %(name)s!") % {'name': name})
+    elif result == 'already':
+        messages.info(request, _("You're already friends with %(name)s.") % {'name': name})
+    else:
+        messages.info(request, _("That's your own invite link. Share it with your friends!"))
+
+
+def friend_link_view(request, code):
+    owner = _friend_link_owner(code)
+    if owner is None:
+        messages.error(request, _("This invite link isn't valid any more."))
+        return redirect('home' if request.user.is_authenticated else 'login')
+    if not request.user.is_authenticated:
+        # Remember who invited them: register_view makes them friends once
+        # they sign up, login_view sends the friend request once they log in.
+        request.session['friend_link_code'] = code
+        return redirect('register')
+    if request.method == 'POST':
+        _friend_link_message(request, _friend_link_connect(request.user, owner), owner)
+        return redirect('friends')
+    if request.user.pk == owner.pk or Friendship.are_friends(request.user, owner):
+        _friend_link_message(request, 'self' if request.user.pk == owner.pk else 'already', owner)
+        return redirect('friends')
+    return render(request, 'core/friend_link.html', {
+        'owner_name': get_display_name(owner),
+        'owner_initials': get_initials(owner),
+        'user_initials': get_initials(request.user),
+        'user_display':  get_display_name(request.user),
+    })
+
+
 # ── Friends ───────────────────────────────────────────────────────────────────
 
 @login_required
@@ -2024,6 +2127,7 @@ def friends_view(request):
         'friend_groups': friend_groups,
         'user_initials': get_initials(user),
         'user_display':  get_display_name(user),
+        'invite_link':   request.build_absolute_uri(reverse('friend_link', args=[get_friend_code(user)])),
     })
 
 

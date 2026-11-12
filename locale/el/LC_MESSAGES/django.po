@@ -2398,3 +2398,66 @@ msgid "%(n)d photo added to the memory."
 msgid_plural "%(n)d photos added to the memory."
 msgstr[0] "%(n)d φωτογραφία προστέθηκε στην ανάμνηση."
 msgstr[1] "%(n)d φωτογραφίες προστέθηκαν στην ανάμνηση."
+
+msgid "You're already friends with %(name)s."
+msgstr "Είστε ήδη φίλοι με τον/την %(name)s."
+
+msgid "That's your own invite link. Share it with your friends!"
+msgstr ""
+"Αυτός είναι ο δικός σου σύνδεσμος πρόσκλησης. Μοιράσου τον με τους φίλους "
+"σου!"
+
+msgid "This invite link isn't valid any more."
+msgstr "Αυτός ο σύνδεσμος πρόσκλησης δεν ισχύει πια."
+
+msgid "%(name)s joined WorthKeeping through your invite link!"
+msgstr ""
+"Ο/Η %(name)s μπήκε στο WorthKeeping μέσω του συνδέσμου πρόσκλησής σου!"
+
+msgid "Your invite link"
+msgstr "Ο σύνδεσμος πρόσκλησής σου"
+
+msgid ""
+"Send this link to friends. If they already have an account they can ask to "
+"be your friend with one tap. If not, they can sign up and you'll be friends "
+"automatically."
+msgstr ""
+"Στείλε αυτόν τον σύνδεσμο σε φίλους. Αν έχουν ήδη λογαριασμό, μπορούν να σου"
+" στείλουν αίτημα φιλίας με ένα πάτημα. Αν όχι, μπορούν να εγγραφούν και θα "
+"γίνετε φίλοι αυτόματα."
+
+msgid "Copied!"
+msgstr "Αντιγράφηκε!"
+
+msgid "Copy link"
+msgstr "Αντιγραφή συνδέσμου"
+
+msgid "Share"
+msgstr "Κοινοποίηση"
+
+msgid "Add %(name)s as a friend?"
+msgstr "Να προσθέσεις τον/την %(name)s ως φίλο;"
+
+msgid ""
+"%(name)s shared their WorthKeeping link with you. We'll send them a friend "
+"request."
+msgstr ""
+"Ο/Η %(name)s μοιράστηκε μαζί σου τον σύνδεσμό του/της στο WorthKeeping. Θα "
+"του/της στείλουμε αίτημα φιλίας."
+
+msgid "Send friend request"
+msgstr "Αποστολή αιτήματος φιλίας"
+
+msgid ""
+"%(name)s invited you to WorthKeeping. Create an account and you'll be "
+"friends right away!"
+msgstr ""
+"Ο/Η %(name)s σε προσκάλεσε στο WorthKeeping. Φτιάξε λογαριασμό και θα γίνετε"
+" φίλοι αμέσως!"
+
+msgid ""
+"%(name)s invited you to WorthKeeping. Sign in and we'll send them a friend "
+"request."
+msgstr ""
+"Ο/Η %(name)s σε προσκάλεσε στο WorthKeeping. Συνδέσου και θα του/της "
+"στείλουμε αίτημα φιλίας."

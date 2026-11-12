@@ -79,6 +79,7 @@ urlpatterns = [
 
     # Friends
     path('friends/',                          views.friends_view,                name='friends'),
+    path('add/<str:code>/',                   views.friend_link_view,            name='friend_link'),
     path('friends/request/',                  views.send_friend_request_view,    name='send_friend_request'),
     path('friends/accept/<int:request_id>/',  views.accept_friend_request_view,  name='accept_friend_request'),
     path('friends/decline/<int:request_id>/', views.decline_friend_request_view, name='decline_friend_request'),

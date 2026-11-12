@@ -216,6 +216,10 @@ class UserProfile(models.Model):
     push_auth      = models.TextField(blank=True)
     weekly_digest  = models.BooleanField(default=True)
 
+    # Personal "add me as a friend" link: /add/<friend_code>/. Created lazily
+    # the first time the user opens the Friends page (see get_friend_code).
+    friend_code    = models.CharField(max_length=32, blank=True, db_index=True)
+
     # Which in-app notifications also get emailed — on top of (not instead
     # of) the bell-icon notification, which always happens regardless.
     email_on_comment       = models.BooleanField(default=False)

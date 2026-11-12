@@ -134,6 +134,7 @@
             {% elif form.non_field_errors %}
             <div class="error-msg">{{ form.non_field_errors.0 }}</div>
             {% endif %}
+            {% if friend_link_owner %}<div class="error-msg" style="background:var(--gold);color:var(--paper);">{% blocktrans with name=friend_link_owner %}{{ name }} invited you to WorthKeeping. Sign in and we'll send them a friend request.{% endblocktrans %}</div>{% endif %}
             <form method="post">
                 {% csrf_token %}
                 <div class="field">

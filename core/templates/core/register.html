@@ -113,6 +113,8 @@
 
             {% if rate_limited %}
             <div class="field-error" style="margin-bottom:1rem;">{% trans "Too many signup attempts from your network. Please wait a bit and try again." %}</div>
+            {% elif friend_link_owner %}
+            <div class="invite-banner">{% blocktrans with name=friend_link_owner %}{{ name }} invited you to WorthKeeping. Create an account and you'll be friends right away!{% endblocktrans %}</div>
             {% elif invite_token %}
             <div class="invite-banner">{% trans "You were invited to join a board. Sign up to accept!" %}</div>
             {% endif %}

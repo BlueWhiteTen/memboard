@@ -18,6 +18,14 @@
 .search-row input{flex:1;height:44px;border:1px solid var(--border-strong);border-radius: var(--radius);padding:0 0.9rem;font-family: var(--font-ui);font-size:0.9rem;color:var(--ink);background:var(--cream);outline:none;transition:border-color 0.15s,box-shadow 0.15s;}
 .search-row input:focus{border-color:var(--amber);box-shadow:2px 2px 0 var(--amber);}
 
+/* Personal invite link */
+.invite-link-card{background:var(--amber-pale);border:1px solid var(--border-strong);border-radius: var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.25rem;}
+.invite-link-card h3{font-family: var(--font-ui);font-size:1rem;font-weight:600;color:var(--ink);margin-bottom:0.3rem;}
+.invite-link-card p{font-size:0.85rem;color:var(--ink-muted);margin-bottom:1rem;font-weight:300;line-height:1.45;}
+.invite-link-row{display:flex;gap:0.5rem;flex-wrap:wrap;}
+.invite-link-row input{flex:1 1 220px;min-width:0;height:44px;border:1px solid var(--border-strong);border-radius: var(--radius);padding:0 0.9rem;font-family: var(--font-ui);font-size:0.85rem;color:var(--ink);background:var(--cream);outline:none;}
+.invite-link-row button{height:44px;}
+
 /* Pending */
 .pending-list{display:flex;flex-direction:column;gap:0.6rem;margin-bottom:2.25rem;}
 .pending-card{display:flex;align-items:center;justify-content:space-between;gap:0.75rem;background:var(--amber-pale);border:1px solid var(--border-strong);border-radius: var(--radius);padding:0.85rem 1rem;box-shadow:var(--shadow-ink-sm);}
@@ -70,6 +78,17 @@
 </div>
 
 <div class="page-content">
+
+    <!-- Personal invite link -->
+    <div class="invite-link-card">
+        <h3>{% trans "Your invite link" %}</h3>
+        <p>{% trans "Send this link to friends. If they already have an account they can ask to be your friend with one tap. If not, they can sign up and you'll be friends automatically." %}</p>
+        <div class="invite-link-row">
+            <input type="text" id="invite-link-input" value="{{ invite_link }}" readonly onclick="this.select()">
+            <button type="button" class="btn-primary" id="invite-copy-btn" data-copied="{% trans 'Copied!' %}">{% trans "Copy link" %}</button>
+            <button type="button" class="btn-primary" id="invite-share-btn" style="display:none;">{% trans "Share" %}</button>
+        </div>
+    </div>
 
     <!-- Add friend -->
     <div class="add-friend-card">
@@ -172,4 +191,25 @@
     {% endif %}
 
 </div>
+<script>
+(function () {
+    var input = document.getElementById('invite-link-input');
+    var copyBtn = document.getElementById('invite-copy-btn');
+    var shareBtn = document.getElementById('invite-share-btn');
+    if (!input || !copyBtn) return;
+    copyBtn.addEventListener('click', function () {
+        var label = copyBtn.textContent;
+        function done() { copyBtn.textContent = copyBtn.dataset.copied; setTimeout(function () { copyBtn.textContent = label; }, 1800); }
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(input.value).then(done, function () { input.select(); document.execCommand('copy'); done(); });
+        } else { input.select(); document.execCommand('copy'); done(); }
+    });
+    if (navigator.share) {
+        shareBtn.style.display = '';
+        shareBtn.addEventListener('click', function () {
+            navigator.share({ title: 'WorthKeeping', url: input.value }).catch(function () {});
+        });
+    }
+})();
+</script>
 {% endblock %}

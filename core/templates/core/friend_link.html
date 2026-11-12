@@ -1,0 +1,30 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+{% block title %}WorthKeeping – {% trans "Add a friend" %}{% endblock %}
+{% block nav_friends %}active{% endblock %}
+
+{% block extra_styles %}
+.fl-wrap{display:flex;justify-content:center;padding:3rem 1.25rem;}
+.fl-card{background:var(--warm-white);border:1px solid var(--border-strong);border-radius: var(--radius);box-shadow:var(--shadow-ink-sm);padding:2rem 1.75rem;max-width:420px;width:100%;text-align:center;}
+.fl-av{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:600;text-transform:uppercase;margin:0 auto 1rem;}
+.fl-card h2{font-family: var(--font-ui);font-size:1.3rem;font-weight:600;color:var(--ink);margin-bottom:0.5rem;}
+.fl-card p{font-size:0.88rem;color:var(--ink-muted);margin-bottom:1.5rem;line-height:1.45;}
+.fl-actions{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;}
+.fl-actions a{display:inline-flex;align-items:center;height:44px;padding:0 1.1rem;color:var(--ink-light);text-decoration:none;border:1px solid var(--border-strong);border-radius: var(--radius);font-size:0.9rem;}
+.fl-actions button{height:44px;}
+{% endblock %}
+
+{% block content %}
+<div class="fl-wrap">
+    <div class="fl-card">
+        <div class="fl-av av-0">{{ owner_initials }}</div>
+        <h2>{% blocktrans with name=owner_name %}Add {{ name }} as a friend?{% endblocktrans %}</h2>
+        <p>{% blocktrans with name=owner_name %}{{ name }} shared their WorthKeeping link with you. We'll send them a friend request.{% endblocktrans %}</p>
+        <form method="post" class="fl-actions">
+            {% csrf_token %}
+            <button type="submit" class="btn-primary">{% trans "Send friend request" %}</button>
+            <a href="{% url 'friends' %}">{% trans "Cancel" %}</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
