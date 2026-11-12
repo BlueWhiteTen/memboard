@@ -19,6 +19,12 @@
 .friend-pick-btn:hover{border-color:var(--border-strong);color:var(--ink);}
 .friend-pick-btn.selected{border-color:var(--amber);background:var(--amber-pale);color:var(--ink);}
 .friend-pick-btn .fpav{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.58rem;font-weight:500;text-transform:uppercase;flex-shrink:0;background:var(--amber-pale);color:var(--amber);}
+.group-gap{margin-top:3rem;padding-top:1.75rem;border-top:1px dashed var(--border-strong);}
+.picker-hint{font-size:0.75rem;color:var(--ink-muted);margin-top:0.6rem;}
+/* Pending changes: nothing moves until the form is saved. */
+.friend-pick-btn.selected[data-was-member="0"]{border-style:dashed;}
+.friend-pick-btn.selected[data-was-member="0"]::after{content:"+";font-weight:700;color:var(--amber);margin-left:0.15rem;}
+.friend-pick-btn:not(.selected)[data-was-member="1"]{opacity:0.5;border-style:dashed;text-decoration:line-through;}
 .no-friends-msg{font-size:0.85rem;color:var(--ink-muted);font-style:italic;}
 .form-actions{display:flex;gap:0.75rem;margin-top:1.5rem;}
 .btn-save{flex:1;height:44px;}
@@ -48,28 +54,64 @@
             <input type="text" class="form-input" id="id_name" name="name" value="{{ friend_group.name }}" required>
         </div>
 
+        {% if friends %}
         <div class="form-group">
             <label class="form-label">{% trans "Members" %}</label>
-            {% if friends %}
-            <div class="friend-picker" id="friendPicker">
-                {% for friend in friends %}
-                <button type="button" class="friend-pick-btn {% if friend.in_group %}selected{% endif %}"
-                        data-id="{{ friend.id }}" onclick="this.classList.toggle('selected'); document.getElementById('fp_{{ friend.id }}').checked = this.classList.contains('selected');">
+            <div class="friend-picker" id="memberPicker">
+                {% for friend in friends %}{% if friend.in_group %}
+                <button type="button" class="friend-pick-btn selected" data-id="{{ friend.id }}" data-was-member="1">
                     <div class="fpav">{{ friend.initials }}</div>
                     {{ friend.display_name }}
-                    <input type="checkbox" name="selected_friends" value="{{ friend.id }}" style="display:none;" id="fp_{{ friend.id }}" {% if friend.in_group %}checked{% endif %}>
+                    <input type="checkbox" name="selected_friends" value="{{ friend.id }}" style="display:none;" id="fp_{{ friend.id }}" checked>
                 </button>
-                {% endfor %}
+                {% endif %}{% endfor %}
+                <p class="no-friends-msg" id="noMembersMsg" style="display:none;">{% trans "No members yet." %}</p>
             </div>
-            {% else %}
+            <p class="picker-hint">{% trans "Click a member to remove them. The change happens when you save." %}</p>
+        </div>
+
+        <div class="form-group group-gap">
+            <label class="form-label">{% trans "Not in this group" %}</label>
+            <div class="friend-picker" id="nonMemberPicker">
+                {% for friend in friends %}{% if not friend.in_group %}
+                <button type="button" class="friend-pick-btn" data-id="{{ friend.id }}" data-was-member="0">
+                    <div class="fpav">{{ friend.initials }}</div>
+                    {{ friend.display_name }}
+                    <input type="checkbox" name="selected_friends" value="{{ friend.id }}" style="display:none;" id="fp_{{ friend.id }}">
+                </button>
+                {% endif %}{% endfor %}
+                <p class="no-friends-msg" id="noNonMembersMsg" style="display:none;">{% trans "All your friends are in this group." %}</p>
+            </div>
+            <p class="picker-hint">{% trans "Click a friend to add them. They move up to Members when you save." %}</p>
+        </div>
+        {% else %}
+        <div class="form-group">
             {% url 'friends' as friends_url %}
             <p class="no-friends-msg">{% blocktrans %}You don't have any friends yet. <a href="{{ friends_url }}" style="color:var(--amber);">Add some friends</a> first.{% endblocktrans %}</p>
-            {% endif %}
         </div>
+        {% endif %}
 
         <div class="form-actions">
             <button type="submit" class="btn-primary btn-save">{% trans "Save changes" %}</button>
         </div>
     </form>
 </div>
+<script>
+(function () {
+    var picker = document.querySelectorAll('.friend-pick-btn');
+    picker.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            btn.classList.toggle('selected');
+            btn.querySelector('input[type=checkbox]').checked = btn.classList.contains('selected');
+        });
+    });
+    function toggleEmpty(pickerId, msgId, wasMember) {
+        var n = document.querySelectorAll('#' + pickerId + ' .friend-pick-btn').length;
+        var msg = document.getElementById(msgId);
+        if (msg) msg.style.display = n ? 'none' : '';
+    }
+    toggleEmpty('memberPicker', 'noMembersMsg');
+    toggleEmpty('nonMemberPicker', 'noNonMembersMsg');
+})();
+</script>
 {% endblock %}

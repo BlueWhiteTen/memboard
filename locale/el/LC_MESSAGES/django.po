@@ -2473,3 +2473,21 @@ msgstr "Συμβουλή: σύρε έναν φίλο πάνω σε μια ομά
 
 msgid "Couldn't add that friend to the group. Please try again."
 msgstr "Δεν ήταν δυνατή η προσθήκη του φίλου στην ομάδα. Δοκίμασε ξανά."
+
+msgid "No members yet."
+msgstr "Δεν υπάρχουν μέλη ακόμα."
+
+msgid "All your friends are in this group."
+msgstr "Όλοι οι φίλοι σου είναι σε αυτή την ομάδα."
+
+msgid "Not in this group"
+msgstr "Εκτός ομάδας"
+
+msgid "Click a member to remove them. The change happens when you save."
+msgstr ""
+"Πάτα ένα μέλος για να το αφαιρέσεις. Η αλλαγή γίνεται όταν αποθηκεύσεις."
+
+msgid "Click a friend to add them. They move up to Members when you save."
+msgstr ""
+"Πάτα έναν φίλο για να τον προσθέσεις. Μετακινείται στα Μέλη όταν "
+"αποθηκεύσεις."
