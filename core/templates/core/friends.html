@@ -53,6 +53,12 @@
 .btn-unfriend:hover{border-color:#D48A8A;color:#A33030;background:#FCEAEA;}
 .empty-msg{text-align:center;padding:2.5rem;color:var(--ink-muted);font-size:0.875rem;}
 
+/* Drag a friend onto a group */
+.friend-card[draggable="true"]{cursor:grab;}
+.friend-card.dragging{opacity:0.45;}
+.friend-card > a{display:flex;flex-direction:column;align-items:center;}
+.fg-card.fg-drop{border-color:var(--amber);background:var(--amber-pale);transform:translateY(-2px);box-shadow:2px 3px 0 var(--amber);}
+.fg-hint{font-size:0.78rem;color:var(--ink-muted);margin:-0.5rem 0 1rem;}
 /* Friend groups */
 .fg-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
 .fg-section-header .section-title{margin-bottom:0;}
@@ -153,10 +159,11 @@
         <div class="section-title" style="margin-bottom:0;">{% blocktrans with n=friend_groups.count %}Groups ({{ n }}){% endblocktrans %}</div>
         <a href="{% url 'create_friend_group' %}" class="fg-new-link">+ {% trans "New group" %}</a>
     </div>
+    {% if friend_groups and friends %}<div class="fg-hint" id="fg-hint">{% trans "Tip: drag a friend onto a group to add them." %}</div>{% endif %}
     {% if friend_groups %}
     <div class="fg-grid">
         {% for fg in friend_groups %}
-        <a href="{% url 'friend_group_detail' fg.pk %}" class="fg-card">
+        <a href="{% url 'friend_group_detail' fg.pk %}" class="fg-card" data-add-url="{% url 'add_friend_to_group' fg.pk 0 %}">
             <div class="fg-name">{{ fg.name }}</div>
             <div class="fg-count">{% blocktrans count counter=fg.member_count %}{{ counter }} friend{% plural %}{{ counter }} friends{% endblocktrans %}</div>
         </a>
@@ -172,7 +179,7 @@
     {% if friends %}
     <div class="friends-grid">
         {% for friend in friends %}
-        <div class="friend-card">
+        <div class="friend-card" draggable="true" data-friend-id="{{ friend.pk }}">
             <a href="{% url 'friend_profile' friend.pk %}" style="text-decoration:none;color:inherit;">
                 <div class="friend-big-av av-{{ forloop.counter0 }}">{{ friend.initials }}</div>
                 <div class="friend-name">{{ friend.display_name }}</div>
@@ -210,6 +217,53 @@
             navigator.share({ title: 'WorthKeeping', url: input.value }).catch(function () {});
         });
     }
+})();
+</script>
+{% trans "Couldn't add that friend to the group. Please try again." as drag_err %}
+<script>
+(function () {
+    var DRAG_TYPE = 'application/x-wk-friend';
+    var dragging = false;
+    var csrfEl = document.querySelector('[name=csrfmiddlewaretoken]');
+    document.querySelectorAll('.friend-card[data-friend-id]').forEach(function (card) {
+        card.addEventListener('dragstart', function (e) {
+            dragging = true;
+            card.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'copy';
+            e.dataTransfer.setData(DRAG_TYPE, card.dataset.friendId);
+            e.dataTransfer.setData('text/plain', card.dataset.friendId);
+        });
+        card.addEventListener('dragend', function () {
+            dragging = false;
+            card.classList.remove('dragging');
+            document.querySelectorAll('.fg-card.fg-drop').forEach(function (g) { g.classList.remove('fg-drop'); });
+        });
+    });
+    document.querySelectorAll('.fg-card[data-add-url]').forEach(function (group) {
+        group.addEventListener('dragover', function (e) {
+            if (!dragging) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+            group.classList.add('fg-drop');
+        });
+        group.addEventListener('dragleave', function (e) {
+            if (!group.contains(e.relatedTarget)) group.classList.remove('fg-drop');
+        });
+        group.addEventListener('drop', function (e) {
+            if (!dragging) return;
+            e.preventDefault();
+            group.classList.remove('fg-drop');
+            var friendId = e.dataTransfer.getData(DRAG_TYPE);
+            if (!friendId) return;
+            fetch(group.dataset.addUrl.replace(/0\/$/, friendId + '/'), {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfEl ? csrfEl.value : '' },
+                credentials: 'same-origin'
+            }).then(function (r) { return r.json(); }).then(function () {
+                window.location.reload();
+            }).catch(function () { alert('{{ drag_err|escapejs }}'); });
+        });
+    });
 })();
 </script>
 {% endblock %}

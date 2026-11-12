@@ -1344,6 +1344,29 @@ def friend_group_detail_view(request, pk):
 
 
 @login_required
+@require_POST
+def add_friend_to_group_view(request, pk, user_id):
+    """Drag-and-drop on the Friends page: add one friend to one friend group."""
+    fg = get_object_or_404(FriendGroup, pk=pk, owner=request.user)
+    friend = get_object_or_404(Friendship.get_friends(request.user), pk=user_id)
+    name = get_display_name(friend)
+    if fg.members.filter(pk=friend.pk).exists():
+        messages.info(request, _('%(friend)s is already in "%(group)s".') % {'friend': name, 'group': fg.name})
+        return JsonResponse({'ok': True, 'added': False})
+    fg.members.add(friend)
+    for board in Group.objects.filter(owner=request.user, privacy='friend_group', visible_to_group=fg).exclude(members=friend):
+        create_notification(
+            friend, request.user, 'board_visible',
+            _('%(owner)s shared the board "%(board)s" with you') % {
+                'owner': get_display_name(request.user), 'board': board.name,
+            },
+            group=board,
+        )
+    messages.success(request, _('%(friend)s added to "%(group)s".') % {'friend': name, 'group': fg.name})
+    return JsonResponse({'ok': True, 'added': True})
+
+
+@login_required
 def delete_friend_group_view(request, pk):
     fg = get_object_or_404(FriendGroup, pk=pk, owner=request.user)
     if request.method == 'POST':

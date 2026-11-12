@@ -2461,3 +2461,15 @@ msgid ""
 msgstr ""
 "Ο/Η %(name)s σε προσκάλεσε στο WorthKeeping. Συνδέσου και θα του/της "
 "στείλουμε αίτημα φιλίας."
+
+msgid "%(friend)s is already in \"%(group)s\"."
+msgstr "Ο/Η %(friend)s είναι ήδη στην ομάδα «%(group)s»."
+
+msgid "%(friend)s added to \"%(group)s\"."
+msgstr "Ο/Η %(friend)s προστέθηκε στην ομάδα «%(group)s»."
+
+msgid "Tip: drag a friend onto a group to add them."
+msgstr "Συμβουλή: σύρε έναν φίλο πάνω σε μια ομάδα για να τον προσθέσεις."
+
+msgid "Couldn't add that friend to the group. Please try again."
+msgstr "Δεν ήταν δυνατή η προσθήκη του φίλου στην ομάδα. Δοκίμασε ξανά."

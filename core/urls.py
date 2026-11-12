@@ -50,6 +50,7 @@ urlpatterns = [
     path('friend-groups/new/',        views.create_friend_group_view,  name='create_friend_group'),
     path('friend-groups/<int:pk>/',   views.friend_group_detail_view,  name='friend_group_detail'),
     path('friend-groups/<int:pk>/delete/', views.delete_friend_group_view, name='delete_friend_group'),
+    path('friend-groups/<int:pk>/add-member/<int:user_id>/', views.add_friend_to_group_view, name='add_friend_to_group'),
 
     # Memories
     path('groups/<int:pk>/memory/add/', views.add_memory_view,    name='add_memory'),
