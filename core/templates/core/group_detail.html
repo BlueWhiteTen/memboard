@@ -2288,7 +2288,11 @@ function initMap() {
 
     const map = L.map('board-map');
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
+        attribution: '© OpenStreetMap',
+        // OpenStreetMap's tile servers reject requests that don't say which site
+        // they come from; Django's default referrer policy hides that, so send
+        // just the site's address (never the page path) for these tile requests.
+        referrerPolicy: 'strict-origin-when-cross-origin'
     }).addTo(map);
 
     const points = MAP_MEMORIES;
