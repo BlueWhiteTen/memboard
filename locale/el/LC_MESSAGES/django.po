@@ -2368,3 +2368,33 @@ msgstr "Δεν υπάρχουν σχόλια σε αυτή την ανάμνησ
 #: core/templates/core/group_detail.html:0
 msgid "No comments yet."
 msgstr "Δεν υπάρχουν σχόλια ακόμα."
+
+msgid "Drop photos to create a new memory"
+msgstr "Αφήστε φωτογραφίες για να δημιουργήσετε νέα ανάμνηση"
+
+msgid "Drop to add to this memory"
+msgstr "Αφήστε εδώ για προσθήκη σε αυτή την ανάμνηση"
+
+msgid "You can't add photos to this memory"
+msgstr "Δεν μπορείτε να προσθέσετε φωτογραφίες σε αυτή την ανάμνηση"
+
+msgid "Only photos can be added to an existing memory."
+msgstr "Μόνο φωτογραφίες μπορούν να προστεθούν σε υπάρχουσα ανάμνηση."
+
+msgid "Uploading photos…"
+msgstr "Ανέβασμα φωτογραφιών…"
+
+msgid "Upload failed. Please try again."
+msgstr "Η μεταφόρτωση απέτυχε. Δοκιμάστε ξανά."
+
+msgid "No photos received."
+msgstr "Δεν ελήφθησαν φωτογραφίες."
+
+msgid "Only photos can be added to a memory."
+msgstr "Μόνο φωτογραφίες μπορούν να προστεθούν σε μια ανάμνηση."
+
+#, python-format
+msgid "%(n)d photo added to the memory."
+msgid_plural "%(n)d photos added to the memory."
+msgstr[0] "%(n)d φωτογραφία προστέθηκε στην ανάμνηση."
+msgstr[1] "%(n)d φωτογραφίες προστέθηκαν στην ανάμνηση."

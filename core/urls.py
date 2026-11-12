@@ -54,6 +54,7 @@ urlpatterns = [
     # Memories
     path('groups/<int:pk>/memory/add/', views.add_memory_view,    name='add_memory'),
     path('memory/<int:pk>/edit/',       views.edit_memory_view,   name='edit_memory'),
+    path('memory/<int:pk>/add-photos/', views.add_photos_to_memory_view, name='add_photos_to_memory'),
     path('memory/<int:pk>/delete/',     views.delete_memory_view, name='delete_memory'),
     path('memory/<int:pk>/restore/',    views.restore_memory_view, name='restore_memory'),
     path('memory/<int:pk>/pin/',        views.pin_memory_view,    name='pin_memory'),

@@ -38,6 +38,7 @@ from .email_utils import (
 )
 from django.core import files as django_files
 from .on_this_day import get_on_this_day_memories
+from .image_utils import compress_image
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -1367,6 +1368,52 @@ def add_memory_view(request, pk):
                 for error in errors:
                     messages.error(request, f"{field}: {error}")
     return redirect('group_detail', pk=pk)
+
+
+@login_required
+@require_POST
+def add_photos_to_memory_view(request, pk):
+    """Drag-and-drop on the board: photos dropped onto an existing memory are
+    added to it. Same rules as editing the memory — you must be allowed to edit
+    it — and photos get the same compression as the normal upload form. If the
+    memory has no main photo yet, the first dropped photo becomes it; the rest
+    are additional photos."""
+    memory = get_object_or_404(Memory, pk=pk, is_deleted=False)
+    if request.user not in memory.group.members.all() or not memory.can_edit(request.user):
+        return JsonResponse({'ok': False, 'error': _("You don't have permission to edit that memory.")}, status=403)
+
+    files = request.FILES.getlist('photos')[:30]
+    if not files:
+        return JsonResponse({'ok': False, 'error': _('No photos received.')}, status=400)
+
+    image_field = django_forms.ImageField()
+    good, skipped = [], 0
+    for f in files:
+        try:
+            if not (f.content_type or '').startswith('image/'):
+                raise django_forms.ValidationError('not an image')
+            good.append(image_field.clean(compress_image(f)))
+        except django_forms.ValidationError:
+            skipped += 1
+    if not good:
+        return JsonResponse({'ok': False, 'error': _('Only photos can be added to a memory.')}, status=400)
+
+    for photo in good:
+        if not memory.photo:
+            memory.photo = photo
+            memory.save(update_fields=['photo'])
+        else:
+            MemoryPhoto.objects.create(memory=memory, photo=photo)
+
+    log_activity(memory.group, request.user, 'memory_edit',
+                 _('%(actor)s edited a memory: %(summary)s') % {
+                     'actor': get_display_name(request.user),
+                     'summary': memory.title or memory.content[:40],
+                 },
+                 memory=memory)
+    messages.success(request, ngettext('%(n)d photo added to the memory.',
+                                       '%(n)d photos added to the memory.', len(good)) % {'n': len(good)})
+    return JsonResponse({'ok': True, 'added': len(good), 'skipped': skipped})
 
 
 @login_required
