@@ -8,7 +8,8 @@ from django.db.models import Count, Q, Max
 from django.db.models.functions import Coalesce
 from django.http import JsonResponse, HttpResponseForbidden, Http404, HttpResponse
 from django.utils import timezone
-from django.utils.translation import gettext as _, ngettext
+from django.utils import translation
+from django.utils.translation import gettext as _, gettext_noop, ngettext
 from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
 from django import forms as django_forms
@@ -106,18 +107,42 @@ EMAIL_NOTIFICATION_TYPES = {
 }
 
 
+class DeferredText:
+    """A notification message that is translated into the *recipient's*
+    language when it's delivered (see create_notification), not into the
+    language of whoever caused it. Use it like gettext:
+        DeferredText(gettext_noop('%(actor)s commented')) % {'actor': name}
+    """
+    def __init__(self, msgid, params=None):
+        self.msgid = msgid
+        self.params = params
+
+    def __mod__(self, params):
+        return DeferredText(self.msgid, params)
+
+    def render(self, lang=None):
+        with translation.override(lang or settings.LANGUAGE_CODE):
+            text = translation.gettext(self.msgid)
+        return text % self.params if self.params is not None else text
+
+
 def create_notification(recipient, actor, notif_type, text, memory=None, group=None):
     if recipient == actor:
         return
+    profile = getattr(recipient, 'profile', None)
+    lang = getattr(profile, 'language', None) or None
+    if isinstance(text, DeferredText):
+        text = text.render(lang)
     Notification.objects.create(
         recipient=recipient, actor=actor, notif_type=notif_type,
         text=text, memory=memory, group=group,
     )
     profile_field = EMAIL_NOTIFICATION_TYPES.get(notif_type)
     if profile_field:
-        profile = getattr(recipient, 'profile', None)
         if profile is not None and getattr(profile, profile_field, False):
-            send_notification_email(recipient, _('WorthKeeping: %(text)s') % {'text': text}, text)
+            with translation.override(lang or settings.LANGUAGE_CODE):
+                subject = _('WorthKeeping: %(text)s') % {'text': text}
+            send_notification_email(recipient, subject, text)
 
 
 def log_activity(group, actor, action_type, description, memory=None):
@@ -163,7 +188,7 @@ def notify_newly_visible_users(group, old_privacy, old_visible_to_group_id):
             continue
         create_notification(
             u, group.owner, 'board_visible',
-            _('%(owner)s shared the board "%(board)s" with you') % {
+            DeferredText(gettext_noop('%(owner)s shared the board "%(board)s" with you')) % {
                 'owner': get_display_name(group.owner), 'board': group.name,
             },
             group=group,
@@ -178,7 +203,7 @@ def notify_boards_visible_after_friendship(user_a, user_b):
         for board in boards:
             create_notification(
                 viewer, owner, 'board_visible',
-                _('%(owner)s shared the board "%(board)s" with you') % {
+                DeferredText(gettext_noop('%(owner)s shared the board "%(board)s" with you')) % {
                     'owner': get_display_name(owner), 'board': board.name,
                 },
                 group=board,
@@ -199,7 +224,10 @@ def register_view(request):
     form = RegisterForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         user = form.save()
-        UserProfile.objects.get_or_create(user=user)
+        UserProfile.objects.get_or_create(
+            user=user,
+            defaults={'language': translation.get_language() if translation.get_language() in [l[0] for l in LANGUAGE_CHOICES] else 'en'},
+        )
         if invite_token:
             try:
                 invite = GroupInvite.objects.get(
@@ -222,7 +250,7 @@ def register_view(request):
                 notify_boards_visible_after_friendship(finv.from_user, user)
                 create_notification(
                     finv.from_user, user, 'friend_req',
-                    _('%(name)s accepted your friend invite and joined WorthKeeping!') % {
+                    DeferredText(gettext_noop('%(name)s accepted your friend invite and joined WorthKeeping!')) % {
                         'name': get_display_name(user),
                     },
                 )
@@ -234,7 +262,7 @@ def register_view(request):
             notify_boards_visible_after_friendship(link_owner, user)
             create_notification(
                 link_owner, user, 'friend_req',
-                _('%(name)s joined WorthKeeping through your invite link!') % {'name': get_display_name(user)},
+                DeferredText(gettext_noop('%(name)s joined WorthKeeping through your invite link!')) % {'name': get_display_name(user)},
             )
             messages.success(request, _("You're now friends with %(name)s!") % {'name': get_display_name(link_owner)})
         messages.success(request, _("Welcome to WorthKeeping, %(name)s!") % {'name': user.first_name})
@@ -996,7 +1024,7 @@ def invite_by_email_view(request, pk):
             group=group, invited_by=request.user, email=email, invited_user=existing)
         create_notification(
             existing, request.user, 'board_invite_pending',
-            _('%(actor)s invited you to join "%(board)s"') % {
+            DeferredText(gettext_noop('%(actor)s invited you to join "%(board)s"')) % {
                 'actor': get_display_name(request.user), 'board': group.name,
             },
             group=group,
@@ -1013,7 +1041,7 @@ def invite_by_email_view(request, pk):
             FriendRequest.objects.create(from_user=request.user, to_user=existing)
             create_notification(
                 existing, request.user, 'friend_req',
-                _('%(actor)s sent you a friend request') % {'actor': get_display_name(request.user)},
+                DeferredText(gettext_noop('%(actor)s sent you a friend request')) % {'actor': get_display_name(request.user)},
             )
         return JsonResponse({'ok': True, 'invite_pk': invite.pk, 'email': email, 'message': f'Invite sent to {get_display_name(existing)} — they\'ll need to accept it.'})
 
@@ -1068,7 +1096,7 @@ def invite_friend_group_view(request, pk, fg_pk):
             group=group, invited_by=request.user, email=member.email, invited_user=member)
         create_notification(
             member, request.user, 'board_invite_pending',
-            _('%(actor)s invited you to join "%(board)s"') % {
+            DeferredText(gettext_noop('%(actor)s invited you to join "%(board)s"')) % {
                 'actor': get_display_name(request.user), 'board': group.name,
             },
             group=group,
@@ -1091,7 +1119,7 @@ def resend_invite_view(request, pk, invite_pk):
     if invite.invited_user:
         create_notification(
             invite.invited_user, request.user, 'board_invite_pending',
-            _('%(actor)s invited you to join "%(board)s"') % {
+            DeferredText(gettext_noop('%(actor)s invited you to join "%(board)s"')) % {
                 'actor': get_display_name(request.user), 'board': group.name,
             },
             group=group,
@@ -1189,7 +1217,7 @@ def request_join_board_view(request, pk):
             if created:
                 create_notification(
                     group.owner, request.user, 'join_request',
-                    _('%(actor)s asked to join "%(board)s"') % {
+                    DeferredText(gettext_noop('%(actor)s asked to join "%(board)s"')) % {
                         'actor': get_display_name(request.user), 'board': group.name,
                     },
                     group=group,
@@ -1214,7 +1242,7 @@ def approve_join_request_view(request, pk, req_id):
                      _('%(actor)s joined the board') % {'actor': get_display_name(requester)})
         create_notification(
             requester, request.user, 'join_approved',
-            _('%(actor)s approved your request to join "%(board)s"') % {
+            DeferredText(gettext_noop('%(actor)s approved your request to join "%(board)s"')) % {
                 'actor': get_display_name(request.user), 'board': group.name,
             },
             group=group,
@@ -1247,7 +1275,7 @@ def make_admin_view(request, pk, user_id):
     group.admins.add(target)
     create_notification(
         target, request.user, 'board_invite',
-        _('%(actor)s made you an admin of "%(board)s"') % {
+        DeferredText(gettext_noop('%(actor)s made you an admin of "%(board)s"')) % {
             'actor': get_display_name(request.user), 'board': group.name,
         },
         group=group,
@@ -1323,7 +1351,7 @@ def friend_group_detail_view(request, pk):
                 for board in visible_boards.exclude(members=newly_member):
                     create_notification(
                         newly_member, user, 'board_visible',
-                        _('%(owner)s shared the board "%(board)s" with you') % {
+                        DeferredText(gettext_noop('%(owner)s shared the board "%(board)s" with you')) % {
                             'owner': get_display_name(user), 'board': board.name,
                         },
                         group=board,
@@ -1357,7 +1385,7 @@ def add_friend_to_group_view(request, pk, user_id):
     for board in Group.objects.filter(owner=request.user, privacy='friend_group', visible_to_group=fg).exclude(members=friend):
         create_notification(
             friend, request.user, 'board_visible',
-            _('%(owner)s shared the board "%(board)s" with you') % {
+            DeferredText(gettext_noop('%(owner)s shared the board "%(board)s" with you')) % {
                 'owner': get_display_name(request.user), 'board': board.name,
             },
             group=board,
@@ -1400,7 +1428,7 @@ def add_memory_view(request, pk):
             for tagged_user in memory.tagged.all():
                 create_notification(
                     tagged_user, request.user, 'tag',
-                    _('%(actor)s tagged you in a memory on "%(board)s"') % {
+                    DeferredText(gettext_noop('%(actor)s tagged you in a memory on "%(board)s"')) % {
                         'actor': get_display_name(request.user), 'board': group.name,
                     },
                     memory=memory, group=group,
@@ -1762,7 +1790,7 @@ def pin_memory_view(request, pk):
     log_activity(memory.group, request.user, action, desc, memory=memory)
     if memory.is_pinned and memory.creator != request.user:
         create_notification(memory.creator, request.user, 'pin',
-                            _('%(actor)s pinned your memory in "%(board)s"') % {
+                            DeferredText(gettext_noop('%(actor)s pinned your memory in "%(board)s"')) % {
                                 'actor': get_display_name(request.user), 'board': memory.group.name,
                             },
                             memory=memory, group=memory.group)
@@ -1827,7 +1855,7 @@ def react_memory_view(request, pk):
         if memory.creator != request.user:
             create_notification(
                 memory.creator, request.user, 'reaction',
-                _('%(actor)s reacted %(emoji)s to your memory in "%(board)s"') % {
+                DeferredText(gettext_noop('%(actor)s reacted %(emoji)s to your memory in "%(board)s"')) % {
                     'actor': get_display_name(request.user), 'emoji': emoji, 'board': memory.group.name,
                 },
                 memory=memory, group=memory.group,
@@ -1884,7 +1912,7 @@ def comments_view(request, pk):
         if memory.creator != request.user:
             create_notification(
                 memory.creator, request.user, 'comment',
-                _('%(actor)s commented on your memory in "%(board)s"') % {
+                DeferredText(gettext_noop('%(actor)s commented on your memory in "%(board)s"')) % {
                     'actor': get_display_name(request.user), 'board': memory.group.name,
                 },
                 memory=memory, group=memory.group,
@@ -2084,7 +2112,7 @@ def _friend_link_connect(user, owner):
     if created:
         create_notification(
             owner, user, 'friend_req',
-            _('%(actor)s sent you a friend request') % {'actor': get_display_name(user)},
+            DeferredText(gettext_noop('%(actor)s sent you a friend request')) % {'actor': get_display_name(user)},
         )
     return 'sent'
 
@@ -2164,7 +2192,7 @@ def send_friend_request_view(request):
                     from_user=request.user, to_user=form._resolved_user)
                 create_notification(
                     form._resolved_user, request.user, 'friend_req',
-                    _('%(actor)s sent you a friend request') % {'actor': get_display_name(request.user)},
+                    DeferredText(gettext_noop('%(actor)s sent you a friend request')) % {'actor': get_display_name(request.user)},
                 )
                 messages.success(request, _("Friend request sent to %(name)s!") % {
                     'name': get_display_name(form._resolved_user),
