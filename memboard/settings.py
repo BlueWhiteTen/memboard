@@ -12,7 +12,14 @@ DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = ['*']
 
 APP_URL = os.environ.get('APP_URL', 'http://localhost:8000')
-CSRF_TRUSTED_ORIGINS = [APP_URL] if APP_URL.startswith('https') else []
+# Trust the site both with and without "www." — otherwise opening
+# worthkeeping.life (no www) when APP_URL is www.worthkeeping.life makes every
+# form post fail with "CSRF verification failed".
+CSRF_TRUSTED_ORIGINS = []
+if APP_URL.startswith('https'):
+    _scheme, _, _host = APP_URL.rstrip('/').partition('://')
+    _bare = _host[4:] if _host.startswith('www.') else _host
+    CSRF_TRUSTED_ORIGINS = sorted({APP_URL.rstrip('/'), f'{_scheme}://{_bare}', f'{_scheme}://www.{_bare}'})
 
 # Only force HTTPS when APP_URL is actually https — keeps local dev
 # (http://localhost:8000, no cert) working without a separate flag.
