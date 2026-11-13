@@ -30,6 +30,9 @@
 .gauge:nth-child(2) { transform: rotate(0.5deg); }
 .gauge:nth-child(3) { transform: rotate(-0.4deg); }
 .gauge:nth-child(4) { transform: rotate(0.3deg); }
+a.gauge { color: inherit; cursor: pointer; transition: transform 0.12s, box-shadow 0.12s; }
+a.gauge:hover { transform: translateY(-2px); }
+a.gauge:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 .gauge b { display: block; font-family: var(--font-ui); font-size: 1.9rem; color: var(--coral); font-variant-numeric: tabular-nums; }
 .gauge span { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-muted); font-weight: 700; }
 
@@ -137,7 +140,7 @@
 
     <div class="gauges">
         <div class="gauge"><b>{{ user_groups|length }}</b><span>{% trans "Boards" %}</span></div>
-        <div class="gauge"><b>{{ friends|length }}</b><span>{% trans "Friends" %}</span></div>
+        <a href="{% url 'friends' %}" class="gauge"><b>{{ friends|length }}</b><span>{% trans "Friends" %}</span></a>
         <div class="gauge"><b>{{ total_memories }}</b><span>{% trans "Memories" %}</span></div>
         <a href="{% url 'notifications' %}" class="gauge"><b>{{ unread_notifs }}</b><span>{% trans "Notifications" %}</span></a>
     </div>
