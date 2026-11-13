@@ -32,7 +32,7 @@ from .models import (
 from .forms import (
     RegisterForm, EmailAuthenticationForm, GroupForm, GroupCoverForm,
     MemoryForm, EditMemoryForm, FriendRequestForm,
-    GroupSettingsForm, FriendGroupForm, ProfileForm, ReportProblemForm,
+    GroupSettingsForm, BoardDetailsForm, FriendGroupForm, ProfileForm, ReportProblemForm,
 )
 from .email_utils import (
     send_invite_email, send_friend_invite_email, send_problem_report_email,
@@ -941,6 +941,21 @@ def update_board_settings_view(request, pk):
         else:
             for error in form.errors.values():
                 messages.error(request, error.as_text())
+    return redirect('group_detail', pk=pk)
+
+
+@login_required
+@require_POST
+def update_board_details_view(request, pk):
+    """Rename a board / change its description — owner or board admin."""
+    group = get_board_for_manager(pk, request.user)
+    form = BoardDetailsForm(request.POST, instance=group)
+    if form.is_valid():
+        form.save()
+        messages.success(request, _("Board details updated."))
+    else:
+        for error in form.errors.values():
+            messages.error(request, error.as_text())
     return redirect('group_detail', pk=pk)
 
 

@@ -2491,3 +2491,15 @@ msgid "Click a friend to add them. They move up to Members when you save."
 msgstr ""
 "Πάτα έναν φίλο για να τον προσθέσεις. Μετακινείται στα Μέλη όταν "
 "αποθηκεύσεις."
+
+msgid "Title"
+msgstr "Τίτλος"
+
+msgid "Edit details"
+msgstr "Επεξεργασία στοιχείων"
+
+msgid "Board details"
+msgstr "Στοιχεία πίνακα"
+
+msgid "Board details updated."
+msgstr "Τα στοιχεία του πίνακα ενημερώθηκαν."

@@ -136,6 +136,22 @@ class GroupCoverForm(forms.ModelForm):
         return photo
 
 
+class BoardDetailsForm(forms.ModelForm):
+    """Edit a board's title and description (owner or admin)."""
+    class Meta:
+        model  = Group
+        fields = ('name', 'description')
+
+    def clean_name(self):
+        name = (self.cleaned_data.get('name') or '').strip()
+        if not name:
+            raise forms.ValidationError("A board needs a title.")
+        return name
+
+    def clean_description(self):
+        return (self.cleaned_data.get('description') or '').strip()
+
+
 class GroupSettingsForm(forms.ModelForm):
     class Meta:
         model  = Group

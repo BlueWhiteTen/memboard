@@ -35,6 +35,7 @@ urlpatterns = [
     path('groups/<int:pk>/cover-position/', views.update_cover_position_view, name='update_cover_position'),
     path('groups/<int:pk>/leave/',        views.leave_board_view,     name='leave_board'),
     path('groups/<int:pk>/settings/',     views.update_board_settings_view, name='update_board_settings'),
+    path('groups/<int:pk>/details/',      views.update_board_details_view,  name='update_board_details'),
     path('groups/<int:pk>/request-join/', views.request_join_board_view, name='request_join_board'),
     path('groups/<int:pk>/join-requests/<int:req_id>/approve/', views.approve_join_request_view, name='approve_join_request'),
     path('groups/<int:pk>/join-requests/<int:req_id>/decline/', views.decline_join_request_view, name='decline_join_request'),

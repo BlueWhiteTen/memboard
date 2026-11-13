@@ -534,6 +534,9 @@
             {% if group.description %}<div class="board-meta" style="margin-top:0.3rem;color:var(--ink-light);">{{ group.description }}</div>{% endif %}
         </div>
         <div class="board-actions">
+            {% if can_manage %}
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('details-modal').classList.add('open')">✏️ {% trans "Edit details" %}</button>
+            {% endif %}
             {% if group.owner == request.user %}
             <button class="btn btn-ghost btn-sm" onclick="document.getElementById('invite-modal').classList.add('open')">+ {% trans "Add member" %}</button>
             <button class="btn btn-ghost btn-sm" onclick="document.getElementById('settings-modal').classList.add('open')">{% trans "Settings" %}</button>
@@ -1065,6 +1068,26 @@
     </div>
 </div>
 </div>
+
+<!-- Edit details modal (owner or admin) -->
+{% if can_manage %}
+<div class="modal-overlay" id="details-modal">
+<div class="modal">
+    <div class="modal-header">
+        <div class="modal-title">{% trans "Board details" %}</div>
+        <button class="modal-close" onclick="document.getElementById('details-modal').classList.remove('open')">✕</button>
+    </div>
+    <form method="post" action="{% url 'update_board_details' group.pk %}">
+        {% csrf_token %}
+        <label for="details-name" style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);display:block;margin-bottom:0.4rem;">{% trans "Title" %}</label>
+        <input type="text" id="details-name" name="name" value="{{ group.name }}" maxlength="120" required class="comment-input" style="width:100%;padding:0.5rem 0.75rem;margin-bottom:1rem;">
+        <label for="details-description" style="font-size:0.8rem;font-weight:500;color:var(--ink-muted);display:block;margin-bottom:0.4rem;">{% trans "Description" %}</label>
+        <textarea id="details-description" name="description" rows="4" class="comment-input" style="width:100%;padding:0.5rem 0.75rem;margin-bottom:1rem;resize:vertical;">{{ group.description }}</textarea>
+        <button type="submit" class="btn btn-primary btn-sm">{% trans "Save" %}</button>
+    </form>
+</div>
+</div>
+{% endif %}
 
 <!-- Settings Modal -->
 <div class="modal-overlay" id="settings-modal">
